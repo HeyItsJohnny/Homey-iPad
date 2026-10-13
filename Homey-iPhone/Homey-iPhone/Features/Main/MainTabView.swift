@@ -1,20 +1,38 @@
 import SwiftUI
 
-private enum MainTab: Hashable { case home, calendar, meals, chores, groceries }
+private enum MainTab: Hashable { case home, calendar, meals, chores, trips }
 
 struct MainTabView: View {
+    @EnvironmentObject private var session: AppSession
+    @State private var tripsResetID = UUID()
     @State private var selection: MainTab = .home
+    @State private var mealsSection = 0
     var body: some View {
         TabView(selection: $selection) {
             NavigationStack { HomeView(navigate: navigate) }.tabItem { Label("Home", systemImage: "house.fill") }.tag(MainTab.home)
             NavigationStack { CalendarRootView() }.tabItem { Label("Calendar", systemImage: "calendar") }.tag(MainTab.calendar)
             ChoresRootView().tabItem { Label("Chores", systemImage: "checklist") }.tag(MainTab.chores)
-            MealsRootView().tabItem { Label("Meals", systemImage: "fork.knife") }.tag(MainTab.meals)
-            NavigationStack { GroceriesView(isActive: selection == .groceries) }.tabItem { Label("Groceries", systemImage: "cart") }.tag(MainTab.groceries)
+            MealsRootView(section: $mealsSection, isActive: selection == .meals).tabItem { Label("Meals", systemImage: "fork.knife") }.tag(MainTab.meals)
+            NavigationStack { TripsView() }.id(tripsResetID).tabItem { Label("Trips", systemImage: "airplane") }.tag(MainTab.trips)
         }.tint(HomeyColors.primary)
+        .onReceive(NotificationCenter.default.publisher(for: TripsResetNotice.name)) { notice in
+            guard let homeID = notice.object as? UUID, session.activeHome?.id == homeID else { return }
+            tripsResetID = UUID()
+        }
     }
-    private func tab(_ title: String, _ symbol: String) -> some View { NavigationStack { FeaturePlaceholderView(title: title, symbol: symbol) } }
-    private func navigate(_ destination: DashboardDestination) { switch destination { case .calendar: selection = .calendar; case .meals: selection = .meals; case .chores: selection = .chores; case .groceries: selection = .groceries } }
+    private func navigate(_ destination: DashboardDestination) {
+        switch destination {
+        case .calendar:
+            selection = .calendar
+        case .meals:
+            selection = .meals
+        case .chores:
+            selection = .chores
+        case .groceries:
+            mealsSection = 3
+            selection = .meals
+        }
+    }
 }
 
 private struct FeaturePlaceholderView: View {

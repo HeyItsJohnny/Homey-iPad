@@ -7,6 +7,12 @@ struct HomeSettingsView: View {
     var onClose: () -> Void = {}
     var onShowCalendarCategories: () -> Void = {}
 
+    @State private var clearTripsHome: HomeSummary?
+    @State private var isShowingClearTripsConfirmation = false
+    @State private var clearTripsConfirmationText = ""
+    @State private var isClearingTrips = false
+    @State private var clearTripsErrorMessage: String?
+    @State private var isShowingClearTripsError = false
     @State private var homeName = ""
     @State private var timezone = TimeZone.current.identifier
     @State private var weekStartsOn = WeekStartOption.sunday.rawValue
@@ -99,6 +105,29 @@ struct HomeSettingsView: View {
         }
         .sheet(isPresented: $isShowingTimezonePicker) {
             TimeZonePickerView(selectedTimezone: $timezone)
+        }
+        .sheet(isPresented: $isShowingClearTripsConfirmation) {
+            if let home = clearTripsHome {
+                ClearHomeDataConfirmationSheet(
+                    title: "Clear Trips?", homeName: home.name, message: TripsResetNotice.confirmation,
+                    confirmButtonTitle: "Clear Trips", loadingAccessibilityLabel: "Clearing Trips",
+                    confirmationText: $clearTripsConfirmationText, isClearing: isClearingTrips,
+                    onCancel: { if !isClearingTrips { isShowingClearTripsConfirmation = false } },
+                    onConfirm: { Task { await clearTrips() } }
+                )
+            }
+        }
+        .alert("Unable to Clear Trips", isPresented: $isShowingClearTripsError) {
+            Button("OK", role: .cancel) {}
+        } message: { Text(clearTripsErrorMessage ?? "Trips could not be cleared.") }
+        .onChange(of: selectedHome?.id) { _, _ in
+            isShowingClearTripsConfirmation = false
+            clearTripsConfirmationText = ""
+            clearTripsErrorMessage = nil
+            isShowingClearTripsError = false
+        }
+        .onChange(of: isCurrentUserOwner) { _, owner in
+            if !owner { isShowingClearTripsConfirmation = false }
         }
         .alert("Unable to Save Changes", isPresented: $isShowingSaveError) {
             Button("OK", role: .cancel) {}
@@ -398,7 +427,20 @@ struct HomeSettingsView: View {
                 loadingTitle: "Clearing Calendar...",
                 action: { isShowingClearCalendarDialog = true }
             )
+            Divider().overlay(HomeyDashboardTheme.destructiveRed.opacity(0.18))
+            dangerZoneAction(
+                title: "Clear Trips",
+                description: "Deletes organized Trips and removes this Home from other households’ Trips. Calendar events remain.",
+                systemImage: "airplane", isLoading: isClearingTrips, loadingTitle: "Clearing Trips...",
+                action: {
+                    guard isCurrentUserOwner, !isClearingTrips, let home = selectedHome else { return }
+                    clearTripsHome = home
+                    clearTripsConfirmationText = ""
+                    isShowingClearTripsConfirmation = true
+                }
+            )
         }
+        .disabled(isClearingTrips)
         .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(HomeyDashboardTheme.destructiveRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 26, style: .continuous))
@@ -584,6 +626,29 @@ struct HomeSettingsView: View {
         } catch {
             clearMealsErrorMessage = error.localizedDescription
             isShowingClearMealsError = true
+        }
+    }
+
+    private func clearTrips() async {
+        guard !isClearingTrips, clearTripsConfirmationText == "CLEAR",
+              let home = clearTripsHome, selectedHome?.id == home.id, isCurrentUserOwner else { return }
+        isClearingTrips = true
+        clearTripsErrorMessage = nil
+        successMessage = nil
+        defer { isClearingTrips = false }
+        do {
+            _ = try await HomeTripsResetService().clear(homeID: home.id,
+                role: homeService.selectedHomeRole(currentUserID: authenticationService.currentUser?.id))
+            NotificationCenter.default.post(name: TripsResetNotice.name, object: home.id)
+            guard selectedHome?.id == home.id else { return }
+            clearTripsConfirmationText = ""
+            isShowingClearTripsConfirmation = false
+            successMessage = "Trips cleared."
+        } catch is CancellationError {
+        } catch {
+            guard selectedHome?.id == home.id else { return }
+            clearTripsErrorMessage = "Trips could not be cleared."
+            isShowingClearTripsError = true
         }
     }
 

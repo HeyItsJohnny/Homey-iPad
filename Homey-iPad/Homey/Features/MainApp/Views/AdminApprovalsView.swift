@@ -56,7 +56,12 @@ private enum AdminApprovalServiceError: LocalizedError {
     }
 }
 
-private struct AdminChoreApprovalService {
+private protocol AdminChoreApprovalServing {
+    func pendingApprovals(homeID: UUID) async throws -> [AdminPendingChoreApproval]
+    func review(homeID: UUID, sessionToken: String, submissionID: UUID, decision: AdminChoreReviewDecision, adminNote: String?) async throws -> UUID
+}
+
+private struct AdminChoreApprovalService: AdminChoreApprovalServing {
     private let client = SupabaseManager.shared.client
 
     func pendingApprovals(homeID: UUID) async throws -> [AdminPendingChoreApproval] {
@@ -188,40 +193,89 @@ private struct AdminChoreReviewParameters: Encodable {
 @MainActor
 private final class AdminApprovalsViewModel: ObservableObject {
     @Published private(set) var approvals: [AdminPendingChoreApproval] = []
+    @Published private(set) var tripReviews: [AdminPendingTripReview] = []
     @Published private(set) var isLoading = false
     @Published private(set) var processingSubmissionIDs: Set<UUID> = []
+    @Published private(set) var processingTripIDs: Set<UUID> = []
     @Published private(set) var loadErrorMessage: String?
+    @Published private(set) var tripLoadErrorMessage: String?
     @Published private(set) var actionErrorMessage: String?
 
-    private let service = AdminChoreApprovalService()
+    private let service: any AdminChoreApprovalServing
+    private let tripService: any AdminTripReviewServing
     private var activeHomeID: UUID?
+    private var activeSessionToken: String?
     private var loadID = UUID()
+    private var tripLoadID = UUID()
+    private var globalLoadID = UUID()
+    private var tripReviewEpoch = UUID()
+    private var reviewedTripIDs: Set<UUID> = []
 
-    func load(homeID: UUID, clearExisting: Bool = false) async {
+    init(service: (any AdminChoreApprovalServing)? = nil, tripService: (any AdminTripReviewServing)? = nil) {
+        self.service = service ?? AdminChoreApprovalService()
+        self.tripService = tripService ?? AdminTripReviewService()
+    }
+
+    var pendingCount: Int { approvals.count + tripReviews.count }
+
+    func load(homeID: UUID, sessionToken: String, controller: HomeAdminAccessController, clearExisting: Bool = false) async {
+        guard Self.controllerHasSession(controller, token: sessionToken), !Task.isCancelled else { return }
+        if activeHomeID != homeID || activeSessionToken != sessionToken || clearExisting { reset() }
         activeHomeID = homeID
+        activeSessionToken = sessionToken
         let requestID = UUID()
+        globalLoadID = requestID
         loadID = requestID
+        tripLoadID = requestID
         isLoading = true
         loadErrorMessage = nil
+        tripLoadErrorMessage = nil
         actionErrorMessage = nil
-        if clearExisting {
-            approvals = []
-        }
+        defer { if globalLoadID == requestID { isLoading = false } }
 
-        do {
-            let loadedApprovals = try await service.pendingApprovals(homeID: homeID)
-            guard activeHomeID == homeID, loadID == requestID else { return }
-            approvals = loadedApprovals
-            loadErrorMessage = nil
-        } catch is CancellationError {
-            return
-        } catch {
-            guard activeHomeID == homeID, loadID == requestID else { return }
-            loadErrorMessage = AdminApprovalServiceError.loadFailed.localizedDescription
+        async let chores = fetchChores(homeID: homeID)
+        async let trips = fetchTrips(homeID: homeID)
+        let (choreResult, tripResult) = await (chores, trips)
+        guard isCurrentSession(homeID: homeID, token: sessionToken, controller: controller), !Task.isCancelled else { return }
+        if case .failure(let error) = tripResult, AdminTripReviewError.isSessionExpiry(error) {
+            reset(); controller.lock(); return
         }
+        if case .failure(let error) = choreResult, AdminTripReviewError.isSessionExpiry(error) {
+            reset(); controller.lock(); return
+        }
+        if loadID == requestID {
+            switch choreResult {
+            case .success(let rows): approvals = rows
+            case .failure(let error):
+                if !AdminTripReviewError.isCancellation(error) { loadErrorMessage = AdminApprovalServiceError.loadFailed.localizedDescription }
+            }
+        }
+        if tripLoadID == requestID {
+            switch tripResult {
+            case .success(let rows): tripReviews = rows.filter { !reviewedTripIDs.contains($0.tripID) }
+            case .failure(let error):
+                if !AdminTripReviewError.isCancellation(error) { tripLoadErrorMessage = AdminTripReviewError.loadFailed.localizedDescription }
+            }
+        }
+    }
 
-        guard activeHomeID == homeID, loadID == requestID else { return }
-        isLoading = false
+    private func fetchChores(homeID: UUID) async -> Result<[AdminPendingChoreApproval], Error> {
+        do { return .success(try await service.pendingApprovals(homeID: homeID)) }
+        catch { return .failure(error) }
+    }
+
+    private func fetchTrips(homeID: UUID) async -> Result<[AdminPendingTripReview], Error> {
+        do { return .success(try await tripService.pendingReviews(homeID: homeID)) }
+        catch { return .failure(error) }
+    }
+
+    private static func controllerHasSession(_ controller: HomeAdminAccessController, token: String) -> Bool {
+        guard case .unlocked(let session) = controller.state else { return false }
+        return session.token == token && session.expiresAt > Date()
+    }
+
+    private func isCurrentSession(homeID: UUID, token: String, controller: HomeAdminAccessController) -> Bool {
+        activeHomeID == homeID && activeSessionToken == token && Self.controllerHasSession(controller, token: token)
     }
 
     func review(
@@ -231,56 +285,64 @@ private final class AdminApprovalsViewModel: ObservableObject {
         sessionToken: String,
         controller: HomeAdminAccessController
     ) async {
-        guard activeHomeID == homeID,
+        guard isCurrentSession(homeID: homeID, token: sessionToken, controller: controller),
+              !Task.isCancelled,
+              approvals.contains(where: { $0.submissionID == approval.submissionID }),
               !processingSubmissionIDs.contains(approval.submissionID) else {
             return
         }
 
         processingSubmissionIDs.insert(approval.submissionID)
         actionErrorMessage = nil
-        defer { processingSubmissionIDs.remove(approval.submissionID) }
+        defer { if activeSessionToken == sessionToken { processingSubmissionIDs.remove(approval.submissionID) } }
 
         do {
             _ = try await service.review(
                 homeID: homeID,
                 sessionToken: sessionToken,
                 submissionID: approval.submissionID,
-                decision: decision
+                decision: decision,
+                adminNote: nil
             )
         } catch is CancellationError {
             return
         } catch AdminApprovalServiceError.sessionExpired {
+            guard isCurrentSession(homeID: homeID, token: sessionToken, controller: controller) else { return }
             reset()
             controller.lock()
             return
         } catch {
-            guard activeHomeID == homeID else { return }
+            guard isCurrentSession(homeID: homeID, token: sessionToken, controller: controller) else { return }
             actionErrorMessage = error.localizedDescription
             return
         }
 
         NotificationCenter.default.post(name: .homeyChoresDidChange, object: nil)
         NotificationCenter.default.post(name: .homeyCalendarEventsDidChange, object: nil)
-        guard activeHomeID == homeID else { return }
+        guard isCurrentSession(homeID: homeID, token: sessionToken, controller: controller) else { return }
         loadID = UUID()
         withAnimation(.easeInOut(duration: 0.2)) {
             approvals.removeAll { $0.submissionID == approval.submissionID }
         }
         controller.extendSessionAfterAdminActivity()
-        await reconcileAfterSuccessfulReview(homeID: homeID)
+        await reconcileAfterSuccessfulReview(homeID: homeID, sessionToken: sessionToken, controller: controller)
     }
 
-    private func reconcileAfterSuccessfulReview(homeID: UUID) async {
+    private func reconcileAfterSuccessfulReview(homeID: UUID, sessionToken: String, controller: HomeAdminAccessController) async {
         let requestID = UUID()
         loadID = requestID
 
         do {
             let reconciledApprovals = try await service.pendingApprovals(homeID: homeID)
-            guard activeHomeID == homeID, loadID == requestID else { return }
+            guard isCurrentSession(homeID: homeID, token: sessionToken, controller: controller), loadID == requestID else { return }
             approvals = reconciledApprovals
         } catch is CancellationError {
             return
         } catch {
+            if AdminTripReviewError.isSessionExpiry(error),
+               isCurrentSession(homeID: homeID, token: sessionToken, controller: controller) {
+                reset(); controller.lock(); return
+            }
             #if DEBUG
             print("[Homey] ADMIN APPROVAL REFRESH ERROR")
             print("type: \(String(reflecting: type(of: error)))")
@@ -299,18 +361,93 @@ private final class AdminApprovalsViewModel: ObservableObject {
         }
     }
 
+
+    func submitTripReview(_ trip: AdminPendingTripReview, draft: AdminTripReviewDraft, homeID: UUID,
+                          sessionToken: String, controller: HomeAdminAccessController) async {
+        guard isCurrentSession(homeID: homeID, token: sessionToken, controller: controller),
+              !Task.isCancelled, draft.isValid, !processingTripIDs.contains(trip.tripID),
+              tripReviews.contains(where: { $0.tripID == trip.tripID }) else { return }
+        let epoch = tripReviewEpoch
+        processingTripIDs.insert(trip.tripID)
+        actionErrorMessage = nil
+        defer { if activeSessionToken == sessionToken, tripReviewEpoch == epoch { processingTripIDs.remove(trip.tripID) } }
+
+        do {
+            _ = try await tripService.submit(homeID: homeID, sessionToken: sessionToken, tripID: trip.tripID, draft: draft)
+        } catch is CancellationError {
+            return
+        } catch AdminTripReviewError.sessionExpired {
+            guard tripReviewEpoch == epoch, isCurrentSession(homeID: homeID, token: sessionToken, controller: controller) else { return }
+            reset()
+            controller.lock()
+            return
+        } catch {
+            guard tripReviewEpoch == epoch, isCurrentSession(homeID: homeID, token: sessionToken, controller: controller) else { return }
+            actionErrorMessage = error.localizedDescription
+            return
+        }
+
+        guard tripReviewEpoch == epoch, isCurrentSession(homeID: homeID, token: sessionToken, controller: controller) else { return }
+        tripLoadID = UUID()
+        reviewedTripIDs.insert(trip.tripID)
+        withAnimation(.easeInOut(duration: 0.2)) {
+            tripReviews.removeAll { $0.tripID == trip.tripID }
+        }
+        controller.extendSessionAfterAdminActivity()
+        // Reconciliation has its own failure path; the successful review stays removed.
+        await reconcileTripsAfterSuccess(homeID: homeID, token: sessionToken, controller: controller)
+    }
+
+    func invalidateTripReviews(homeID: UUID, token: String, controller: HomeAdminAccessController) async {
+        guard isCurrentSession(homeID: homeID, token: token, controller: controller) else { return }
+        tripReviewEpoch = UUID()
+        tripLoadID = UUID()
+        tripReviews = []
+        processingTripIDs = []
+        reviewedTripIDs = []
+        tripLoadErrorMessage = nil
+        await reconcileTripsAfterSuccess(homeID: homeID, token: token, controller: controller)
+    }
+
+    private func reconcileTripsAfterSuccess(homeID: UUID, token: String, controller: HomeAdminAccessController) async {
+        let requestID = UUID()
+        tripLoadID = requestID
+        do {
+            let rows = try await tripService.pendingReviews(homeID: homeID)
+            guard isCurrentSession(homeID: homeID, token: token, controller: controller), tripLoadID == requestID else { return }
+            tripReviews = rows.filter { !reviewedTripIDs.contains($0.tripID) }
+            tripLoadErrorMessage = nil
+        } catch is CancellationError {
+        } catch AdminTripReviewError.sessionExpired {
+            guard isCurrentSession(homeID: homeID, token: token, controller: controller) else { return }
+            reset(); controller.lock()
+        } catch {
+            guard isCurrentSession(homeID: homeID, token: token, controller: controller), tripLoadID == requestID else { return }
+            tripLoadErrorMessage = AdminTripReviewError.loadFailed.localizedDescription
+        }
+    }
+
     func reset() {
         activeHomeID = nil
+        activeSessionToken = nil
+        tripReviewEpoch = UUID()
         loadID = UUID()
+        tripLoadID = UUID()
+        globalLoadID = UUID()
         approvals = []
+        tripReviews = []
+        reviewedTripIDs = []
         processingSubmissionIDs = []
+        processingTripIDs = []
         isLoading = false
         loadErrorMessage = nil
+        tripLoadErrorMessage = nil
         actionErrorMessage = nil
     }
 }
 
 struct AdminApprovalsView: View {
+    @EnvironmentObject private var homeService: HomeService
     let homeID: UUID
     let session: HomeAdminSession
     @ObservedObject var controller: HomeAdminAccessController
@@ -321,32 +458,38 @@ struct AdminApprovalsView: View {
             LazyVStack(alignment: .leading, spacing: 18) {
                 approvalsHeader
 
-                if viewModel.isLoading && viewModel.approvals.isEmpty {
+                if let message = viewModel.loadErrorMessage { errorBanner(message) }
+                if let message = viewModel.tripLoadErrorMessage { errorBanner(message) }
+                if let message = viewModel.actionErrorMessage { errorBanner(message) }
+
+                if viewModel.isLoading && viewModel.pendingCount == 0 {
                     loadingState
-                } else if let loadErrorMessage = viewModel.loadErrorMessage,
-                          viewModel.approvals.isEmpty {
-                    loadErrorState(loadErrorMessage)
-                } else if viewModel.approvals.isEmpty {
-                    emptyState
-                } else {
-                    if let loadErrorMessage = viewModel.loadErrorMessage {
-                        errorBanner(loadErrorMessage)
+                } else if viewModel.pendingCount == 0 {
+                    if viewModel.loadErrorMessage != nil || viewModel.tripLoadErrorMessage != nil {
+                        loadErrorState("Some reviews could not be loaded. Please try again.")
+                    } else {
+                        emptyState
                     }
-
-                    if let actionErrorMessage = viewModel.actionErrorMessage {
-                        errorBanner(actionErrorMessage)
-                    }
-
+                }
+                if !viewModel.approvals.isEmpty {
+                    queueHeading("CHORE APPROVALS", count: viewModel.approvals.count)
                     ForEach(viewModel.approvals) { approval in
                         AdminApprovalCard(
                             approval: approval,
                             isProcessing: viewModel.processingSubmissionIDs.contains(approval.submissionID),
-                            onNeedsMoreWork: {
-                                review(approval, decision: .needsRedo)
-                            },
-                            onApprove: {
-                                review(approval, decision: .approved)
-                            }
+                            onNeedsMoreWork: { review(approval, decision: .needsRedo) },
+                            onApprove: { review(approval, decision: .approved) }
+                        )
+                    }
+                }
+                if !viewModel.tripReviews.isEmpty {
+                    queueHeading("TRIPS TO REVIEW", count: viewModel.tripReviews.count)
+                    ForEach(viewModel.tripReviews) { trip in
+                        AdminTripReviewCard(
+                            trip: trip,
+                            timezone: homeService.selectedHome()?.timezone.flatMap(TimeZone.init(identifier:)) ?? .current,
+                            isProcessing: viewModel.processingTripIDs.contains(trip.tripID),
+                            onSubmit: { draft in submitTripReview(trip, draft: draft) }
                         )
                     }
                 }
@@ -356,10 +499,22 @@ struct AdminApprovalsView: View {
         }
         .scrollIndicators(.hidden)
         .refreshable {
-            await viewModel.load(homeID: homeID)
+            await viewModel.load(homeID: homeID, sessionToken: session.token, controller: controller)
         }
-        .task(id: homeID) {
-            await viewModel.load(homeID: homeID, clearExisting: true)
+        .task(id: "\(homeID)-\(session.token)") {
+            await viewModel.load(homeID: homeID, sessionToken: session.token, controller: controller, clearExisting: true)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: TripsResetNotice.name)) { notice in
+            guard let affectedHomeID = notice.object as? UUID, affectedHomeID == homeID,
+                  homeService.selectedHomeID == homeID else { return }
+            Task { await viewModel.invalidateTripReviews(homeID: homeID, token: session.token, controller: controller) }
+        }
+        .onChange(of: controller.state) { _, state in
+            if case .unlocked(let active) = state, active.token == session.token { return }
+            viewModel.reset()
+        }
+        .onChange(of: homeService.selectedHomeID) { _, id in
+            if id != homeID { viewModel.reset() }
         }
         .onDisappear {
             viewModel.reset()
@@ -374,12 +529,27 @@ struct AdminApprovalsView: View {
 
             Spacer()
 
-            Text("\(viewModel.approvals.count) Pending")
+            Text("\(viewModel.pendingCount) Pending")
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(HomeyDashboardTheme.warmBrown)
                 .padding(.horizontal, 13)
                 .padding(.vertical, 7)
                 .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+        }
+    }
+
+    private func queueHeading(_ title: String, count: Int) -> some View {
+        Text("\(title) · \(count)")
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .accessibilityAddTraits(.isHeader)
+    }
+
+    private func submitTripReview(_ trip: AdminPendingTripReview, draft: AdminTripReviewDraft) {
+        guard homeService.selectedHomeID == homeID else { return }
+        Task {
+            guard homeService.selectedHomeID == homeID else { return }
+            await viewModel.submitTripReview(trip, draft: draft, homeID: homeID, sessionToken: session.token, controller: controller)
         }
     }
 
@@ -405,7 +575,7 @@ struct AdminApprovalsView: View {
                 .foregroundStyle(HomeyDashboardTheme.primaryText)
                 .multilineTextAlignment(.center)
             Button("Try Again") {
-                Task { await viewModel.load(homeID: homeID) }
+                Task { await viewModel.load(homeID: homeID, sessionToken: session.token, controller: controller) }
             }
             .font(.headline)
             .foregroundStyle(.white)
@@ -427,7 +597,7 @@ struct AdminApprovalsView: View {
             Text("All caught up!")
                 .font(.title2.bold())
                 .foregroundStyle(HomeyDashboardTheme.primaryText)
-            Text("No chores are waiting for approval.")
+            Text("Nothing is waiting for review.")
                 .font(.title3)
                 .foregroundStyle(HomeyDashboardTheme.secondaryText)
         }
@@ -446,7 +616,9 @@ struct AdminApprovalsView: View {
     }
 
     private func review(_ approval: AdminPendingChoreApproval, decision: AdminChoreReviewDecision) {
+        guard homeService.selectedHomeID == homeID else { return }
         Task {
+            guard homeService.selectedHomeID == homeID else { return }
             await viewModel.review(
                 approval,
                 decision: decision,

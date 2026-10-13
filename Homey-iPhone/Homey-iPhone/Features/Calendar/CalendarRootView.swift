@@ -237,14 +237,14 @@ private struct PhoneCalendarEventRow: View {
     }
 }
 
-private enum PhoneCalendarEditorMode {
+enum PhoneCalendarEditorMode {
     case create(Date)
     case edit(PhoneCalendarEvent, PhoneCalendarEditScope)
 }
 
 private enum PhoneRecurrenceEndMode: String, CaseIterable, Identifiable { case never = "Never", date = "On Date", count = "After Count"; var id: Self { self } }
 
-private struct PhoneCalendarEditor: View {
+struct PhoneCalendarEditor: View {
     @Environment(\.dismiss) private var dismiss
     let mode: PhoneCalendarEditorMode
     let categories: [PhoneCalendarCategory]
@@ -253,16 +253,24 @@ private struct PhoneCalendarEditor: View {
     let isSaving: Bool
     let externalError: String?
     let onSave: (PhoneCalendarDraft) async -> Bool
+    let saveTitle: String
+    let allowsRecurrence: Bool
+    let scheduleHint: String?
+    let preservesDurationOnStartChange: Bool
+    @State private var isSubmitting = false
+    @State private var saveTask: Task<Void, Never>?
     @State private var draft: PhoneCalendarDraft
     @State private var localError: String?
     @State private var endMode: PhoneRecurrenceEndMode
 
-    init(mode: PhoneCalendarEditorMode, categories: [PhoneCalendarCategory], calendar: Calendar, timezone: TimeZone, isSaving: Bool, externalError: String?, onSave: @escaping (PhoneCalendarDraft) async -> Bool) {
+    init(mode: PhoneCalendarEditorMode, categories: [PhoneCalendarCategory], calendar: Calendar, timezone: TimeZone, isSaving: Bool, externalError: String?, initialDraft: PhoneCalendarDraft? = nil, saveTitle: String = "Save", allowsRecurrence: Bool = true, scheduleHint: String? = nil, preservesDurationOnStartChange: Bool = false, onSave: @escaping (PhoneCalendarDraft) async -> Bool) {
         self.mode = mode; self.categories = categories; self.calendar = calendar; self.timezone = timezone
         self.isSaving = isSaving; self.externalError = externalError; self.onSave = onSave
+        self.saveTitle = saveTitle; self.allowsRecurrence = allowsRecurrence; self.scheduleHint = scheduleHint
+        self.preservesDurationOnStartChange = preservesDurationOnStartChange
         let initial: PhoneCalendarDraft
         switch mode {
-        case .create(let date): initial = PhoneCalendarDraft(date: date, calendar: calendar)
+        case .create(let date): initial = initialDraft ?? PhoneCalendarDraft(date: date, calendar: calendar)
         case .edit(let event, let scope): initial = PhoneCalendarDraft(event: event, calendar: calendar, occurrenceOnly: scope == .occurrence)
         }
         _draft = State(initialValue: initial)
@@ -277,6 +285,7 @@ private struct PhoneCalendarEditor: View {
                     Toggle("All Day", isOn: $draft.isAllDay)
                 }
                 Section("Date and Time") {
+                    if let scheduleHint { Text(scheduleHint).font(.footnote).foregroundStyle(HomeyColors.secondaryText) }
                     DatePicker("Start", selection: $draft.startsAt, displayedComponents: draft.isAllDay ? .date : [.date, .hourAndMinute])
                     DatePicker("End", selection: $draft.endsAt, in: draft.startsAt..., displayedComponents: draft.isAllDay ? .date : [.date, .hourAndMinute])
                 }
@@ -317,12 +326,24 @@ private struct PhoneCalendarEditor: View {
             .navigationTitle(editorTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) { Button("Save") { Task { await save() } }.disabled(isSaving) }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(isSaving || isSubmitting) }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(saveTitle) { saveTask = Task { await save() } }
+                        .disabled(isSaving || isSubmitting)
+                }
             }
             .onChange(of: endMode) { _, value in
                 if value != .date { draft.recurrence.endDate = nil }
                 if value != .count { draft.recurrence.count = nil }
+            }
+            .onChange(of: draft.startsAt) { oldStart, newStart in
+                guard preservesDurationOnStartChange else { return }
+                if draft.isAllDay {
+                    let days = max(0, calendar.dateComponents([.day], from: calendar.startOfDay(for: oldStart), to: calendar.startOfDay(for: draft.endsAt)).day ?? 0)
+                    draft.endsAt = calendar.date(byAdding: .day, value: days, to: calendar.startOfDay(for: newStart)) ?? newStart
+                } else {
+                    draft.endsAt = newStart.addingTimeInterval(max(60, draft.endsAt.timeIntervalSince(oldStart)))
+                }
             }
             .onChange(of: draft.isAllDay) { _, allDay in
                 if allDay { draft.startsAt = calendar.startOfDay(for: draft.startsAt); draft.endsAt = max(calendar.startOfDay(for: draft.endsAt), draft.startsAt) }
@@ -335,11 +356,13 @@ private struct PhoneCalendarEditor: View {
                 }
             }
         }
+        .interactiveDismissDisabled(isSaving || isSubmitting)
+        .onDisappear { saveTask?.cancel() }
         .presentationDetents([.large])
     }
 
     private var editorTitle: String { if case .create = mode { return "New Event" }; return "Edit Event" }
-    private var showsRecurrence: Bool { if case .edit(_, .occurrence) = mode { return false }; return true }
+    private var showsRecurrence: Bool { if !allowsRecurrence { return false }; if case .edit(_, .occurrence) = mode { return false }; return true }
     private var intervalUnit: String { (draft.recurrence.frequency?.rawValue ?? "day") + (draft.recurrence.interval == 1 ? "" : "s") }
     private var recurrenceEndDate: Binding<Date> { Binding(get: { draft.recurrence.endDate ?? calendar.startOfDay(for: draft.startsAt) }, set: { draft.recurrence.endDate = $0; draft.recurrence.count = nil }) }
     private var recurrenceCount: Binding<Int> { Binding(get: { draft.recurrence.count ?? 10 }, set: { draft.recurrence.count = $0; draft.recurrence.endDate = nil }) }
@@ -371,6 +394,10 @@ private struct PhoneCalendarEditor: View {
     }
 
     private func save() async {
+        guard !isSaving, !isSubmitting, !Task.isCancelled else { return }
+        isSubmitting = true
+        defer { isSubmitting = false }
+        if !allowsRecurrence { draft.recurrence = PhoneCalendarRecurrence() }
         localError = nil
         if draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { localError = "Enter an event title."; return }
         if draft.endsAt < draft.startsAt { localError = "The event must end after it starts."; return }

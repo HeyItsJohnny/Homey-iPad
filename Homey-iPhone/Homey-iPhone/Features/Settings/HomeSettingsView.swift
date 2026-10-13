@@ -7,6 +7,7 @@ struct HomeSettingsView: View {
     @State private var weekStartsOn = 1
     @State private var original = SettingsValues(name: "", timezone: "", weekStartsOn: 1)
     @State private var showingTimezonePicker = false
+    @State private var clearHomeSnapshot: HomeSummary?
     @State private var clearAction: HomeClearAction?
     @State private var statusMessage: String?
     @State private var errorMessage: String?
@@ -48,12 +49,19 @@ struct HomeSettingsView: View {
             TimezoneSettingsPicker(selection: $timezone)
         }
         .sheet(item: $clearAction) { action in
-            if let home {
+            if let home = clearAction == .trips ? clearHomeSnapshot : home {
                 ClearHomeDataSheet(home: home, action: action) { result in
+                    guard session.activeHome?.id == home.id else { return }
                     statusMessage = result
                     clearAction = nil
                 }
             }
+        }
+        .onChange(of: home?.id) { _, _ in
+            if clearAction == .trips { clearAction = nil; clearHomeSnapshot = nil }
+        }
+        .onChange(of: isOwner) { _, owner in
+            if !owner, clearAction == .trips { clearAction = nil; clearHomeSnapshot = nil }
         }
         .alert("Settings", isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
             Button("OK", role: .cancel) {}
@@ -142,12 +150,17 @@ struct HomeSettingsView: View {
             clearButton(.calendar)
             Divider()
             clearButton(.chores)
+            Divider()
+            clearButton(.trips)
         }
         .homeyCard()
     }
 
     private func clearButton(_ action: HomeClearAction) -> some View {
-        Button(role: .destructive) { clearAction = action } label: {
+        Button(role: .destructive) {
+            if action == .trips { clearHomeSnapshot = home }
+            clearAction = action
+        } label: {
             HStack(spacing: 13) {
                 Image(systemName: action.icon).frame(width: 34, height: 34).background(HomeyColors.danger.opacity(0.10), in: Circle())
                 VStack(alignment: .leading, spacing: 3) {
@@ -282,20 +295,22 @@ private struct TimezoneSettingsPicker: View {
 }
 
 private enum HomeClearAction: String, Identifiable {
-    case meals, calendar, chores
+    case meals, calendar, chores, trips
     var id: String { rawValue }
-    var title: String { switch self { case .meals: "Clear Meals"; case .calendar: "Clear Calendar"; case .chores: "Clear Chores & Tasks" } }
-    var confirmationTitle: String { self == .chores ? "Clear Chores & Tasks?" : title }
-    var icon: String { switch self { case .meals: "fork.knife"; case .calendar: "calendar.badge.minus"; case .chores: "checklist" } }
+    var title: String { switch self { case .meals: "Clear Meals"; case .calendar: "Clear Calendar"; case .chores: "Clear Chores & Tasks"; case .trips: "Clear Trips" } }
+    var confirmationTitle: String { self == .trips ? "Clear Trips?" : self == .chores ? "Clear Chores & Tasks?" : title }
+    var icon: String { switch self { case .meals: "fork.knife"; case .calendar: "calendar.badge.minus"; case .chores: "checklist"; case .trips: "airplane" } }
     var summary: String {
         switch self {
         case .meals: "Home recipes and meal plans"
         case .calendar: "Regular events; chore data stays intact"
+        case .trips: "Organized Trips and this Home’s shared Trip participation"
         case .chores: "Chores, daily tasks, assignments, completions, approvals, rewards, and points"
         }
     }
     var message: String {
         switch self {
+        case .trips: TripsResetNotice.confirmation
         case .meals:
             "This permanently deletes this Home's recipes, recipe details, photos, favorites, collections, and meal plans. Global and Community Recipes are preserved."
         case .calendar:
@@ -307,6 +322,7 @@ private enum HomeClearAction: String, Identifiable {
 }
 
 private struct ClearHomeDataSheet: View {
+    @EnvironmentObject private var session: AppSession
     @Environment(\.dismiss) private var dismiss
     let home: HomeSummary
     let action: HomeClearAction
@@ -322,7 +338,7 @@ private struct ClearHomeDataSheet: View {
                 VStack(alignment: .leading, spacing: 20) {
                     Image(systemName: "exclamationmark.triangle.fill").font(.largeTitle).foregroundStyle(HomeyColors.danger)
                     Text(action.message).foregroundStyle(HomeyColors.secondaryText).fixedSize(horizontal: false, vertical: true)
-                    Text("This affects only \(home.name) and cannot be undone.").font(.headline)
+                    Text(action == .trips ? "Clearing Trips for \(home.name)." : "This affects only \(home.name) and cannot be undone.").font(.headline)
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Type CLEAR to continue").font(.subheadline.weight(.semibold))
                         TextField("CLEAR", text: $confirmation).textInputAutocapitalization(.characters).autocorrectionDisabled().homeyTextField()
@@ -352,11 +368,18 @@ private struct ClearHomeDataSheet: View {
 
     private func clear() async {
         guard confirmation == "CLEAR", !isClearing else { return }
+        if action == .trips {
+            guard session.activeHome?.id == home.id, session.activeRole == .owner, !session.isSwitchingHome else { dismiss(); return }
+        }
         isClearing = true
         errorMessage = nil
         do {
             let message: String
             switch action {
+            case .trips:
+                _ = try await HomeTripsResetService().clear(homeID: home.id, role: session.activeRole)
+                NotificationCenter.default.post(name: TripsResetNotice.name, object: home.id)
+                message = "Trips cleared."
             case .meals:
                 let result = try await repository.clearMeals(homeID: home.id)
                 message = "Meals cleared (\(result.mealsDeleted) Home recipe\(result.mealsDeleted == 1 ? "" : "s"))."
@@ -372,9 +395,13 @@ private struct ClearHomeDataSheet: View {
                 NotificationCenter.default.post(name: Notification.Name("homeyDailyTasksDidChange"), object: nil)
             }
             isClearing = false
+            if action == .trips, session.activeHome?.id != home.id { return }
             onSuccess(message)
+        } catch is CancellationError {
+            isClearing = false
         } catch {
             isClearing = false
+            if action == .trips, session.activeHome?.id != home.id { return }
             errorMessage = error.localizedDescription
         }
     }

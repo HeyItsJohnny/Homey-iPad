@@ -434,7 +434,8 @@ import Combine
 struct MealsRootView: View {
     @EnvironmentObject private var session: AppSession
     @StateObject private var model = MealsViewModel()
-    @State private var section = 0
+    @Binding var section: Int
+    let isActive: Bool
     @State private var showAdd = false
     @State private var creationPresentation: RecipeCreationPresentation?
     @State private var pendingEditorPresentation: RecipeCreationPresentation?
@@ -499,6 +500,7 @@ struct MealsRootView: View {
                         Text("Meal Plan").tag(0)
                         Text("Recipes").tag(1)
                         Text("Explore").tag(2)
+                        Text("Groceries").tag(3)
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
@@ -508,8 +510,10 @@ struct MealsRootView: View {
                             MealPlanView(home: home, model: model, selectedDate: $selectedMealPlanDate)
                         } else if section == 1 {
                             RecipeLibraryView(home: home, model: model, onAddRecipe: { showAdd = true }, onExplore: { section = 2 })
-                        } else {
+                        } else if section == 2 {
                             ExploreRecipesView(home: home, model: model).id(home.id)
+                        } else {
+                            GroceriesView(isActive: isActive && section == 3)
                         }
                     } else {
                         ContentUnavailableView("Choose a Home", systemImage: "house")
