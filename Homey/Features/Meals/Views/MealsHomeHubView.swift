@@ -339,10 +339,14 @@ private struct HomeMealPicker: View {
     @State private var selectedMealID: UUID?
     @State private var errorMessage: String?
 
+    private var matchingMeals: [Meal] {
+        meals.filter { $0.mealTypes.contains(mealType) }
+    }
+
     private var filteredMeals: [Meal] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return meals }
-        return meals.filter {
+        guard !query.isEmpty else { return matchingMeals }
+        return matchingMeals.filter {
             $0.name.localizedCaseInsensitiveContains(query)
                 || ($0.description?.localizedCaseInsensitiveContains(query) ?? false)
         }
@@ -351,11 +355,11 @@ private struct HomeMealPicker: View {
     var body: some View {
         NavigationStack {
             Group {
-                if meals.isEmpty {
+                if matchingMeals.isEmpty {
                     ContentUnavailableView(
-                        "No Home Meals Yet",
+                        "No \(mealType.displayName) Recipes Yet",
                         systemImage: "fork.knife",
-                        description: Text("Home Meals will appear here when they are available.")
+                        description: Text("Recipes tagged \(mealType.displayName) will appear here when they are available.")
                     )
                 } else if filteredMeals.isEmpty {
                     ContentUnavailableView.search(text: searchText)
