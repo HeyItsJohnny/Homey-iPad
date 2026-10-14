@@ -760,6 +760,8 @@ final class MealEditorViewModel: ObservableObject {
                 )
             }
             let savedMealId = try await mealService.saveMealRecipe(homeId: homeId, mealId: mealId, draft: draft, isDraft: saveAsDraft)
+            // TODO: After a successful replacement, enqueue the previous image path
+            // through authorized backend cleanup with a reference check. It remains in Storage.
             if let uploadedPhoto {
                 logPhotoDiagnostic(
                     operation: "primary_photo_path_update_succeeded",
@@ -773,11 +775,13 @@ final class MealEditorViewModel: ObservableObject {
         } catch {
             if let uploadedPhoto {
                 do {
+                    // Remove metadata only; the uploaded object remains in Storage.
+                    // TODO: Integrate authorized cleanup enqueue for failed-save uploads.
                     try await mealService.deleteMealPhoto(photo: uploadedPhoto)
                 } catch {
                     logSaveDiagnostic(
                         error: error,
-                        operation: "save_cleanup_uploaded_photo",
+                        operation: "save_cleanup_uploaded_photo_metadata",
                         homeId: homeId,
                         mealId: mealId,
                         isDraft: saveAsDraft

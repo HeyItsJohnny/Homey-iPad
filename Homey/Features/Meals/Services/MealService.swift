@@ -198,7 +198,9 @@ final class MealService: ObservableObject, MealServicing {
                 .delete()
                 .eq("id", value: id.uuidString)
                 .execute()
-            await removeMealPhotoStorage(paths: photoPaths, mealId: id)
+            // TODO: Enqueue these paths through an authorized backend cleanup workflow
+            // after database deletion. Storage objects remain; clients cannot delete them.
+            logRetainedMealPhotoStorage(paths: photoPaths, mealId: id)
         } catch {
             logMealError(error, operation: "deleteMeal", mealId: id)
             if isMealStillReferencedError(error) {
@@ -887,7 +889,7 @@ final class MealService: ObservableObject, MealServicing {
                     options: FileOptions(
                         cacheControl: "3600",
                         contentType: contentType,
-                        upsert: true
+                        upsert: false
                     )
                 )
 
@@ -958,17 +960,18 @@ final class MealService: ObservableObject, MealServicing {
         }
     }
 
+    // Deletes database metadata only. Successful completion does not mean Storage cleanup.
     func deleteMealPhoto(photo: MealPhoto) async throws {
         do {
             try await requireAuthenticatedSession()
-            _ = try? await client.storage
-                .from(imageBucket)
-                .remove(paths: [photo.path])
             try await client
                 .from("meal_photos")
                 .delete()
                 .eq("id", value: photo.id.uuidString)
                 .execute()
+            // TODO: Enqueue photo.path through authorized backend cleanup after metadata
+            // deletion, with a reference check before removing the Storage object.
+            logRetainedMealPhotoStorage(paths: [photo.path], mealId: photo.mealId)
         } catch {
             logMealError(error, operation: "deleteMealPhoto", homeId: photo.homeId, mealId: photo.mealId)
             throw MealServiceError.deletePhotoFailed
@@ -1164,21 +1167,14 @@ final class MealService: ObservableObject, MealServicing {
             .execute()
     }
 
-    private func removeMealPhotoStorage(paths: [String], mealId: UUID) async {
+    private func logRetainedMealPhotoStorage(paths: [String], mealId: UUID) {
         guard !paths.isEmpty else { return }
 
-        do {
-            _ = try await client.storage
-                .from(imageBucket)
-                .remove(paths: paths)
-        } catch {
-            #if DEBUG
-            print("Meal photo storage cleanup failed after meal deletion")
-            print("meal_id: \(mealId.uuidString)")
-            print("orphaned_storage_paths: \(paths.joined(separator: ", "))")
-            print(String(reflecting: error))
-            #endif
-        }
+        #if DEBUG
+        print("Meal photo Storage objects retained; backend cleanup is not implemented")
+        print("meal_id: \(mealId.uuidString)")
+        print("retained_storage_paths: \(paths.joined(separator: ", "))")
+        #endif
     }
 
     private func normalizedCreateMealPayload(_ payload: CreateMealPayload, homeId: UUID, userId: UUID) throws -> CreateMealPayload {

@@ -376,7 +376,7 @@ struct HomeSettingsView: View {
         VStack(alignment: .leading, spacing: 22) {
             settingsCard
 
-            if isCurrentUserOwner {
+            if UIDevice.current.userInterfaceIdiom == .phone && isCurrentUserOwner {
                 dangerZoneCard
             }
         }
