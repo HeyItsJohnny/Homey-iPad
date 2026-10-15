@@ -79,6 +79,8 @@ struct HomeDashboardView: View {
             ChoresHomeHubView()
         case .meals:
             MealsHomeHubView()
+        case .trips:
+            TripsView()
         case .admin:
             AdminAccessView(controller: adminAccess)
         case .homeSettings:
@@ -1072,6 +1074,7 @@ enum DashboardDestination: String, CaseIterable, Identifiable {
     case home
     case chores
     case meals
+    case trips
     case admin
     case homeSettings
     case calendarCategories
@@ -1086,6 +1089,7 @@ enum DashboardDestination: String, CaseIterable, Identifiable {
         .home,
         .chores,
         .meals,
+        .trips,
         .admin
     ]
 
@@ -1097,6 +1101,8 @@ enum DashboardDestination: String, CaseIterable, Identifiable {
             "Chores"
         case .meals:
             "Meals"
+        case .trips:
+            "Trips"
         case .admin:
             "Admin"
         case .homeSettings:
@@ -1122,6 +1128,8 @@ enum DashboardDestination: String, CaseIterable, Identifiable {
             "checklist"
         case .meals:
             "fork.knife"
+        case .trips:
+            "airplane"
         case .admin:
             "gearshape.fill"
         case .homeSettings:

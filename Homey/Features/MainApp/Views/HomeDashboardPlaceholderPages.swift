@@ -12,12 +12,6 @@ struct ProjectsView: View {
     }
 }
 
-struct TripsView: View {
-    var body: some View {
-        PlaceholderModuleView(title: "Trips", subtitle: "Manage trips with other households")
-    }
-}
-
 struct GroceriesView: View {
     var body: some View {
         PlaceholderModuleView(title: "Groceries", subtitle: "Coming soon")
