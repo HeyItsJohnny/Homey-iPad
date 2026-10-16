@@ -3,6 +3,13 @@ import Foundation
 
 @MainActor
 final class MealPlannerViewModel: ObservableObject {
+    @Published private(set) var quickMeals: [QuickPlannedMeal] = []
+    @Published private(set) var quickMealLoadError: String?
+    @Published private(set) var isLoadingQuickMeals = false
+    @Published private(set) var isLoadingRecipeMeals = false
+    private var loadsQuickAddsOnly = false
+    private let quickMealService = QuickMealService()
+
     @Published private(set) var plannedMeals: [PlannedMeal] = []
     @Published private(set) var categories: [CalendarCategory] = []
     @Published private(set) var visibleWeekAnchor: Date
@@ -28,6 +35,7 @@ final class MealPlannerViewModel: ObservableObject {
     private var autoPlanFavoritesByMember: [UUID: Set<UUID>] = [:]
     private var autoPlanMembers: [AutoPlanMember] = []
     private var autoPlanRecentMeals: [PlannedMeal] = []
+    private var loadRevision = UUID()
     private var loadTask: Task<Void, Never>?
     private var notificationTask: Task<Void, Never>?
     private var needsReloadAfterReset = false
@@ -50,7 +58,8 @@ final class MealPlannerViewModel: ObservableObject {
         notificationTask?.cancel()
     }
 
-    func load(homeId: UUID?, weekStartsOn: Int?, timezone: String?) {
+    func load(homeId: UUID?, weekStartsOn: Int?, timezone: String?, selectedDay: Date? = nil, quickAddsOnly: Bool = false) {
+        loadsQuickAddsOnly = quickAddsOnly
         configureWeekStart(weekStartsOn)
         configureTimezone(timezone)
         activeTimezone = timezone
@@ -61,12 +70,14 @@ final class MealPlannerViewModel: ObservableObject {
             return
         }
 
-        let today = calendar.startOfDay(for: Date())
+        let today = calendar.startOfDay(for: selectedDay ?? Date())
         visibleWeekAnchor = today
         selectedDate = today
 
         if activeHomeId != homeId {
             activeHomeId = homeId
+            quickMeals = []
+            quickMealLoadError = nil
             plannedMeals = []
         }
 
@@ -74,6 +85,7 @@ final class MealPlannerViewModel: ObservableObject {
     }
 
     func loadPreview(homeId: UUID?, weekStartsOn: Int?, timezone: String?) {
+        loadsQuickAddsOnly = false
         configureWeekStart(weekStartsOn)
         configureTimezone(timezone)
         activeTimezone = timezone
@@ -86,6 +98,8 @@ final class MealPlannerViewModel: ObservableObject {
 
         if activeHomeId != homeId {
             activeHomeId = homeId
+            quickMeals = []
+            quickMealLoadError = nil
             plannedMeals = []
             let today = calendar.startOfDay(for: Date())
             visibleWeekAnchor = today
@@ -179,7 +193,7 @@ final class MealPlannerViewModel: ObservableObject {
     }
 
     var plannedMealCount: Int {
-        Set(plannedMeals.map(\.id)).count
+        Set(plannedMeals.map(\.id)).count + quickMeals.count
     }
 
     var resetPlanWeekStartTitle: String {
@@ -208,6 +222,59 @@ final class MealPlannerViewModel: ObservableObject {
 
     func mealsForMonth() -> [Date: [PlannedMeal]] {
         Dictionary(grouping: plannedMeals) { calendar.startOfDay(for: $0.startsAt) }
+    }
+
+    func quickMeals(on date: Date, mealType: MealType? = nil) -> [QuickPlannedMeal] {
+        let key = QuickPlannedMeal.dayKey(date, calendar: calendar)
+        return quickMeals.filter { $0.plannedDate == key && (mealType == nil || $0.mealType == mealType) }
+            .sorted { $0.id.uuidString < $1.id.uuidString }
+    }
+
+    var quickMealCalendar: Calendar { calendar }
+
+    func saveQuickMeal(id: UUID, homeID: UUID, title: String, date: Date, mealType: MealType,
+                       permissions: HomePermissions, existingEntry: QuickPlannedMeal? = nil) async -> String? {
+        guard permissions.meals.canPlanMeals, activeHomeId == homeID else {
+            return MealPlannerServiceError.permissionDenied.localizedDescription
+        }
+        guard let title = QuickPlannedMeal.normalizedTitle(title), QuickPlannedMeal.mealTypes.contains(mealType) else {
+            return "Enter a meal name and choose a meal type."
+        }
+        guard !isSaving else { return "Another meal is being saved. Please try again." }
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            if let existingEntry {
+                guard existingEntry.id == id, existingEntry.homeID == homeID else {
+                    return MealPlannerServiceError.permissionDenied.localizedDescription
+                }
+                try await quickMealService.validateExisting(existingEntry, calendar: calendar)
+                guard activeHomeId == homeID else { return "The selected Home changed. Close this sheet and refresh the planner." }
+            }
+            try await quickMealService.save(SaveQuickMealParameters(homeID: homeID, entryID: id,
+                title: title, plannedDate: QuickPlannedMeal.dayKey(date, calendar: calendar),
+                mealType: mealType, timezone: activeTimezone))
+            NotificationCenter.default.post(name: .homeyCalendarEventsDidChange, object: nil)
+            await reload()
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
+    func removeQuickMeal(_ entry: QuickPlannedMeal, permissions: HomePermissions) async {
+        guard permissions.meals.canRemovePlannedMeals, entry.homeID == activeHomeId, !isSaving else { return }
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            try await quickMealService.remove(entry)
+            if activeHomeId == entry.homeID { quickMeals.removeAll { $0.id == entry.id } }
+            NotificationCenter.default.post(name: .homeyCalendarEventsDidChange, object: nil)
+            await reload()
+        } catch {
+            guard activeHomeId == entry.homeID else { return }
+            errorMessage = error.localizedDescription
+        }
     }
 
     func addMeal(_ meal: Meal, to date: Date, mealType: MealType, servings: Decimal?, notes: String?, permissions: HomePermissions) async {
@@ -295,12 +362,15 @@ final class MealPlannerViewModel: ObservableObject {
         let mealsInWeek = plannedMeals.filter { plannedMeal in
             plannedMeal.startsAt < range.end && plannedMeal.endsAt > range.start
         }
-        guard !mealsInWeek.isEmpty else { return }
+        let startKey = QuickPlannedMeal.dayKey(range.start, calendar: calendar)
+        let endKey = QuickPlannedMeal.dayKey(range.end, calendar: calendar)
+        let quickMealsInWeek = quickMeals.filter { $0.plannedDate >= startKey && $0.plannedDate < endKey }
+        guard !mealsInWeek.isEmpty || !quickMealsInWeek.isEmpty else { return }
 
         isSaving = true
         isResettingPlan = true
         resetPlanCompletedCount = 0
-        resetPlanTotalCount = Set(mealsInWeek.map(\.calendarEventId)).count
+        resetPlanTotalCount = Set(mealsInWeek.map(\.calendarEventId)).count + quickMealsInWeek.count
         needsReloadAfterReset = false
         errorMessage = nil
         let eventIds = Array(Set(mealsInWeek.map(\.calendarEventId)))
@@ -313,6 +383,11 @@ final class MealPlannerViewModel: ObservableObject {
         }
 
         do {
+            for entry in quickMealsInWeek {
+                try await quickMealService.remove(entry)
+                quickMeals.removeAll { $0.id == entry.id }
+                resetPlanCompletedCount += 1
+            }
             for eventId in eventIds {
                 try await service.removePlannedMeal(calendarEventId: eventId)
                 resetPlanCompletedCount += 1
@@ -354,6 +429,7 @@ final class MealPlannerViewModel: ObservableObject {
         guard !isLoading else {
             return "Loading your meal plan..."
         }
+        if quickMealLoadError != nil { return "Refresh the meal plan before using Auto Plan so Quick Add slots can be checked." }
         return nil
     }
 
@@ -361,6 +437,10 @@ final class MealPlannerViewModel: ObservableObject {
         #if DEBUG
         print("AutoPlan Generate tapped")
         #endif
+        guard quickMealLoadError == nil else {
+            errorMessage = "Refresh the meal plan before using Auto Plan so Quick Add slots can be checked."
+            return
+        }
         guard !isAutoPlanGenerating else {
             #if DEBUG
             print("AutoPlan Generate stopped: already generating")
@@ -445,7 +525,7 @@ final class MealPlannerViewModel: ObservableObject {
             print("engine_started")
             #endif
 
-            let engine = AutoPlanEngine(calendar: calendar, seed: range.start.hashValue)
+            let engine = AutoPlanEngine(calendar: calendar, seed: range.start.hashValue, quickMeals: quickMeals)
             let draft = engine.generateDraft(
                 homeId: activeHomeId,
                 weekRange: range,
@@ -483,7 +563,7 @@ final class MealPlannerViewModel: ObservableObject {
 
     func rerollAutoPlanSlot(_ slotId: AutoPlanSlotID) {
         guard let draft = autoPlanDraft else { return }
-        let engine = AutoPlanEngine(calendar: calendar, seed: Date().hashValue)
+        let engine = AutoPlanEngine(calendar: calendar, seed: Date().hashValue, quickMeals: quickMeals)
         autoPlanDraft = engine.reroll(
             slotId: slotId,
             draft: draft,
@@ -503,7 +583,7 @@ final class MealPlannerViewModel: ObservableObject {
             autoPlanResultMessage = "This week has already passed."
             return
         }
-        let engine = AutoPlanEngine(calendar: calendar, seed: Date().hashValue)
+        let engine = AutoPlanEngine(calendar: calendar, seed: Date().hashValue, quickMeals: quickMeals)
         autoPlanDraft = engine.generateDraft(
             homeId: activeHomeId,
             weekRange: range,
@@ -564,6 +644,7 @@ final class MealPlannerViewModel: ObservableObject {
         defer { isAutoPlanApplying = false }
 
         for slot in draft.creatableSlots {
+            guard self.activeHomeId == activeHomeId else { break }
             guard let meal = slot.suggestion?.meal else { continue }
             guard !isPastAutoPlanDate(slot.date) else {
                 skippedCount += 1
@@ -577,6 +658,7 @@ final class MealPlannerViewModel: ObservableObject {
                     skippedCount += 1
                     continue
                 }
+                guard self.activeHomeId == activeHomeId else { break }
                 let plannedMeal = try await service.createPlannedMeal(
                     homeId: activeHomeId,
                     meal: meal,
@@ -634,6 +716,7 @@ final class MealPlannerViewModel: ObservableObject {
 
     private func clear() {
         loadTask?.cancel()
+        loadRevision = UUID()
         activeHomeId = nil
         activeLoadRange = nil
         isResettingPlan = false
@@ -646,9 +729,13 @@ final class MealPlannerViewModel: ObservableObject {
         autoPlanFavoritesByMember = [:]
         autoPlanMembers = []
         autoPlanRecentMeals = []
+        quickMeals = []
+        quickMealLoadError = nil
         plannedMeals = []
         categories = []
         isLoading = false
+        isLoadingQuickMeals = false
+        isLoadingRecipeMeals = false
         errorMessage = nil
     }
 
@@ -676,21 +763,82 @@ final class MealPlannerViewModel: ObservableObject {
             return
         }
 
+        let startKey = QuickPlannedMeal.dayKey(range.start, calendar: calendar)
+        let endKey = QuickPlannedMeal.dayKey(range.end, calendar: calendar)
+        quickMeals = quickMeals.filter { $0.homeID == homeId && $0.plannedDate >= startKey && $0.plannedDate < endKey }
+        let revision = UUID()
+        loadRevision = revision
         isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
+        isLoadingRecipeMeals = !loadsQuickAddsOnly
+        defer { if loadRevision == revision { isLoading = false } }
 
-        do {
-            async let loadedMeals = service.fetchPlannedMeals(homeId: homeId, startDate: range.start, endDate: range.end)
-            async let loadedCategories = service.fetchCategories(homeId: homeId)
-            let loaded = try await loadedMeals
-            let resolvedCategories = try await loadedCategories
-            guard !Task.isCancelled, activeHomeId == homeId else { return }
-            plannedMeals = loaded
-            categories = resolvedCategories
-        } catch {
-            guard !Task.isCancelled, activeHomeId == homeId else { return }
-            errorMessage = error.localizedDescription
+        async let quickLoad: Void = loadQuickMealChannel(homeId: homeId, start: startKey, end: endKey, revision: revision)
+        if loadsQuickAddsOnly {
+            // The active Meals hub already loads recipes through get_meal_plan_entries.
+            // Never gate its Quick Adds on the legacy Calendar/recipe join.
+            await quickLoad
+        } else {
+            async let recipeLoad: Void = loadRecipeMealChannel(homeId: homeId, range: range, revision: revision)
+            async let categoryLoad: Void = loadCategoryChannel(homeId: homeId, revision: revision)
+            _ = await (recipeLoad, quickLoad, categoryLoad)
+        }
+    }
+
+    private func acceptsLoad(homeId: UUID, revision: UUID) -> Bool {
+        !Task.isCancelled && activeHomeId == homeId && loadRevision == revision
+    }
+
+    func retryQuickMeals() async {
+        guard !isLoadingQuickMeals, let homeId = activeHomeId,
+              let range = activeLoadRange ?? visibleWeekRange else { return }
+        await loadQuickMealChannel(homeId: homeId,
+            start: QuickPlannedMeal.dayKey(range.start, calendar: calendar),
+            end: QuickPlannedMeal.dayKey(range.end, calendar: calendar), revision: loadRevision)
+    }
+
+    private func loadQuickMealChannel(homeId: UUID, start: String, end: String, revision: UUID) async {
+        guard acceptsLoad(homeId: homeId, revision: revision) else { return }
+        isLoadingQuickMeals = true
+        quickMealLoadError = nil
+        defer { if loadRevision == revision { isLoadingQuickMeals = false } }
+        let result = await MealLoadResult.fetch(operation: "get_quick_meal_plan_entries") {
+            try await quickMealService.fetch(homeID: homeId, start: start, end: end)
+        }
+        guard acceptsLoad(homeId: homeId, revision: revision) else { return }
+        switch result {
+        case .success(let entries): quickMeals = entries.filter { $0.homeID == homeId }
+        case .failure(let error): quickMealLoadError = "Quick Adds couldn't be refreshed. " + error.localizedDescription
+        case .cancelled: break
+        }
+    }
+
+    private func loadRecipeMealChannel(homeId: UUID, range: (start: Date, end: Date), revision: UUID) async {
+        guard acceptsLoad(homeId: homeId, revision: revision) else { return }
+        isLoadingRecipeMeals = true
+        errorMessage = nil
+        defer { if loadRevision == revision { isLoadingRecipeMeals = false } }
+        let result = await MealLoadResult.fetch(operation: "recipe_plan.read") {
+            try await service.fetchPlannedMeals(homeId: homeId, startDate: range.start, endDate: range.end)
+        }
+        guard acceptsLoad(homeId: homeId, revision: revision) else { return }
+        switch result {
+        case .success(let meals): plannedMeals = meals
+        case .failure(let error): errorMessage = "Recipe meals couldn't be refreshed. " + error.localizedDescription
+        case .cancelled: break
+        }
+    }
+
+    private func loadCategoryChannel(homeId: UUID, revision: UUID) async {
+        let result = await MealLoadResult.fetch(operation: "calendar.categories.read") {
+            try await service.fetchCategories(homeId: homeId)
+        }
+        guard acceptsLoad(homeId: homeId, revision: revision) else { return }
+        switch result {
+        case .success(let values): categories = values
+        case .failure(let error):
+            // Category styling is optional; never discard either kind of meal.
+            if errorMessage == nil { errorMessage = error.localizedDescription }
+        case .cancelled: break
         }
     }
 
@@ -799,10 +947,15 @@ final class MealPlannerViewModel: ObservableObject {
     }
 
     private func isAutoPlanSlotStillEmpty(_ slot: AutoPlanSlot, homeId: UUID) async throws -> Bool {
+        if !quickMeals(on: slot.date, mealType: slot.mealType).isEmpty { return false }
         let dayStart = calendar.startOfDay(for: slot.date)
         guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else {
             throw MealPlannerServiceError.invalidDateRange
         }
+        let quickEntries = try await quickMealService.fetch(homeID: homeId,
+            start: QuickPlannedMeal.dayKey(dayStart, calendar: calendar),
+            end: QuickPlannedMeal.dayKey(dayEnd, calendar: calendar))
+        if quickEntries.contains(where: { $0.homeID == homeId && $0.mealType == slot.mealType }) { return false }
         let currentMeals = try await service.fetchPlannedMeals(homeId: homeId, startDate: dayStart, endDate: dayEnd)
         return !currentMeals.contains { plannedMeal in
             calendar.isDate(plannedMeal.startsAt, inSameDayAs: slot.date) && plannedMeal.mealType == slot.mealType

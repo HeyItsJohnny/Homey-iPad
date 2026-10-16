@@ -3,11 +3,13 @@ import Foundation
 struct AutoPlanEngine: Sendable {
     private var calendar: Calendar
     private let seed: Int
+    private let quickMeals: [QuickPlannedMeal]
     private let scoring = AutoPlanScoringConstants()
 
-    init(calendar: Calendar = .autoupdatingCurrent, seed: Int = 0) {
+    init(calendar: Calendar = .autoupdatingCurrent, seed: Int = 0, quickMeals: [QuickPlannedMeal] = []) {
         self.calendar = calendar
         self.seed = seed
+        self.quickMeals = quickMeals
     }
 
     func generateDraft(
@@ -135,7 +137,7 @@ struct AutoPlanEngine: Sendable {
         recentPlannedMeals: [PlannedMeal]
     ) -> AutoPlanDraft {
         var updated = draft
-        guard let slotIndex = updated.slots.firstIndex(where: { $0.id == slotId }) else {
+        guard let slotIndex = updated.slots.firstIndex(where: { $0.id == slotId }), !updated.slots[slotIndex].isFilled else {
             return draft
         }
 
@@ -209,7 +211,8 @@ struct AutoPlanEngine: Sendable {
                         date: calendar.startOfDay(for: day),
                         mealType: mealType,
                         existingPlannedMeals: Array(Set(existing)),
-                        suggestion: nil
+                        suggestion: nil,
+                        quickMealTitle: quickMeals.first { $0.plannedDate == QuickPlannedMeal.dayKey(day, calendar: calendar) && $0.mealType == mealType }?.title
                     )
                 }
             }

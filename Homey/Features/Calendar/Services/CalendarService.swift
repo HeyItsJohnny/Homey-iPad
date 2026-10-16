@@ -47,8 +47,8 @@ final class CalendarService: ObservableObject {
                 throw CancellationError()
             }
 
-            logCalendarError(error, rpcName: "get_calendar_events", homeId: homeId)
-            throw CalendarServiceError.loadEventsFailed
+            throw MealLoadFailure.capture(operation: "get_calendar_events", error: error,
+                postgrestCode: (error as? PostgrestError)?.code)
         }
     }
 

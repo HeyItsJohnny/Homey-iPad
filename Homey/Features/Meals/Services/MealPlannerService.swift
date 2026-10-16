@@ -56,23 +56,27 @@ final class MealPlannerService: ObservableObject {
             try await requireAuthenticatedSession()
             let events = try await calendarService.fetchEvents(homeId: homeId, rangeStart: startDate, rangeEnd: endDate)
             return try await fetchPlannedMeals(homeId: homeId, events: events)
-        } catch let error as MealPlannerServiceError {
+        } catch let error as MealLoadFailure { throw error }
+        catch is CancellationError { throw CancellationError() }
+        catch let error as MealPlannerServiceError {
             throw error
         } catch {
-            logPlannerError(error, operation: "fetchPlannedMeals", homeId: homeId)
-            throw MealPlannerServiceError.loadFailed
+            throw MealLoadFailure.capture(operation: "calendar.mealEvents.read", error: error,
+                postgrestCode: (error as? PostgrestError)?.code)
         }
     }
 
     func fetchPlannedMeals(homeId: UUID, events: [CalendarEvent]) async throws -> [PlannedMeal] {
         do {
             try await requireAuthenticatedSession()
-            let eventIds = Set(events.map(\.eventId))
+            let eventIds = Set(events.filter { $0.homeId == homeId }.map(\.eventId))
             guard !eventIds.isEmpty else { return [] }
 
             let details: [MealEventDetail] = try await client
                 .from("meal_event_details")
                 .select()
+                .in("calendar_event_id", values: eventIds.map(\.uuidString))
+                .not("meal_id", operator: .is, value: "null")
                 .execute()
                 .value
             let matchingDetails = details.filter { eventIds.contains($0.calendarEventId) }
@@ -110,11 +114,13 @@ final class MealPlannerService: ObservableObject {
             }
 
             return plannedMeals.sortedForMealPlanner()
-        } catch let error as MealPlannerServiceError {
+        } catch let error as MealLoadFailure { throw error }
+        catch is CancellationError { throw CancellationError() }
+        catch let error as MealPlannerServiceError {
             throw error
         } catch {
-            logPlannerError(error, operation: "fetchPlannedMeals", homeId: homeId)
-            throw MealPlannerServiceError.loadFailed
+            throw MealLoadFailure.capture(operation: "meal_event_details.read", error: error,
+                postgrestCode: (error as? PostgrestError)?.code)
         }
     }
 

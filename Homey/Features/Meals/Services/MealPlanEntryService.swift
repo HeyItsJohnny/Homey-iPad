@@ -1,5 +1,6 @@
 import Foundation
 import Supabase
+import PostgREST
 
 struct MealPlanEntryService {
     private let client = SupabaseManager.shared.client
@@ -14,7 +15,8 @@ struct MealPlanEntryService {
             return entries.sorted(by: Self.precedes)
         } catch {
             if Self.isCancellation(error) { throw CancellationError() }
-            throw MealPlanEntryServiceError.loadFailed
+            throw MealLoadFailure.capture(operation: "get_meal_plan_entries", error: error,
+                postgrestCode: (error as? PostgrestError)?.code)
         }
     }
 

@@ -1,15 +1,11 @@
 import SwiftUI
 
-private struct MealPickerContext: Identifiable {
-    let mealType: MealType
-    var id: String { mealType.rawValue }
-}
-
 struct MealsHomeHubView: View {
     @EnvironmentObject private var homeService: HomeService
     @Environment(\.homePermissions) private var permissions
     @StateObject private var viewModel = MealsHomeHubViewModel()
-    @State private var pickerContext: MealPickerContext?
+    @StateObject private var quickPlanner = MealPlannerViewModel()
+    @State private var addRoute: MealSlotAddRoute?
 
     private var homeID: UUID? { homeService.selectedHomeID }
     private var timezoneIdentifier: String {
@@ -28,6 +24,7 @@ struct MealsHomeHubView: View {
                 .scrollIndicators(.hidden)
                 .refreshable {
                     await viewModel.refreshMealPlanner()
+                    await quickPlanner.reload()
                 }
             }
         }
@@ -39,16 +36,34 @@ struct MealsHomeHubView: View {
         .task(id: "\(homeID?.uuidString ?? "no-home"):\(timezoneIdentifier)") {
             await viewModel.configure(homeID: homeID, timezoneIdentifier: timezoneIdentifier)
         }
-        .sheet(item: $pickerContext) { context in
-            HomeMealPicker(
-                mealType: context.mealType,
-                meals: viewModel.homeMeals,
-                isSaving: viewModel.isSaving
-            ) { meal in
-                await viewModel.addMeal(meal, to: context.mealType)
-            }
-            .presentationDetents([.large])
+        .task(id: "\(homeID?.uuidString ?? "no-home"):\(timezoneIdentifier):\(viewModel.selectedDate.timeIntervalSince1970)") {
+            addRoute = nil
+            quickPlanner.load(homeId: homeID, weekStartsOn: nil, timezone: timezoneIdentifier,
+                selectedDay: viewModel.selectedDate, quickAddsOnly: true)
         }
+        .task {
+            for await _ in NotificationCenter.default.notifications(named: .homeyCalendarEventsDidChange) {
+                await viewModel.refreshMealPlanner()
+            }
+        }
+        .sheet(item: $addRoute) { route in
+            if route.kind == .quickAdd {
+                QuickMealEditor(viewModel: quickPlanner, homeID: route.homeID, date: route.date,
+                    mealType: route.mealType, permissions: permissions, onDismiss: { addRoute = nil })
+            } else {
+                HomeMealPicker(mealType: route.mealType, meals: viewModel.homeMeals,
+                    isSaving: viewModel.isSaving) { meal in
+                    guard homeID == route.homeID, viewModel.selectedDate == route.date else { return false }
+                    return await viewModel.addMeal(meal, to: route.mealType)
+                }
+                .presentationDetents([.large])
+            }
+        }
+        .alert("Meal Planner", isPresented: Binding(
+            get: { quickPlanner.errorMessage != nil },
+            set: { if !$0 { quickPlanner.errorMessage = nil } })) {
+            Button("OK") { quickPlanner.errorMessage = nil }
+        } message: { Text(quickPlanner.errorMessage ?? "") }
     }
 
     private var header: some View {
@@ -159,6 +174,13 @@ struct MealsHomeHubView: View {
                 )
             }
 
+            if let message = quickPlanner.quickMealLoadError {
+                HStack {
+                    Text(message).font(.footnote).foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    Button("Retry Quick Adds") { Task { await quickPlanner.retryQuickMeals() } }
+                        .disabled(quickPlanner.isLoadingQuickMeals)
+                }
+            }
             HStack(alignment: .top, spacing: 16) {
                 ForEach(MealsHomeHubViewModel.visibleMealTypes) { mealType in
                     mealSection(mealType)
@@ -167,7 +189,7 @@ struct MealsHomeHubView: View {
             }
             .frame(maxHeight: .infinity, alignment: .top)
             .overlay {
-                if viewModel.isLoading && viewModel.itemsByType.isEmpty {
+                if viewModel.isLoading && viewModel.itemsByType.isEmpty && quickPlanner.quickMeals.isEmpty {
                     ProgressView("Loading meal plan…")
                         .tint(HomeyDashboardTheme.warmBrown)
                         .padding(20)
@@ -182,6 +204,7 @@ struct MealsHomeHubView: View {
 
     private func mealSection(_ mealType: MealType) -> some View {
         let items = viewModel.items(for: mealType)
+        let quickEntries = quickPlanner.quickMeals(on: viewModel.selectedDate, mealType: mealType)
 
         return VStack(spacing: 0) {
             HStack(spacing: 10) {
@@ -193,16 +216,14 @@ struct MealsHomeHubView: View {
                     Text(sectionTitle(mealType))
                         .font(.headline.weight(.bold))
                         .foregroundStyle(HomeyDashboardTheme.primaryText)
-                    Text("\(items.count) planned")
+                    Text("\(items.count + quickEntries.count) planned")
                         .font(.caption)
                         .foregroundStyle(HomeyDashboardTheme.secondaryText)
                 }
 
                 Spacer(minLength: 4)
 
-                Button {
-                    pickerContext = MealPickerContext(mealType: mealType)
-                } label: {
+                MealSlotAddMenu(onSelect: { kind in presentAdd(mealType, kind: kind) }) {
                     Image(systemName: "plus")
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(HomeyDashboardTheme.warmBrown)
@@ -211,7 +232,7 @@ struct MealsHomeHubView: View {
                         .overlay { Circle().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
                 }
                 .buttonStyle(.plain)
-                .disabled(!permissions.meals.canPlanMeals || viewModel.isSaving)
+                .disabled(!permissions.meals.canPlanMeals || viewModel.isSaving || quickPlanner.isSaving || addRoute != nil)
                 .accessibilityLabel("Add \(sectionTitle(mealType)) meal")
             }
             .padding(14)
@@ -219,7 +240,8 @@ struct MealsHomeHubView: View {
 
             ScrollView {
                 LazyVStack(spacing: 10) {
-                    if items.isEmpty {
+                    QuickMealRows(viewModel: quickPlanner, entries: quickEntries, permissions: permissions)
+                    if items.isEmpty && quickEntries.isEmpty {
                         emptyState(mealType)
                     } else {
                         ForEach(items) { item in
@@ -295,9 +317,7 @@ struct MealsHomeHubView: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(HomeyDashboardTheme.secondaryText)
             if permissions.meals.canPlanMeals {
-                Button {
-                    pickerContext = MealPickerContext(mealType: mealType)
-                } label: {
+                MealSlotAddMenu(onSelect: { kind in presentAdd(mealType, kind: kind) }) {
                     Image(systemName: "plus.circle.fill")
                         .font(.title2)
                         .foregroundStyle(HomeyDashboardTheme.warmBrown)
@@ -308,6 +328,12 @@ struct MealsHomeHubView: View {
         }
         .padding(.vertical, 32)
         .frame(maxWidth: .infinity)
+    }
+
+    private func presentAdd(_ mealType: MealType, kind: MealSlotAddKind) {
+        guard permissions.meals.canPlanMeals, !viewModel.isSaving, !quickPlanner.isSaving else { return }
+        MealSlotAddRoute.present(&addRoute, homeID: homeID, date: viewModel.selectedDate,
+            mealType: mealType, kind: kind)
     }
 
     private func sectionColor(_ mealType: MealType) -> Color {

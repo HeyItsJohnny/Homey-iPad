@@ -28,6 +28,7 @@ struct HomeSettingsView: View {
     @State private var clearChoresConfirmationText = ""
     @State private var clearChoresErrorMessage: String?
     @State private var isClearingChores = false
+    @State private var clearMealsHome: HomeSummary?
     @State private var isShowingClearMealsDialog = false
     @State private var isShowingClearMealsConfirmation = false
     @State private var isShowingClearMealsError = false
@@ -121,13 +122,23 @@ struct HomeSettingsView: View {
             Button("OK", role: .cancel) {}
         } message: { Text(clearTripsErrorMessage ?? "Trips could not be cleared.") }
         .onChange(of: selectedHome?.id) { _, _ in
+            isShowingClearMealsDialog = false
+            isShowingClearMealsConfirmation = false
+            clearMealsConfirmationText = ""
+            clearMealsHome = nil
+            clearMealsErrorMessage = nil
+            isShowingClearMealsError = false
             isShowingClearTripsConfirmation = false
             clearTripsConfirmationText = ""
             clearTripsErrorMessage = nil
             isShowingClearTripsError = false
         }
         .onChange(of: isCurrentUserOwner) { _, owner in
-            if !owner { isShowingClearTripsConfirmation = false }
+            if !owner {
+                isShowingClearTripsConfirmation = false
+                isShowingClearMealsDialog = false
+                isShowingClearMealsConfirmation = false
+            }
         }
         .alert("Unable to Save Changes", isPresented: $isShowingSaveError) {
             Button("OK", role: .cancel) {}
@@ -195,13 +206,13 @@ struct HomeSettingsView: View {
                 isShowingClearMealsConfirmation = true
             }
         } message: {
-            Text("This will permanently delete this Home's recipes, meal plans, and meal calendar entries. Explore and Community Recipes will not be deleted.")
+            Text("This will permanently delete this Home's recipes, meal plans, Quick Adds, and their meal calendar entries. Explore and Community Recipes will not be deleted.")
         }
         .sheet(isPresented: $isShowingClearMealsConfirmation) {
             ClearHomeDataConfirmationSheet(
                 title: "Clear Meals?",
-                homeName: selectedHome?.name ?? "this Home",
-                message: "This will permanently delete this Home's recipes, meal plans, and meal calendar entries. Explore and Community Recipes will not be deleted. This cannot be undone.",
+                homeName: clearMealsHome?.name ?? "this Home",
+                message: "This will permanently delete this Home's recipes, meal plans, Quick Adds, and their meal calendar entries. Explore and Community Recipes will not be deleted. This cannot be undone.",
                 confirmButtonTitle: "Clear Meals",
                 loadingAccessibilityLabel: "Clearing meals",
                 confirmationText: $clearMealsConfirmationText,
@@ -409,11 +420,15 @@ struct HomeSettingsView: View {
 
             dangerZoneAction(
                 title: "Clear Meals",
-                description: "Deletes this Home's meal plans, Home Recipes, and Home-specific meal data. Explore and Community Recipes are not deleted.",
+                description: "Deletes this Home's meal plans, Quick Adds, Home Recipes, and Home-specific meal data. Explore and Community Recipes are not deleted.",
                 systemImage: "fork.knife",
                 isLoading: isClearingMeals,
                 loadingTitle: "Clearing Meals...",
-                action: { isShowingClearMealsDialog = true }
+                action: {
+                    guard let home = selectedHome, isCurrentUserOwner else { return }
+                    clearMealsHome = home
+                    isShowingClearMealsDialog = true
+                }
             )
 
             Divider()
@@ -599,7 +614,7 @@ struct HomeSettingsView: View {
             return
         }
 
-        guard let selectedHome else {
+        guard let home = clearMealsHome, selectedHome?.id == home.id, isCurrentUserOwner else {
             clearMealsErrorMessage = "Unable to load Home Settings. Please choose a Home and try again."
             isShowingClearMealsError = true
             return
@@ -612,7 +627,7 @@ struct HomeSettingsView: View {
 
         do {
             _ = try await mealService.clearHomeMeals(
-                homeId: selectedHome.id,
+                homeId: home.id,
                 currentRole: homeService.selectedHomeRole(currentUserID: authenticationService.currentUser?.id)
             )
             clearMealsConfirmationText = ""
@@ -620,10 +635,12 @@ struct HomeSettingsView: View {
             NotificationCenter.default.post(name: .homeyMealsDidChange, object: nil)
             NotificationCenter.default.post(name: .homeyCalendarEventsDidChange, object: nil)
 
+            guard selectedHome?.id == home.id else { return }
             withAnimation(.easeInOut(duration: 0.2)) {
-                successMessage = "Meals have been cleared for this Home."
+                successMessage = "Meals and Quick Adds have been cleared for this Home."
             }
         } catch {
+            guard selectedHome?.id == home.id else { return }
             clearMealsErrorMessage = error.localizedDescription
             isShowingClearMealsError = true
         }

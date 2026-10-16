@@ -71,9 +71,10 @@ struct AutoPlanSlot: Identifiable, Hashable, Sendable {
     let mealType: MealType
     var existingPlannedMeals: [PlannedMeal]
     var suggestion: AutoPlanSuggestion?
+    var quickMealTitle: String? = nil
 
     var isFilled: Bool {
-        !existingPlannedMeals.isEmpty
+        !existingPlannedMeals.isEmpty || quickMealTitle != nil
     }
 }
 

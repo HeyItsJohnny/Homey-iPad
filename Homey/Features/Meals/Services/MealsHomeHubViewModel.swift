@@ -113,7 +113,7 @@ final class MealsHomeHubViewModel: ObservableObject {
             return
         } catch {
             guard !Task.isCancelled, activeLoadID == loadID else { return }
-            errorMessage = "We couldn't refresh the meal plan for this date."
+            errorMessage = "Recipe meals couldn't be refreshed. " + error.localizedDescription
         }
     }
 

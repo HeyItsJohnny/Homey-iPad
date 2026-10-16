@@ -14,8 +14,7 @@ struct MealPlannerView: View {
     let onOpenCalendar: (Date?) -> Void
     let onComingSoon: (String) -> Void
 
-    @State private var activeAddSlot: MealPlannerSlot?
-    @State private var pendingSelection: MealPlannerPendingSelection?
+    @State private var activeAddSlot: MealSlotAddRoute?
     @State private var moveTarget: MealPlannerMoveTarget?
     @State private var isAutoPlanPresented = false
     @State private var isResetPlanConfirmationPresented = false
@@ -29,8 +28,16 @@ struct MealPlannerView: View {
             viewModePicker
             content
             summaryBar
+            if let message = viewModel.quickMealLoadError {
+                HStack {
+                    Text(message).font(.footnote).foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    Button("Retry Quick Adds") { Task { await viewModel.retryQuickMeals() } }
+                        .disabled(viewModel.isLoadingQuickMeals)
+                }
+            }
         }
         .task(id: loadTaskID) {
+            activeAddSlot = nil
             viewModel.load(homeId: selectedHomeID, weekStartsOn: weekStartsOn, timezone: timezone)
         }
         .alert("Meal Planner", isPresented: errorBinding) {
@@ -38,33 +45,10 @@ struct MealPlannerView: View {
         } message: {
             Text(viewModel.errorMessage ?? "We could not update the meal plan.")
         }
-        .sheet(item: $activeAddSlot) { slot in
-            MealPlannerPickerView(
-                title: "Add \(slot.mealType.displayName)",
-                meals: meals,
-                favoriteMeals: favoriteMeals,
-                collections: collections,
-                preselectedMealType: slot.mealType,
-                onCancel: { activeAddSlot = nil },
-                onSelectMeal: { meal in
-                    activeAddSlot = nil
-                    pendingSelection = MealPlannerPendingSelection(meal: meal, date: slot.date, mealType: slot.mealType)
-                }
-            )
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
-        .sheet(item: $pendingSelection) { selection in
-            MealPlannerConfirmationView(selection: selection) { servings, notes in
-                Task {
-                    await viewModel.addMeal(selection.meal, to: selection.date, mealType: selection.mealType, servings: servings, notes: notes, permissions: permissions)
-                    pendingSelection = nil
-                }
-            } onCancel: {
-                pendingSelection = nil
-            }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
+        .sheet(item: $activeAddSlot) { selectedSlot in
+            MealPlannerAddSheet(route: selectedSlot, viewModel: viewModel, meals: meals,
+                favoriteMeals: favoriteMeals, collections: collections, permissions: permissions,
+                onDismiss: { activeAddSlot = nil })
         }
         .sheet(item: $moveTarget) { target in
             MealPlannerMoveView(
@@ -158,6 +142,16 @@ struct MealPlannerView: View {
 
             Spacer()
 
+            Button {
+                Task { await viewModel.reload() }
+            } label: {
+                Image(systemName: "arrow.clockwise").frame(width: 38, height: 38)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+            .disabled(viewModel.isLoading || viewModel.isSaving)
+            .accessibilityLabel("Refresh meal planner")
+
             Text("\(viewModel.plannedMealCount) Meals Planned")
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(HomeyDashboardTheme.secondaryText)
@@ -239,7 +233,7 @@ struct MealPlannerView: View {
             MealPlannerMessageCard(title: "Choose a Home", message: "Select a Home before planning meals.", systemImage: "house.fill")
         } else if !permissions.meals.canViewMealPlan {
             MealPlannerMessageCard(title: "Meal Plan Unavailable", message: "You do not have permission to view this Home's meal plan.", systemImage: "lock.fill")
-        } else if viewModel.isLoading && viewModel.plannedMeals.isEmpty {
+        } else if viewModel.isLoading && viewModel.plannedMeals.isEmpty && viewModel.quickMeals.isEmpty {
             MealPlannerLoadingGrid()
         } else {
             switch viewModel.displayMode {
@@ -266,8 +260,14 @@ struct MealPlannerView: View {
                             isSelected: Calendar.autoupdatingCurrent.isDate(day, inSameDayAs: viewModel.selectedDate),
                             slotTypes: defaultSlotTypes,
                             plannedMeals: { mealType in viewModel.plannedMeals(on: day, mealType: mealType) },
+                            hasQuickMeals: { type in !viewModel.quickMeals(on: day, mealType: type).isEmpty },
+                            quickMealsContent: { type in AnyView(QuickMealRows(viewModel: viewModel,
+                                entries: viewModel.quickMeals(on: day, mealType: type), permissions: permissions)) },
                             onSelectDay: { viewModel.selectDate(day) },
-                            onAdd: { mealType in activeAddSlot = MealPlannerSlot(date: day, mealType: mealType) },
+                            onAdd: { mealType, kind in
+                                MealSlotAddRoute.present(&activeAddSlot, homeID: selectedHomeID,
+                                    date: day, mealType: mealType, kind: kind)
+                            },
                             onOpen: { plannedMeal in onSelectMeal(plannedMeal.meal) },
                             onMove: { plannedMeal in moveTarget = MealPlannerMoveTarget(plannedMeal: plannedMeal, date: day, mealType: plannedMeal.mealType) },
                             onRemove: { plannedMeal in Task { await viewModel.removeMeal(plannedMeal, permissions: permissions) } },
@@ -371,7 +371,21 @@ struct MealPlannerView: View {
 
     private var listView: some View {
         VStack(spacing: 12) {
-            if viewModel.plannedMeals.isEmpty {
+            HStack {
+                Text(viewModel.selectedDate, style: .date).font(.subheadline.weight(.semibold))
+                Spacer()
+                ForEach(defaultSlotTypes) { type in
+                    MealSlotAddMenu(onSelect: { kind in
+                        MealSlotAddRoute.present(&activeAddSlot, homeID: selectedHomeID,
+                            date: viewModel.selectedDate, mealType: type, kind: kind)
+                    }) { Label(type.displayName, systemImage: "plus") }
+                    .disabled(!permissions.meals.canPlanMeals || viewModel.isSaving || activeAddSlot != nil)
+                }
+            }
+            .tint(HomeyDashboardTheme.warmBrown)
+
+            QuickMealRows(viewModel: viewModel, entries: viewModel.quickMeals, permissions: permissions)
+            if viewModel.plannedMeals.isEmpty && viewModel.quickMeals.isEmpty {
                 MealPlannerMessageCard(title: "No Planned Meals", message: "Add recipes to breakfast, lunch, dinner, or snack slots to build the week.", systemImage: "calendar.badge.plus")
             } else {
                 ForEach(viewModel.plannedMeals) { plannedMeal in
@@ -906,7 +920,7 @@ private struct AutoPlanPreviewRow: View {
                         .padding(.vertical, 3)
                         .background(statusColor.opacity(0.12), in: Capsule())
                 }
-                Text(slot.suggestion?.meal?.name ?? slot.existingPlannedMeals.first?.meal.name ?? "No eligible recipe")
+                Text(slot.suggestion?.meal?.name ?? slot.existingPlannedMeals.first?.meal.name ?? slot.quickMealTitle ?? "No eligible recipe")
                     .font(.headline.weight(.bold))
                     .foregroundStyle(HomeyDashboardTheme.primaryText)
                     .lineLimit(2)
@@ -975,8 +989,7 @@ struct UpcomingMealsPreviewView: View {
     let onSelectMeal: (Meal) -> Void
     let onShowPlanner: () -> Void
 
-    @State private var activeAddSlot: MealPlannerSlot?
-    @State private var pendingSelection: MealPlannerPendingSelection?
+    @State private var activeAddSlot: MealSlotAddRoute?
     @State private var moveTarget: MealPlannerMoveTarget?
 
     private let previewMealTypes: [MealType] = [.breakfast, .lunch, .dinner]
@@ -989,11 +1002,14 @@ struct UpcomingMealsPreviewView: View {
                 compactMessage(title: "Choose a Home", message: "Select a Home before planning meals.", systemImage: "house.fill")
             } else if !permissions.meals.canView {
                 compactMessage(title: "Meal Plan Unavailable", message: "You do not have permission to view this Home's meal plan.", systemImage: "lock.fill")
-            } else if viewModel.isLoading && viewModel.plannedMeals.isEmpty {
+            } else if viewModel.isLoading && viewModel.plannedMeals.isEmpty && viewModel.quickMeals.isEmpty {
                 UpcomingMealsPreviewLoadingRows()
             } else {
                 if let errorMessage = viewModel.errorMessage {
                     compactError(message: errorMessage)
+                }
+                if let message = viewModel.quickMealLoadError {
+                    Text(message).font(.footnote).foregroundStyle(HomeyDashboardTheme.secondaryText)
                 }
 
                 let days = viewModel.upcomingPreviewDays(count: 3)
@@ -1023,35 +1039,13 @@ struct UpcomingMealsPreviewView: View {
         }
         .shadow(color: HomeyDashboardTheme.shadow.opacity(0.10), radius: 12, x: 0, y: 8)
         .task(id: loadTaskID) {
+            activeAddSlot = nil
             viewModel.loadPreview(homeId: selectedHomeID, weekStartsOn: weekStartsOn, timezone: timezone)
         }
         .sheet(item: $activeAddSlot) { slot in
-            MealPlannerPickerView(
-                title: "Add \(slot.mealType.displayName)",
-                meals: meals,
-                favoriteMeals: favoriteMeals,
-                collections: collections,
-                preselectedMealType: slot.mealType,
-                onCancel: { activeAddSlot = nil },
-                onSelectMeal: { meal in
-                    activeAddSlot = nil
-                    pendingSelection = MealPlannerPendingSelection(meal: meal, date: slot.date, mealType: slot.mealType)
-                }
-            )
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-        }
-        .sheet(item: $pendingSelection) { selection in
-            MealPlannerConfirmationView(selection: selection) { servings, notes in
-                Task {
-                    await viewModel.addMeal(selection.meal, to: selection.date, mealType: selection.mealType, servings: servings, notes: notes, permissions: permissions)
-                    pendingSelection = nil
-                }
-            } onCancel: {
-                pendingSelection = nil
-            }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
+            MealPlannerAddSheet(route: slot, viewModel: viewModel, meals: meals,
+                favoriteMeals: favoriteMeals, collections: collections, permissions: permissions,
+                onDismiss: { activeAddSlot = nil })
         }
         .sheet(item: $moveTarget) { target in
             MealPlannerMoveView(
@@ -1081,6 +1075,14 @@ struct UpcomingMealsPreviewView: View {
 
             Spacer()
 
+            Button {
+                Task { await viewModel.reload() }
+            } label: {
+                Image(systemName: "arrow.clockwise")
+            }
+            .disabled(viewModel.isLoading || viewModel.isSaving)
+            .accessibilityLabel("Refresh upcoming meals")
+
             Button("View Full Planner", action: onShowPlanner)
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(HomeyDashboardTheme.warmBrown)
@@ -1096,7 +1098,7 @@ struct UpcomingMealsPreviewView: View {
     private var hasPlannedMealsInPreview: Bool {
         viewModel.upcomingPreviewDays(count: 3).contains { day in
             previewMealTypes.contains { mealType in
-                !viewModel.plannedMeals(on: day, mealType: mealType).isEmpty
+                !viewModel.plannedMeals(on: day, mealType: mealType).isEmpty || !viewModel.quickMeals(on: day, mealType: mealType).isEmpty
             }
         }
     }
@@ -1109,8 +1111,14 @@ struct UpcomingMealsPreviewView: View {
                     title: dayTitle(for: day, index: index),
                     mealTypes: previewMealTypes,
                     plannedMeals: { mealType in viewModel.plannedMeals(on: day, mealType: mealType) },
+                            hasQuickMeals: { type in !viewModel.quickMeals(on: day, mealType: type).isEmpty },
+                            quickMealsContent: { type in AnyView(QuickMealRows(viewModel: viewModel,
+                                entries: viewModel.quickMeals(on: day, mealType: type), permissions: permissions)) },
                     categories: viewModel.categories,
-                    onAdd: { mealType in activeAddSlot = MealPlannerSlot(date: day, mealType: mealType) },
+                    onAdd: { mealType, kind in
+                                MealSlotAddRoute.present(&activeAddSlot, homeID: selectedHomeID,
+                                    date: day, mealType: mealType, kind: kind)
+                            },
                     onOpen: { plannedMeal in onSelectMeal(plannedMeal.meal) },
                     onMove: { plannedMeal in
                         moveTarget = MealPlannerMoveTarget(plannedMeal: plannedMeal, date: plannedMeal.startsAt, mealType: plannedMeal.mealType)
@@ -1327,8 +1335,10 @@ private struct UpcomingMealsPreviewDayColumn: View {
     let title: String
     let mealTypes: [MealType]
     let plannedMeals: (MealType) -> [PlannedMeal]
+    let hasQuickMeals: (MealType) -> Bool
+    let quickMealsContent: (MealType) -> AnyView
     let categories: [CalendarCategory]
-    let onAdd: (MealType) -> Void
+    let onAdd: (MealType, MealSlotAddKind) -> Void
     let onOpen: (PlannedMeal) -> Void
     let onMove: (PlannedMeal) -> Void
     let onRemove: (PlannedMeal) -> Void
@@ -1384,9 +1394,7 @@ private struct UpcomingMealsPreviewDayColumn: View {
                     .foregroundStyle(HomeyDashboardTheme.secondaryText)
                     .lineLimit(1)
                 Spacer(minLength: 4)
-                Button {
-                    onAdd(mealType)
-                } label: {
+                MealSlotAddMenu(onSelect: { kind in onAdd(mealType, kind) }) {
                     Image(systemName: "plus")
                         .font(.caption.weight(.bold))
                         .foregroundStyle(HomeyDashboardTheme.warmBrown)
@@ -1398,10 +1406,8 @@ private struct UpcomingMealsPreviewDayColumn: View {
                 .accessibilityLabel("Add \(mealType.displayName)")
             }
 
-            if mealsForSlot.isEmpty {
-                Button {
-                    onAdd(mealType)
-                } label: {
+            if mealsForSlot.isEmpty && !hasQuickMeals(mealType) {
+                MealSlotAddMenu(onSelect: { kind in onAdd(mealType, kind) }) {
                     Text("No meal planned")
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.72))
@@ -1410,7 +1416,7 @@ private struct UpcomingMealsPreviewDayColumn: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("\(mealType.displayName), \(Self.accessibilityDateFormatter.string(from: date)), no meal planned. Double tap to add a meal.")
-            } else {
+            } else if !mealsForSlot.isEmpty {
                 UpcomingMealsPreviewFilledRow(
                     showsMealTypeLabel: false,
                     day: date,
@@ -1422,6 +1428,7 @@ private struct UpcomingMealsPreviewDayColumn: View {
                     onRemove: onRemove
                 )
             }
+            quickMealsContent(mealType)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 7)
@@ -1444,10 +1451,10 @@ private struct UpcomingMealsPreviewDayColumn: View {
 private struct UpcomingMealsPreviewEmptyRow: View {
     let day: Date
     let mealType: MealType
-    let onAdd: () -> Void
+    let onAdd: (MealSlotAddKind) -> Void
 
     var body: some View {
-        Button(action: onAdd) {
+        MealSlotAddMenu(onSelect: onAdd) {
             HStack(spacing: 10) {
                 HStack(spacing: 6) {
                     Image(systemName: mealType.systemImageName)
@@ -1535,8 +1542,10 @@ private struct MealPlannerDayColumn: View {
     let isSelected: Bool
     let slotTypes: [MealType]
     let plannedMeals: (MealType) -> [PlannedMeal]
+    let hasQuickMeals: (MealType) -> Bool
+    let quickMealsContent: (MealType) -> AnyView
     let onSelectDay: () -> Void
-    let onAdd: (MealType) -> Void
+    let onAdd: (MealType, MealSlotAddKind) -> Void
     let onOpen: (PlannedMeal) -> Void
     let onMove: (PlannedMeal) -> Void
     let onRemove: (PlannedMeal) -> Void
@@ -1578,8 +1587,10 @@ private struct MealPlannerDayColumn: View {
                 MealPlannerSlotView(
                     mealType: mealType,
                     plannedMeals: plannedMeals(mealType),
+                    quickMealsContent: quickMealsContent(mealType),
+                    hasQuickMeals: hasQuickMeals(mealType),
                     categories: categories,
-                    onAdd: { onAdd(mealType) },
+                    onAdd: { kind in onAdd(mealType, kind) },
                     onOpen: onOpen,
                     onMove: onMove,
                     onRemove: onRemove
@@ -1621,8 +1632,10 @@ private struct MealPlannerDayColumn: View {
 private struct MealPlannerSlotView: View {
     let mealType: MealType
     let plannedMeals: [PlannedMeal]
+    let quickMealsContent: AnyView
+    let hasQuickMeals: Bool
     let categories: [CalendarCategory]
-    let onAdd: () -> Void
+    let onAdd: (MealSlotAddKind) -> Void
     let onOpen: (PlannedMeal) -> Void
     let onMove: (PlannedMeal) -> Void
     let onRemove: (PlannedMeal) -> Void
@@ -1640,7 +1653,7 @@ private struct MealPlannerSlotView: View {
                     .foregroundStyle(HomeyDashboardTheme.secondaryText)
                     .lineLimit(1)
                 Spacer(minLength: 4)
-                Button(action: onAdd) {
+                MealSlotAddMenu(onSelect: onAdd) {
                     Image(systemName: "plus")
                         .font(.caption.weight(.bold))
                         .foregroundStyle(HomeyDashboardTheme.warmBrown)
@@ -1657,13 +1670,14 @@ private struct MealPlannerSlotView: View {
                     MealPlannerMiniCard(plannedMeal: plannedMeal, categories: categories, onOpen: { onOpen(plannedMeal) }, onMove: { onMove(plannedMeal) }, onRemove: { onRemove(plannedMeal) })
                         .draggable(plannedMeal.id)
                 }
-            } else {
+            } else if !hasQuickMeals {
                 Text("No meal planned")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.72))
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, minHeight: 24, alignment: .leading)
             }
+            quickMealsContent
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 7)
@@ -2107,10 +2121,48 @@ private struct MealPlannerMessageCard: View {
     }
 }
 
-private struct MealPlannerSlot: Identifiable {
-    let id = UUID()
-    let date: Date
-    let mealType: MealType
+private struct MealPlannerAddSheet: View {
+    let route: MealSlotAddRoute
+    @ObservedObject var viewModel: MealPlannerViewModel
+    let meals: [Meal]
+    let favoriteMeals: [Meal]
+    let collections: [MealCollection]
+    let permissions: HomePermissions
+    let onDismiss: () -> Void
+    @State private var selection: MealPlannerPendingSelection?
+    @State private var isSubmitting = false
+
+    var body: some View {
+        Group {
+            if route.kind == .quickAdd {
+                QuickMealEditor(viewModel: viewModel, homeID: route.homeID, date: route.date,
+                    mealType: route.mealType, permissions: permissions, onDismiss: onDismiss)
+            } else if let selection {
+                MealPlannerConfirmationView(selection: selection) { servings, notes in
+                    guard !isSubmitting else { return }
+                    isSubmitting = true
+                    Task {
+                        await viewModel.addMeal(selection.meal, to: route.date, mealType: route.mealType,
+                            servings: servings, notes: notes, permissions: permissions)
+                        isSubmitting = false
+                        if viewModel.errorMessage == nil { onDismiss() }
+                    }
+                } onCancel: { onDismiss() }
+                .disabled(isSubmitting)
+            } else {
+                MealPlannerPickerView(title: "Add \(route.mealType.displayName)", meals: meals,
+                    favoriteMeals: favoriteMeals, collections: collections,
+                    preselectedMealType: route.mealType, onCancel: onDismiss,
+                    onSelectMeal: { meal in
+                        guard selection == nil else { return }
+                        selection = MealPlannerPendingSelection(meal: meal, date: route.date, mealType: route.mealType)
+                    })
+            }
+        }
+        .presentationDetents(route.kind == .quickAdd ? [.medium, .large] : [.large])
+        .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled(isSubmitting || viewModel.isSaving)
+    }
 }
 
 private struct MealPlannerPendingSelection: Identifiable {
