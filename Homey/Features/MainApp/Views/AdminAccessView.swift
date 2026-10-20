@@ -309,12 +309,12 @@ struct AdminAccessView: View {
             VStack(alignment: .leading, spacing: 7) {
                 Text("Admin Access")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .accessibilityAddTraits(.isHeader)
 
                 Text("Enter an Owner or Admin PIN to continue.")
                     .font(.title3)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
             .padding(.trailing, 78)
 
@@ -322,14 +322,14 @@ struct AdminAccessView: View {
                 VStack(spacing: 22) {
                     Image(systemName: "lock.shield.fill")
                         .font(.system(size: 48, weight: .semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .frame(width: 96, height: 96)
-                        .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+                        .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous))
 
                     HStack(spacing: 18) {
                         ForEach(0..<4, id: \.self) { index in
                             Circle()
-                                .fill(index < enteredPIN.count ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.softBorder)
+                                .fill(index < enteredPIN.count ? HomeyTheme.primary : HomeyTheme.borderSubtle)
                                 .frame(width: 18, height: 18)
                         }
                     }
@@ -338,20 +338,20 @@ struct AdminAccessView: View {
                     if controller.isVerifying {
                         HStack(spacing: 10) {
                             ProgressView()
-                                .tint(HomeyDashboardTheme.warmBrown)
+                                .tint(HomeyTheme.primary)
                             Text("Verifying…")
                                 .font(.subheadline.weight(.semibold))
                         }
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                     } else if let errorMessage = controller.errorMessage {
                         Text(errorMessage)
                             .font(.headline)
-                            .foregroundStyle(HomeyDashboardTheme.softRed)
+                            .foregroundStyle(HomeyTheme.danger)
                             .multilineTextAlignment(.center)
                     } else {
                         Text("Use the keypad to enter your 4-digit PIN.")
                             .font(.subheadline)
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -362,7 +362,7 @@ struct AdminAccessView: View {
             .padding(.horizontal, 54)
             .padding(.vertical, 38)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .dashboardCard(cornerRadius: 34)
+            .dashboardCard(cornerRadius: HomeyRadius.page)
         }
     }
 
@@ -389,9 +389,9 @@ struct AdminAccessView: View {
             } label: {
                 Image(systemName: "delete.left.fill")
                     .font(.system(size: 25, weight: .semibold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .frame(maxWidth: .infinity, minHeight: 72)
-                    .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
             }
             .buttonStyle(.plain)
             .disabled(controller.isVerifying)
@@ -403,12 +403,12 @@ struct AdminAccessView: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 30, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .frame(maxWidth: .infinity, minHeight: 72)
-                .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
         }
         .buttonStyle(.plain)
@@ -440,19 +440,19 @@ struct AdminAccessView: View {
                 VStack(alignment: .leading, spacing: 7) {
                     Text("Admin")
                         .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .accessibilityAddTraits(.isHeader)
 
                     Text("Signed in as \(session.displayName)")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
 
                     Text(session.role.displayName)
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                        .background(HomeyTheme.primarySoft, in: Capsule())
                 }
 
                 Spacer()
@@ -465,7 +465,7 @@ struct AdminAccessView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 24)
                         .frame(minHeight: 52)
-                        .background(HomeyDashboardTheme.warmBrown, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+                        .background(HomeyTheme.primary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }

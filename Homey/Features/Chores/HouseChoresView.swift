@@ -31,16 +31,16 @@ struct HouseChoresView: View {
                                 AttentionBadge(count: badgeCount(for: section))
                             }
                         }
-                        .foregroundStyle(selectedSection == section ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(selectedSection == section ? HomeyTheme.primary : HomeyTheme.textPrimary)
                         .padding(14)
                         .frame(maxWidth: .infinity, minHeight: 62, alignment: .leading)
                         .background(
-                            selectedSection == section ? HomeyDashboardTheme.selectedSidebarBackground : HomeyDashboardTheme.appBackground,
-                            in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            selectedSection == section ? HomeyTheme.primarySoft : HomeyTheme.backgroundPrimary,
+                            in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
                         )
                         .overlay {
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                         }
                     }
                     .buttonStyle(.plain)
@@ -239,7 +239,7 @@ struct HouseChoresApprovalsView: View {
 
                         if item.id != viewModel.approvalItems.last?.id {
                             Divider()
-                                .overlay(HomeyDashboardTheme.softBorder)
+                                .overlay(HomeyTheme.borderSubtle)
                         }
                     }
                 }
@@ -248,7 +248,7 @@ struct HouseChoresApprovalsView: View {
             if let actionErrorMessage = viewModel.actionErrorMessage {
                 Text(actionErrorMessage)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                    .foregroundStyle(HomeyTheme.danger)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -342,16 +342,16 @@ private struct HouseChoresSectionCard<Content: View>: View {
         VStack(alignment: .leading, spacing: 14) {
             Text(title)
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             content
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(HomeyDashboardTheme.appBackground, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(HomeyTheme.backgroundPrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 }
@@ -364,12 +364,12 @@ private struct ChoreRoomMetadataList: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Rooms")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             if summaries.isEmpty {
                 Text("No rooms yet.")
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             } else {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 320), spacing: 14)], alignment: .leading, spacing: 14) {
                     ForEach(summaries) { summary in
@@ -395,12 +395,12 @@ private struct ChoreRoomSummaryCard: View {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     Image(systemName: "sparkles")
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .accessibilityHidden(true)
                     
                     Text(summary.room.name)
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                     
@@ -408,7 +408,7 @@ private struct ChoreRoomSummaryCard: View {
                     
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .accessibilityHidden(true)
                 }
                 
@@ -416,21 +416,21 @@ private struct ChoreRoomSummaryCard: View {
                     lastCleanedRow
                     Text(summary.choreCountText)
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                        .background(HomeyTheme.primarySoft, in: Capsule())
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(16)
             .frame(maxWidth: .infinity, minHeight: 132, alignment: .topLeading)
-            .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(HomeyDashboardTheme.softBorder.opacity(0.82), lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                    .stroke(HomeyTheme.borderSubtle.opacity(0.82), lineWidth: 1)
             }
-            .shadow(color: HomeyDashboardTheme.shadow.opacity(0.08), radius: 7, x: 0, y: 4)
+            .shadow(color: HomeyTheme.shadow.opacity(0.08), radius: 7, x: 0, y: 4)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(summary.room.name), Last Cleaned \(summary.lastCleanedText), \(summary.choreCountText)")
@@ -443,19 +443,19 @@ private struct ChoreRoomSummaryCard: View {
                 if let weekdayText = summary.preferredCleaningWeekdayText {
                     Text(weekdayText)
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                 }
 
                 Text("Last Cleaned")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer(minLength: 8)
 
             Text(summary.lastCleanedText)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .lineLimit(1)
                 .truncationMode(.tail)
         }
@@ -471,7 +471,7 @@ private struct ChoreRoomDetailSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground
+                HomeyTheme.backgroundPrimary
                     .ignoresSafeArea()
                 
                 ScrollView {
@@ -501,7 +501,7 @@ private struct ChoreRoomDetailSheet: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(room.name)
                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             
             VStack(alignment: .leading, spacing: 10) {
@@ -511,14 +511,14 @@ private struct ChoreRoomDetailSheet: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
     
     private var assignedChoresList: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Assigned Chores")
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             
             if detail?.chores.isEmpty ?? true {
                 ChoreMessageState(
@@ -533,20 +533,20 @@ private struct ChoreRoomDetailSheet: View {
                         
                         if choreDetail.id != detail?.chores.last?.id {
                             Divider()
-                                .overlay(HomeyDashboardTheme.softBorder)
+                                .overlay(HomeyTheme.borderSubtle)
                         }
                     }
                 }
                 .padding(.horizontal, 14)
-                .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
             }
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.appBackground.opacity(0.52), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(HomeyTheme.backgroundPrimary.opacity(0.52), in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder.opacity(0.82), lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle.opacity(0.82), lineWidth: 1)
         }
     }
 
@@ -566,12 +566,12 @@ private struct ChoreRoomDetailSheet: View {
         VStack(alignment: .leading, spacing: 3) {
             Text(label)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .textCase(.uppercase)
 
             Text(value)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
         }
     }
 }
@@ -583,24 +583,24 @@ private struct ChoreRoomAssignedChoreRow: View {
         VStack(alignment: .leading, spacing: 5) {
             Text(detail.chore.title)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
 
             Text(HouseChoreRecurrenceFormatter.text(for: detail.recurrenceRule))
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .lineLimit(1)
 
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(detail.lastCompletedText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 if let nextDueText = detail.nextDueText {
                     Text(nextDueText)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
             }
         }
@@ -636,14 +636,14 @@ private struct ChoreApprovalRow: View {
                 }
             }
             .font(.caption.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
 
             HStack(spacing: 10) {
                 Button(action: onApprove) {
                     Label("Approve", systemImage: "checkmark.seal.fill")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .disabled(isReviewing)
 
                 Button(action: onNeedsRedo) {
@@ -651,13 +651,13 @@ private struct ChoreApprovalRow: View {
                         .frame(maxWidth: .infinity)
                 }
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
                 .padding(.horizontal, 14)
                 .frame(minHeight: 44)
-                .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(HomeyDashboardTheme.destructiveRed.opacity(0.35), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.danger.opacity(0.35), lineWidth: 1)
                 }
                 .buttonStyle(.plain)
                 .disabled(isReviewing)
@@ -666,7 +666,7 @@ private struct ChoreApprovalRow: View {
             if isReviewing {
                 ProgressView()
                     .controlSize(.small)
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
             }
         }
         .padding(.vertical, 12)
@@ -675,7 +675,7 @@ private struct ChoreApprovalRow: View {
     private func approvalDetail(_ label: String, _ value: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text("\(label):")
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             Text(value)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -693,20 +693,20 @@ private struct ChoreSummaryCard: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(summary.chore.title)
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     Text(recurrenceText)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
 
                     Text(summary.roomName)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .multilineTextAlignment(.leading)
@@ -714,7 +714,7 @@ private struct ChoreSummaryCard: View {
 
                 Text(assignmentText)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
 
@@ -723,24 +723,24 @@ private struct ChoreSummaryCard: View {
                 HStack(alignment: .lastTextBaseline, spacing: 10) {
                     Text(pointsText)
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                        .background(HomeyTheme.primarySoft, in: Capsule())
 
                     Spacer(minLength: 8)
 
                     Text(nextDueText)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(2)
                         .multilineTextAlignment(.trailing)
                 }
             }
             .padding(16)
             .frame(maxWidth: .infinity, minHeight: 156, alignment: .topLeading)
-            .dashboardCard(cornerRadius: 22)
-            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .dashboardCard(cornerRadius: HomeyRadius.card)
+            .contentShape(RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)

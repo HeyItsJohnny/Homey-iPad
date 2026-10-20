@@ -29,6 +29,9 @@ struct HomeyApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .tint(HomeyTheme.primary)
+                .foregroundStyle(HomeyTheme.textPrimary)
+                .preferredColorScheme(.light)
                 .environmentObject(authenticationService)
                 .environmentObject(homeService)
         }

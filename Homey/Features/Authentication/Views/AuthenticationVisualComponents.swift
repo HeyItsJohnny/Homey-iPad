@@ -13,11 +13,11 @@ struct AuthenticationBackground: View {
             ZStack {
                 LinearGradient(
                     stops: [
-                        .init(color: AuthenticationTheme.leftWarmPeach, location: 0.0),
-                        .init(color: AuthenticationTheme.leftSoftTan, location: 0.34),
-                        .init(color: AuthenticationTheme.midWarmCream, location: 0.58),
-                        .init(color: AuthenticationTheme.rightCoolIvory, location: 0.82),
-                        .init(color: AuthenticationTheme.farRightCoolWhite, location: 1.0)
+                        .init(color: HomeyTheme.sidebarBackground, location: 0.0),
+                        .init(color: HomeyTheme.primarySoft, location: 0.34),
+                        .init(color: HomeyTheme.backgroundSecondary, location: 0.58),
+                        .init(color: HomeyTheme.surfaceSecondary, location: 0.82),
+                        .init(color: HomeyTheme.surfacePrimary, location: 1.0)
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
@@ -28,7 +28,7 @@ struct AuthenticationBackground: View {
                         RadialGradient(
                             colors: [
                                 Color.white.opacity(reduceTransparency ? 0.24 : 0.58),
-                                AuthenticationTheme.sunlightGold.opacity(reduceTransparency ? 0.10 : 0.22),
+                                HomeyTheme.sand.opacity(reduceTransparency ? 0.10 : 0.22),
                                 Color.clear
                             ],
                             center: .center,
@@ -44,7 +44,7 @@ struct AuthenticationBackground: View {
                     .fill(
                         RadialGradient(
                             colors: [
-                                AuthenticationTheme.coolCardGlow.opacity(reduceTransparency ? 0.06 : 0.14),
+                                HomeyTheme.primarySoft.opacity(reduceTransparency ? 0.06 : 0.14),
                                 Color.white.opacity(reduceTransparency ? 0.06 : 0.16),
                                 Color.clear
                             ],
@@ -61,8 +61,8 @@ struct AuthenticationBackground: View {
                     .fill(
                         RadialGradient(
                             colors: [
-                                AuthenticationTheme.lowerLeftWarmth.opacity(reduceTransparency ? 0.06 : 0.18),
-                                AuthenticationTheme.softBeige.opacity(reduceTransparency ? 0.04 : 0.12),
+                                HomeyTheme.primarySoft.opacity(reduceTransparency ? 0.06 : 0.18),
+                                HomeyTheme.sand.opacity(reduceTransparency ? 0.04 : 0.12),
                                 Color.clear
                             ],
                             center: .center,
@@ -86,7 +86,7 @@ struct AuthenticationHeroView: View {
         var text = AttributedString("Home is better together.")
 
         if let range = text.range(of: "better together.") {
-            text[range].foregroundColor = AuthenticationTheme.primaryBlue
+            text[range].foregroundColor = HomeyTheme.primary
         }
 
         return text
@@ -105,12 +105,12 @@ struct AuthenticationHeroView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(headline)
                         .font(.system(.title, design: .rounded, weight: .bold))
-                        .foregroundStyle(AuthenticationTheme.darkText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
 
                     Text("Homey helps your family stay organized,\nconnected, and at home.")
                         .font(.title3)
-                        .foregroundStyle(AuthenticationTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineSpacing(4)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -140,7 +140,7 @@ struct AuthenticationFormCard<Content: View>: View {
                 RoundedRectangle(cornerRadius: isCompact ? 26 : 30, style: .continuous)
                     .stroke(Color.white.opacity(0.85), lineWidth: 1)
             }
-            .shadow(color: AuthenticationTheme.warmShadow, radius: 30, x: 0, y: 16)
+            .shadow(color: HomeyTheme.shadow, radius: 30, x: 0, y: 16)
     }
 }
 
@@ -154,17 +154,17 @@ struct AuthenticationFormHeader: View {
                 .font(.title2)
                 .foregroundStyle(.white)
                 .frame(width: 52, height: 52)
-                .background(AuthenticationTheme.primaryBlue, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(HomeyTheme.primary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .accessibilityHidden(true)
 
             Text(title)
                 .font(.largeTitle.bold())
-                .foregroundStyle(AuthenticationTheme.darkText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .multilineTextAlignment(.center)
 
             Text(subtitle)
                 .font(.subheadline)
-                .foregroundStyle(AuthenticationTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -186,7 +186,7 @@ struct AuthenticationTextField<Field: Hashable>: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: systemImage)
-                .foregroundStyle(AuthenticationTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .frame(width: 22)
                 .accessibilityHidden(true)
 
@@ -212,7 +212,7 @@ struct AuthenticationPickerField<Selection: Hashable>: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: systemImage)
-                .foregroundStyle(AuthenticationTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .frame(width: 22)
                 .accessibilityHidden(true)
 
@@ -223,7 +223,7 @@ struct AuthenticationPickerField<Selection: Hashable>: View {
                 }
             }
             .pickerStyle(.menu)
-            .tint(AuthenticationTheme.darkText)
+            .tint(HomeyTheme.textPrimary)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .authenticationFieldBackground(isFocused: false)
@@ -242,7 +242,7 @@ struct AuthenticationSecureField<Field: Hashable>: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "lock")
-                .foregroundStyle(AuthenticationTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .frame(width: 22)
                 .accessibilityHidden(true)
 
@@ -262,7 +262,7 @@ struct AuthenticationSecureField<Field: Hashable>: View {
                 isPasswordVisible.toggle()
             } label: {
                 Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
-                    .foregroundStyle(AuthenticationTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(isPasswordVisible ? "Hide \(title.lowercased())" : "Show \(title.lowercased())")
@@ -277,17 +277,17 @@ struct AuthenticationErrorView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "exclamationmark.circle.fill")
-                .foregroundStyle(.red)
+                .foregroundStyle(HomeyTheme.danger)
                 .accessibilityHidden(true)
 
             Text(message)
                 .font(.subheadline)
-                .foregroundStyle(AuthenticationTheme.darkText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .background(Color.red.opacity(0.10), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.dangerSoft, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Error: \(message)")
     }
@@ -300,23 +300,23 @@ struct AuthenticationSuccessView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(AuthenticationTheme.successGreen)
+                .foregroundStyle(HomeyTheme.success)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AuthenticationTheme.darkText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 Text(message)
                     .font(.subheadline)
-                    .foregroundStyle(AuthenticationTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
-        .background(AuthenticationTheme.successGreen.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.success.opacity(0.12), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Success: \(title) \(message)")
     }
@@ -328,47 +328,27 @@ struct AuthenticationDividerWithText: View {
     var body: some View {
         HStack(spacing: 12) {
             Rectangle()
-                .fill(AuthenticationTheme.border)
+                .fill(HomeyTheme.borderSubtle)
                 .frame(height: 1)
 
             Text(text)
                 .font(.footnote)
-                .foregroundStyle(AuthenticationTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
 
             Rectangle()
-                .fill(AuthenticationTheme.border)
+                .fill(HomeyTheme.borderSubtle)
                 .frame(height: 1)
         }
     }
 }
 
-struct AuthenticationPrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.body.weight(.semibold))
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity, minHeight: 56)
-            .background(
-                LinearGradient(
-                    colors: [
-                        AuthenticationTheme.primaryBlue,
-                        AuthenticationTheme.primaryBlue.opacity(0.88)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                ),
-                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
-            )
-            .shadow(color: AuthenticationTheme.primaryBlue.opacity(configuration.isPressed ? 0.10 : 0.20), radius: 14, x: 0, y: 8)
-            .opacity(configuration.isPressed ? 0.90 : 1)
-    }
-}
+
 
 struct AuthenticationSecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(AuthenticationTheme.primaryBlue)
+            .foregroundStyle(HomeyTheme.primary)
             .opacity(configuration.isPressed ? 0.70 : 1)
     }
 }
@@ -386,31 +366,10 @@ private struct AuthenticationFieldBackground: ViewModifier {
         content
             .padding(.horizontal, 16)
             .frame(minHeight: 56)
-            .background(AuthenticationTheme.fieldBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.surfaceSecondary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(isFocused ? AuthenticationTheme.primaryBlue : AuthenticationTheme.fieldBorder, lineWidth: isFocused ? 1.5 : 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                    .stroke(isFocused ? HomeyTheme.primary : HomeyTheme.borderSubtle, lineWidth: isFocused ? 1.5 : 1)
             }
     }
-}
-
-enum AuthenticationTheme {
-    static let background = Color(red: 0.98, green: 0.95, blue: 0.91)
-    static let leftWarmPeach = Color(red: 0.88, green: 0.73, blue: 0.61)
-    static let leftSoftTan = Color(red: 0.96, green: 0.87, blue: 0.76)
-    static let midWarmCream = Color(red: 0.98, green: 0.94, blue: 0.87)
-    static let rightCoolIvory = Color(red: 0.96, green: 0.96, blue: 0.95)
-    static let farRightCoolWhite = Color(red: 0.97, green: 0.98, blue: 0.99)
-    static let sunlightGold = Color(red: 1.00, green: 0.91, blue: 0.72)
-    static let coolCardGlow = Color(red: 0.82, green: 0.89, blue: 0.98)
-    static let lowerLeftWarmth = Color(red: 0.94, green: 0.72, blue: 0.58)
-    static let softBeige = Color(red: 0.94, green: 0.86, blue: 0.77)
-    static let primaryBlue = Color(red: 0.29, green: 0.53, blue: 0.91)
-    static let successGreen = Color(red: 0.30, green: 0.58, blue: 0.36)
-    static let darkText = Color(red: 0.10, green: 0.14, blue: 0.22)
-    static let secondaryText = Color(red: 0.38, green: 0.42, blue: 0.50)
-    static let border = Color(red: 0.86, green: 0.84, blue: 0.80)
-    static let fieldBorder = Color(red: 0.82, green: 0.82, blue: 0.80)
-    static let fieldBackground = Color(red: 0.99, green: 0.98, blue: 0.96)
-    static let warmShadow = Color(red: 0.35, green: 0.24, blue: 0.16).opacity(0.10)
 }

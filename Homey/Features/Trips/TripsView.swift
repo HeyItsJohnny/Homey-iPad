@@ -25,7 +25,7 @@ struct TripsView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 7) {
                     Text("Trips").font(.system(size: 34, weight: .bold, design: .rounded))
-                    Text("Little outings. Big memories.").font(.title3).foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    Text("Little outings. Big memories.").font(.title3).foregroundStyle(HomeyTheme.textSecondary)
                 }
                 Spacer()
                 Button { sheet = .editor(nil) } label: {
@@ -34,16 +34,16 @@ struct TripsView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 16)
                         .frame(height: 42)
-                        .background(HomeyDashboardTheme.warmBrown, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(HomeyTheme.primary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .disabled(homeID == nil)
             }.padding(.trailing, 70)
             if let error = model.error {
-                Text(error).foregroundStyle(HomeyDashboardTheme.destructiveRed).accessibilityLabel(error)
+                Text(error).foregroundStyle(HomeyTheme.danger).accessibilityLabel(error)
             }
             HStack(alignment: .top, spacing: 16) {
-                column("Saved", icon: "bookmark.fill", color: HomeyDashboardTheme.orangeAccent) {
+                column("Saved", icon: "bookmark.fill", color: HomeyTheme.tripSaved) {
                     if model.ideas.isEmpty { empty("Save an idea for your next adventure.", icon: "bookmark") }
                     ForEach(model.ideas) { idea in
                         Button { sheet = .idea(idea) } label: {
@@ -56,26 +56,26 @@ struct TripsView: View {
                         }.buttonStyle(.plain)
                     }
                 }
-                column("Planned", icon: "calendar", color: HomeyDashboardTheme.sageAccent) {
+                column("Planned", icon: "calendar", color: HomeyTheme.tripPlanned) {
                     let trips = TripsHubSort.planned(model.trips)
                     if trips.isEmpty { empty("Plan a Saved idea and find it here.", icon: "calendar") }
                     ForEach(trips) { trip in tripCard(trip) }
                 }
-                column("Past", icon: "sun.max.fill", color: HomeyDashboardTheme.lavenderAccent) {
+                column("Past", icon: "sun.max.fill", color: HomeyTheme.tripPast) {
                     let trips = TripsHubSort.past(model.trips)
                     if trips.isEmpty { empty("Your completed adventures will appear here.", icon: "sun.max") }
                     ForEach(trips) { trip in tripCard(trip) }
                 }
             }
-            .padding(20).dashboardCard(cornerRadius: 30)
+            .padding(20).dashboardCard(cornerRadius: HomeyRadius.page)
             .overlay {
                 if model.loading && model.trips.isEmpty && model.ideas.isEmpty {
                     ProgressView("Loading Trips…").padding(20)
-                        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18))
+                        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card))
                 }
             }
         }
-        .foregroundStyle(HomeyDashboardTheme.primaryText)
+        .foregroundStyle(HomeyTheme.textPrimary)
         .padding(.horizontal, 34).padding(.top, 34).padding(.bottom, 38)
         .frame(maxWidth: 1180, maxHeight: .infinity, alignment: .topLeading)
         .frame(maxWidth: .infinity)
@@ -111,9 +111,9 @@ struct TripsView: View {
                 .refreshable { await refresh() }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(.white.opacity(0.28), in: RoundedRectangle(cornerRadius: 22))
-        .clipShape(RoundedRectangle(cornerRadius: 22))
-        .overlay { RoundedRectangle(cornerRadius: 22).stroke(HomeyDashboardTheme.softBorder.opacity(0.75)) }
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card))
+        .clipShape(RoundedRectangle(cornerRadius: HomeyRadius.card))
+        .overlay { RoundedRectangle(cornerRadius: HomeyRadius.card).stroke(HomeyTheme.borderSubtle.opacity(0.75)) }
     }
     private func card<Content: View>(_ title: String, destination: String?, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 7) {
@@ -121,8 +121,8 @@ struct TripsView: View {
             if let destination, !destination.isEmpty { Text(destination).font(.caption) }
             content()
         }.frame(maxWidth: .infinity, alignment: .leading).multilineTextAlignment(.leading)
-            .padding(12).background(.white.opacity(0.52), in: RoundedRectangle(cornerRadius: 17))
-            .overlay { RoundedRectangle(cornerRadius: 17).stroke(HomeyDashboardTheme.softBorder.opacity(0.65)) }
+            .padding(12).background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button))
+            .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button).stroke(HomeyTheme.borderSubtle.opacity(0.65)) }
     }
     private func tripCard(_ trip: Trip) -> some View {
         Button { sheet = .trip(trip) } label: {
@@ -134,7 +134,7 @@ struct TripsView: View {
     }
     private func empty(_ text: String, icon: String) -> some View {
         VStack(spacing: 10) { Image(systemName: icon).font(.title2); Text(text).font(.subheadline) }
-            .foregroundStyle(HomeyDashboardTheme.secondaryText).multilineTextAlignment(.center)
+            .foregroundStyle(HomeyTheme.textSecondary).multilineTextAlignment(.center)
             .frame(maxWidth: .infinity).padding(.vertical, 32)
     }
 }
@@ -194,13 +194,13 @@ private struct TripHubDetail: View {
             if let calendarNotice { TripModalBanner(message: calendarNotice) }
             HStack(spacing: 12) {
                 if trip.status == .completed {
-                    Button("Plan Again", action: again).buttonStyle(DashboardPrimaryButtonStyle())
+                    Button("Plan Again", action: again).buttonStyle(HomeyPrimaryButtonStyle())
                 } else {
                     Button { Task { await addToCalendar() } } label: {
                         if calendarSubmission.isSaving { ProgressView().tint(.white) }
                         else { Label(calendarSubmission.isComplete ? "Added to Calendar" : (calendarSubmission.needsReconciliation ? "Check Calendar" : "Add to Calendar"), systemImage: "calendar.badge.plus") }
                     }
-                        .buttonStyle(DashboardPrimaryButtonStyle())
+                        .buttonStyle(HomeyPrimaryButtonStyle())
                         .disabled(calendarSubmission.isSaving || calendarSubmission.isComplete || homes.selectedHomeID != homeID)
                 }
             }
@@ -257,15 +257,15 @@ private struct TripIdeaHubDetail: View {
                 }
             }.frame(maxWidth: .infinity, alignment: .leading).tripInsetPanel()
             if let error { TripModalBanner(message: error, isError: true) }
-            Button("Plan This Trip") { planning = true }.buttonStyle(DashboardPrimaryButtonStyle())
+            Button("Plan This Trip") { planning = true }.buttonStyle(HomeyPrimaryButtonStyle())
             Button(role: .destructive) { confirmsArchive = true } label: {
                 HStack(spacing: 9) {
                     if archiving { ProgressView() } else { Image(systemName: "archivebox"); Text("Archive Idea") }
                 }
-                .font(.subheadline.bold()).foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .font(.subheadline.bold()).foregroundStyle(HomeyTheme.danger)
                 .frame(maxWidth: .infinity, minHeight: 48)
-                .background(HomeyDashboardTheme.destructiveRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 17))
-                .overlay { RoundedRectangle(cornerRadius: 17).stroke(HomeyDashboardTheme.destructiveRed.opacity(0.18)) }
+                .background(HomeyTheme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: HomeyRadius.button))
+                .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button).stroke(HomeyTheme.danger.opacity(0.18)) }
             }.buttonStyle(.plain)
         }
         .disabled(archiving)
@@ -310,12 +310,12 @@ private struct TripIdeaHubEditor: View {
             TripModalField(title: "Notes", text: $draft.notes, axis: .vertical)
             if let error { TripModalBanner(message: error, isError: true) }
             HStack(spacing: 12) {
-                Button("Cancel") { dismiss() }.buttonStyle(TripModalSecondaryButtonStyle()).disabled(saving)
+                Button("Cancel") { dismiss() }.buttonStyle(HomeySecondaryButtonStyle()).disabled(saving)
                 Button { save() } label: {
                     if saving { ProgressView().tint(.white).accessibilityLabel("Saving idea") }
                     else { Text("Save Idea") }
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .disabled(saving || draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || homes.selectedHomeID != homeID)
             }
         }.disabled(saving)

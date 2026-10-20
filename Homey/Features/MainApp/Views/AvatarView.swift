@@ -4,8 +4,8 @@ struct AvatarView: View {
     let imageURL: URL?
     let initials: String
     var size: CGFloat
-    var accentColor: Color = HomeyDashboardTheme.warmBrown
-    var borderColor: Color = HomeyDashboardTheme.cardBackground
+    var accentColor: Color = HomeyTheme.primary
+    var borderColor: Color = HomeyTheme.surfacePrimary
     var borderWidth: CGFloat = 3
     var showsShadow = true
     var isLoading = false
@@ -22,7 +22,7 @@ struct AvatarView: View {
                     case .empty:
                         ProgressView()
                             .controlSize(.small)
-                            .tint(HomeyDashboardTheme.warmBrown)
+                            .tint(HomeyTheme.primary)
                     case .success(let image):
                         image
                             .resizable()
@@ -53,7 +53,7 @@ struct AvatarView: View {
                 .stroke(borderColor, lineWidth: borderWidth)
         }
         .shadow(
-            color: HomeyDashboardTheme.primaryText.opacity(showsShadow ? 0.12 : 0),
+            color: HomeyTheme.textPrimary.opacity(showsShadow ? 0.12 : 0),
             radius: showsShadow ? max(8, size * 0.12) : 0,
             x: 0,
             y: showsShadow ? max(4, size * 0.06) : 0

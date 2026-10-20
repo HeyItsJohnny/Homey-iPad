@@ -82,10 +82,10 @@ struct HomeCalendarMealsView: View {
         .overlay {
             if viewModel.isLoading && viewModel.plannedMeals.isEmpty {
                 ProgressView()
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
                     .padding(14)
-                    .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-                    .shadow(color: HomeyDashboardTheme.shadow, radius: 10, x: 0, y: 6)
+                    .background(HomeyTheme.surfacePrimary, in: Capsule())
+                    .shadow(color: HomeyTheme.shadow, radius: 10, x: 0, y: 6)
                     .accessibilityLabel("Loading meal plan")
             }
         }
@@ -155,7 +155,7 @@ private struct HomeCalendarMealsHeader: View {
             }
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 26)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var periodControls: some View {
@@ -165,12 +165,12 @@ private struct HomeCalendarMealsHeader: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text("This Week's Meal Plan")
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .accessibilityAddTraits(.isHeader)
 
                 Text(weekTitle)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
             .accessibilityElement(children: .combine)
 
@@ -182,11 +182,11 @@ private struct HomeCalendarMealsHeader: View {
         HStack(spacing: 10) {
             Button("Today", action: onToday)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .padding(.horizontal, 16)
                 .frame(minHeight: 38)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-                .overlay { Capsule().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
+                .overlay { Capsule().stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Go to today")
 
@@ -201,18 +201,18 @@ private struct HomeCalendarMealsHeader: View {
                     .frame(width: 38, height: 38)
             }
             .buttonStyle(.plain)
-            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+            .foregroundStyle(HomeyTheme.primary)
             .accessibilityLabel("Meal plan options")
 
             Text(plannedMealText)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .lineLimit(1)
 
             if isSaving {
                 ProgressView()
                     .controlSize(.small)
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
             }
         }
     }
@@ -223,9 +223,9 @@ private struct HomeCalendarMealsHeader: View {
                 .frame(width: 38, height: 38)
         }
         .buttonStyle(.plain)
-        .foregroundStyle(HomeyDashboardTheme.warmBrown)
-        .background(HomeyDashboardTheme.cardBackground, in: Circle())
-        .overlay { Circle().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+        .foregroundStyle(HomeyTheme.primary)
+        .background(HomeyTheme.surfacePrimary, in: Circle())
+        .overlay { Circle().stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
         .accessibilityLabel(label)
     }
 
@@ -261,11 +261,11 @@ private struct HomeCalendarMealsWeekGrid: View {
 
             Text(plannedMealText)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .padding(.horizontal, 4)
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 26)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var mealTypeLabels: some View {
@@ -403,26 +403,26 @@ private struct HomeCalendarMealsDayHeader: View {
         VStack(spacing: 3) {
             Text(Self.weekdayFormatter.string(from: date))
                 .font(.caption.weight(.bold))
-                .foregroundStyle(isToday ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(isToday ? HomeyTheme.primary : HomeyTheme.textSecondary)
                 .lineLimit(1)
 
             Text(Self.dayFormatter.string(from: date))
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .lineLimit(1)
 
             Text(isToday ? "Today" : " ")
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 6)
         .padding(.vertical, 7)
-        .background(isToday ? HomeyDashboardTheme.selectedSidebarBackground : HomeyDashboardTheme.appBackground.opacity(0.42), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(isToday ? HomeyTheme.primarySoft : HomeyTheme.backgroundPrimary.opacity(0.42), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(isToday ? HomeyDashboardTheme.warmBrown.opacity(0.38) : HomeyDashboardTheme.softBorder.opacity(0.72), lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                .stroke(isToday ? HomeyTheme.primary.opacity(0.38) : HomeyTheme.borderSubtle.opacity(0.72), lineWidth: 1)
         }
         .accessibilityElement(children: .combine)
     }
@@ -451,13 +451,13 @@ private struct HomeCalendarMealsTypeLabel: View {
         HStack(spacing: 9) {
             Image(systemName: mealType.systemImageName)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 30, height: 30)
-                .background(HomeyDashboardTheme.selectedSidebarBackground, in: Circle())
+                .background(HomeyTheme.primarySoft, in: Circle())
 
             Text(mealType.displayName)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.82)
         }
@@ -486,12 +486,12 @@ private struct HomeCalendarMealsSlot: View {
                         Text("Add")
                             .font(.caption.weight(.bold))
                     }
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(HomeyDashboardTheme.appBackground.opacity(0.36), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    .background(HomeyTheme.backgroundPrimary.opacity(0.36), in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 13, style: .continuous)
-                            .stroke(HomeyDashboardTheme.softBorder.opacity(0.85), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+                        RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous)
+                            .stroke(HomeyTheme.borderSubtle.opacity(0.85), style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
                     }
                 }
                 .buttonStyle(.plain)
@@ -510,7 +510,7 @@ private struct HomeCalendarMealsSlot: View {
                 if plannedMeals.count > 2 {
                     Text("+\(plannedMeals.count - 2) more")
                         .font(.caption2.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
@@ -518,10 +518,10 @@ private struct HomeCalendarMealsSlot: View {
         .padding(6)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .clipped()
-        .background(HomeyDashboardTheme.cardBackground.opacity(0.74), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+        .background(HomeyTheme.surfacePrimary.opacity(0.74), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 15, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder.opacity(0.76), lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle.opacity(0.76), lineWidth: 1)
         }
     }
 
@@ -550,7 +550,7 @@ private struct HomeCalendarMealCard: View {
 
                 Text(plannedMeal.meal.name)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
                     .truncationMode(.tail)
                     .fixedSize(horizontal: false, vertical: false)
@@ -562,9 +562,9 @@ private struct HomeCalendarMealCard: View {
             .padding(6)
             .frame(maxWidth: .infinity, minHeight: 42, maxHeight: 42, alignment: .leading)
             .clipped()
-            .background(accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+            .background(accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 11, style: .continuous)
+                RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous)
                     .stroke(accentColor.opacity(0.44), lineWidth: 1)
             }
         }
@@ -601,16 +601,16 @@ private struct HomeCalendarMealCard: View {
 
     private var placeholder: some View {
         RoundedRectangle(cornerRadius: 9, style: .continuous)
-            .fill(HomeyDashboardTheme.selectedSidebarBackground)
+            .fill(HomeyTheme.primarySoft)
             .overlay {
                 Image(systemName: plannedMeal.mealType.systemImageName)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
             }
     }
 
     private var accentColor: Color {
-        CalendarEventColorResolver.color(for: plannedMeal.calendarEvent, categories: categories, fallback: HomeyDashboardTheme.warmBrown)
+        CalendarEventColorResolver.color(for: plannedMeal.calendarEvent, categories: categories, fallback: HomeyTheme.primary)
     }
 }
 
@@ -628,29 +628,29 @@ private struct HomeCalendarMealPickerView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground.ignoresSafeArea()
+                HomeyTheme.backgroundPrimary.ignoresSafeArea()
                 List(filteredMeals) { meal in
                     Button {
                         onSelect(meal)
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: meal.mealTypes.first?.systemImageName ?? mealType.systemImageName)
-                                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                                .foregroundStyle(HomeyTheme.primary)
                                 .frame(width: 34, height: 34)
-                                .background(HomeyDashboardTheme.selectedSidebarBackground, in: Circle())
+                                .background(HomeyTheme.primarySoft, in: Circle())
 
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(meal.name)
                                     .font(.headline.weight(.semibold))
-                                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                                    .foregroundStyle(HomeyTheme.textPrimary)
                                 Text(slotText)
                                     .font(.caption.weight(.semibold))
-                                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                    .foregroundStyle(HomeyTheme.textSecondary)
                             }
                         }
                     }
                     .buttonStyle(.plain)
-                    .listRowBackground(HomeyDashboardTheme.cardBackground)
+                    .listRowBackground(HomeyTheme.surfacePrimary)
                 }
                 .scrollContentBackground(.hidden)
                 .searchable(text: $searchText, prompt: "Search recipes")
@@ -759,22 +759,22 @@ private struct HomeCalendarMealsMessage: View {
         HStack(spacing: 12) {
             Image(systemName: systemImage)
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 42, height: 42)
-                .background(HomeyDashboardTheme.selectedSidebarBackground, in: Circle())
+                .background(HomeyTheme.primarySoft, in: Circle())
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 Text(message)
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
             Spacer()
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -785,20 +785,20 @@ private struct HomeCalendarMealsError: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(HomeyDashboardTheme.orangeAccent)
+                .foregroundStyle(HomeyTheme.peach)
             Text(message)
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .lineLimit(2)
             Spacer()
             Button("Retry", action: onRetry)
                 .font(.footnote.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .buttonStyle(.plain)
         }
         .padding(12)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay { RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
     }
 }
 

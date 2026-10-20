@@ -20,14 +20,14 @@ struct HomeCalendarAllView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("Here's what's happening this week")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .accessibilityAddTraits(.isHeader)
 
                 Spacer(minLength: 12)
 
                 if viewModel.isLoading {
                     ProgressView()
-                        .tint(HomeyDashboardTheme.warmBrown)
+                        .tint(HomeyTheme.primary)
                         .accessibilityLabel("Loading dashboard")
                 }
             }
@@ -35,9 +35,9 @@ struct HomeCalendarAllView: View {
             if let errorMessage = viewModel.errorMessage, !errorMessage.isEmpty {
                 Text(errorMessage)
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                    .foregroundStyle(HomeyTheme.danger)
                     .padding(12)
-                    .dashboardCard(cornerRadius: 16)
+                    .dashboardCard(cornerRadius: HomeyRadius.button)
             }
 
             summaryCards
@@ -104,7 +104,7 @@ struct HomeCalendarAllView: View {
             value: "\(viewModel.mealsPlannedCount)",
             subtitle: "this week",
             systemImage: "fork.knife",
-            accentColor: HomeyDashboardTheme.orangeAccent,
+            accentColor: HomeyTheme.peach,
             action: onOpenMeals
         )
         .frame(maxWidth: .infinity)
@@ -114,7 +114,7 @@ struct HomeCalendarAllView: View {
             value: "\(viewModel.choresToDoCount)",
             subtitle: "assigned",
             systemImage: "checklist",
-            accentColor: HomeyDashboardTheme.softRed,
+            accentColor: HomeyTheme.danger,
             action: onOpenChores
         )
         .frame(maxWidth: .infinity)
@@ -124,7 +124,7 @@ struct HomeCalendarAllView: View {
             value: "\(viewModel.eventsCount)",
             subtitle: "this week",
             systemImage: "calendar",
-            accentColor: HomeyDashboardTheme.lavenderAccent,
+            accentColor: HomeyTheme.lavender,
             action: onOpenCalendar
         )
         .frame(maxWidth: .infinity)
@@ -134,7 +134,7 @@ struct HomeCalendarAllView: View {
             value: "\(viewModel.pointBalance)",
             subtitle: "pts",
             systemImage: "star.fill",
-            accentColor: HomeyDashboardTheme.sageAccent,
+            accentColor: HomeyTheme.success,
             action: nil
         )
         .frame(maxWidth: .infinity)
@@ -232,18 +232,18 @@ private struct HomeAllSummaryCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .lineLimit(1)
 
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(value)
                         .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(1)
 
                     Text(subtitle)
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(1)
                 }
             }
@@ -252,7 +252,7 @@ private struct HomeAllSummaryCard: View {
         }
         .padding(16)
         .frame(minHeight: 112, alignment: .topLeading)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
     }
 }
 
@@ -266,7 +266,7 @@ private struct HomeAllTodayPanel: View {
         VStack(alignment: .leading, spacing: 14) {
             Text(title)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             if items.isEmpty {
                 HomeAllEmptyState(systemImage: "sun.max", title: "Nothing scheduled today")
@@ -285,7 +285,7 @@ private struct HomeAllTodayPanel: View {
         }
         .padding(18)
         .frame(minHeight: 380, alignment: .top)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -302,12 +302,12 @@ private struct HomeAllTimelineRow: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.subtitle)
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(1)
 
                     Text(item.title)
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(2)
                 }
 
@@ -315,18 +315,18 @@ private struct HomeAllTimelineRow: View {
 
                 Text(timeText)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .lineLimit(1)
             }
             .padding(10)
-            .background(HomeyDashboardTheme.appBackground.opacity(0.42), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.backgroundPrimary.opacity(0.42), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         }
         .buttonStyle(.plain)
     }
 
     private var thumbnail: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous)
                 .fill(accentColor.opacity(0.16))
 
             if let imageURL = item.imageURL {
@@ -351,7 +351,7 @@ private struct HomeAllTimelineRow: View {
             }
         }
         .frame(width: 46, height: 46)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
     }
 
     private var icon: some View {
@@ -367,9 +367,9 @@ private struct HomeAllTimelineRow: View {
 
         switch item.kind {
         case .meal:
-            return HomeyDashboardTheme.orangeAccent
+            return HomeyTheme.peach
         case .calendarEvent:
-            return HomeyDashboardTheme.lavenderAccent
+            return HomeyTheme.lavender
         }
     }
 
@@ -402,7 +402,7 @@ private struct HomeAllChoresPanel: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Chores Due Today")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             if items.isEmpty {
                 HomeAllEmptyState(systemImage: "checkmark.circle", title: "No chores due today")
@@ -418,7 +418,7 @@ private struct HomeAllChoresPanel: View {
                     if items.count > 6 {
                         Text("+ \(items.count - 6) more")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.top, 2)
                     }
@@ -431,7 +431,7 @@ private struct HomeAllChoresPanel: View {
         }
         .padding(18)
         .frame(minHeight: 380, alignment: .top)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -447,7 +447,7 @@ private struct HomeAllChoreRow: View {
                     initials: item.assigneeInitials,
                     size: 34,
                     accentColor: statusColor,
-                    borderColor: HomeyDashboardTheme.cardBackground,
+                    borderColor: HomeyTheme.surfacePrimary,
                     borderWidth: 2,
                     showsShadow: false,
                     accessibilityLabel: item.assigneeName
@@ -461,12 +461,12 @@ private struct HomeAllChoreRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.assigneeName)
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(1)
 
                     Text(item.occurrence.titleSnapshot)
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(2)
                 }
 
@@ -474,9 +474,9 @@ private struct HomeAllChoreRow: View {
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 9)
-            .background(statusColor.opacity(0.10), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+            .background(statusColor.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
+                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
                     .stroke(statusColor.opacity(0.26), lineWidth: 1)
             }
         }
@@ -498,12 +498,14 @@ private struct HomeAllChoreRow: View {
 
     private var statusColor: Color {
         switch item.status {
-        case .notStarted, .needsRedo:
-            return HomeyDashboardTheme.softRed
+        case .notStarted:
+            return HomeyTheme.choreRemaining
+        case .needsRedo:
+            return HomeyTheme.danger
         case .awaitingApproval:
-            return HomeyDashboardTheme.orangeAccent
+            return HomeyTheme.warning
         case .completed:
-            return HomeyDashboardTheme.sageAccent
+            return HomeyTheme.success
         }
     }
 }
@@ -519,11 +521,11 @@ private struct HomeAllWeekOverviewPanel: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text("Upcoming Trips")
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 Text(weekTitle)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             HStack(spacing: 7) {
@@ -533,9 +535,9 @@ private struct HomeAllWeekOverviewPanel: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                HomeAllLegendItem(title: "Meals", color: HomeyDashboardTheme.orangeAccent)
-                HomeAllLegendItem(title: "Chores", color: HomeyDashboardTheme.softRed)
-                HomeAllLegendItem(title: "Events", color: HomeyDashboardTheme.lavenderAccent)
+                HomeAllLegendItem(title: "Meals", color: HomeyTheme.peach)
+                HomeAllLegendItem(title: "Chores", color: HomeyTheme.danger)
+                HomeAllLegendItem(title: "Events", color: HomeyTheme.lavender)
             }
 
             Spacer(minLength: 0)
@@ -544,7 +546,7 @@ private struct HomeAllWeekOverviewPanel: View {
         }
         .padding(18)
         .frame(minHeight: 380, alignment: .top)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -556,24 +558,24 @@ private struct HomeAllWeekDayCell: View {
         VStack(spacing: 6) {
             Text(Self.weekdayFormatter.string(from: date))
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(isToday ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(isToday ? HomeyTheme.primary : HomeyTheme.textSecondary)
                 .lineLimit(1)
 
             Text(Self.dayFormatter.string(from: date))
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .lineLimit(1)
 
             VStack(spacing: 3) {
                 HStack(spacing: 3) {
                     if activity.hasMeals {
-                        HomeAllActivityDot(color: HomeyDashboardTheme.orangeAccent)
+                        HomeAllActivityDot(color: HomeyTheme.peach)
                     }
                     if activity.hasChores {
-                        HomeAllActivityDot(color: HomeyDashboardTheme.softRed)
+                        HomeAllActivityDot(color: HomeyTheme.danger)
                     }
                     if activity.hasEvents {
-                        HomeAllActivityDot(color: HomeyDashboardTheme.lavenderAccent)
+                        HomeAllActivityDot(color: HomeyTheme.lavender)
                     }
                 }
                 .frame(height: 6)
@@ -582,10 +584,10 @@ private struct HomeAllWeekDayCell: View {
         }
         .frame(maxWidth: .infinity, minHeight: 76)
         .padding(.vertical, 8)
-        .background(isToday ? HomeyDashboardTheme.selectedSidebarBackground : HomeyDashboardTheme.appBackground.opacity(0.46), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(isToday ? HomeyTheme.primarySoft : HomeyTheme.backgroundPrimary.opacity(0.46), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(isToday ? HomeyDashboardTheme.warmBrown.opacity(0.32) : HomeyDashboardTheme.softBorder.opacity(0.72), lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                .stroke(isToday ? HomeyTheme.primary.opacity(0.32) : HomeyTheme.borderSubtle.opacity(0.72), lineWidth: 1)
         }
     }
 
@@ -628,7 +630,7 @@ private struct HomeAllLegendItem: View {
 
             Text(title)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 }
@@ -641,16 +643,16 @@ private struct HomeAllEmptyState: View {
         VStack(spacing: 9) {
             Image(systemName: systemImage)
                 .font(.title2.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.65))
+                .foregroundStyle(HomeyTheme.textSecondary.opacity(0.65))
 
             Text(title)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(18)
-        .background(HomeyDashboardTheme.appBackground.opacity(0.36), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.backgroundPrimary.opacity(0.36), in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
     }
 }
 
@@ -665,7 +667,7 @@ private struct HomeAllLinkButton: View {
                 Image(systemName: "arrow.right")
             }
             .font(.subheadline.weight(.bold))
-            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+            .foregroundStyle(HomeyTheme.primary)
         }
         .buttonStyle(.plain)
     }

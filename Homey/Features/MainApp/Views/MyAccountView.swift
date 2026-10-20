@@ -56,7 +56,7 @@ struct MyAccountView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground
+            HomeyTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             ScrollView {
@@ -137,12 +137,12 @@ struct MyAccountView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("My Account")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .accessibilityAddTraits(.isHeader)
 
                 Text("Manage your personal profile and account preferences.")
                     .font(.title3)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer()
@@ -155,13 +155,13 @@ struct MyAccountView: View {
                     Text("Back")
                 }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(minHeight: 44)
                 .padding(.horizontal, 16)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
                 .overlay {
                     Capsule()
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -171,15 +171,15 @@ struct MyAccountView: View {
     private var loadingCard: some View {
         VStack(spacing: 12) {
             ProgressView()
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
                 .accessibilityLabel("Loading account information")
 
             Text("Loading account information...")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .frame(maxWidth: .infinity, minHeight: 220)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var profileCard: some View {
@@ -245,12 +245,12 @@ struct MyAccountView: View {
                     Text("Save Changes")
                 }
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .disabled(!canSave)
             .accessibilityLabel("Save Account Changes")
         }
         .padding(28)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var profileAvatarHeader: some View {
@@ -267,8 +267,8 @@ struct MyAccountView: View {
                         imageURL: authenticationService.currentUser?.avatarURL,
                         initials: authenticationService.currentUser?.initials ?? "HM",
                         size: 132,
-                        accentColor: HomeyDashboardTheme.warmBrown,
-                        borderColor: HomeyDashboardTheme.cardBackground,
+                        accentColor: HomeyTheme.primary,
+                        borderColor: HomeyTheme.surfacePrimary,
                         borderWidth: 4,
                         isLoading: authenticationService.isUploadingAvatar,
                         accessibilityLabel: "Profile photo"
@@ -276,9 +276,9 @@ struct MyAccountView: View {
 
                     ZStack {
                         Circle()
-                            .fill(HomeyDashboardTheme.warmBrown)
+                            .fill(HomeyTheme.primary)
                             .frame(width: 38, height: 38)
-                            .shadow(color: HomeyDashboardTheme.primaryText.opacity(0.16), radius: 8, x: 0, y: 4)
+                            .shadow(color: HomeyTheme.textPrimary.opacity(0.16), radius: 8, x: 0, y: 4)
 
                         Image(systemName: "camera.fill")
                             .font(.system(size: 15, weight: .bold))
@@ -287,7 +287,7 @@ struct MyAccountView: View {
                     }
                     .overlay {
                         Circle()
-                            .stroke(HomeyDashboardTheme.cardBackground, lineWidth: 3)
+                            .stroke(HomeyTheme.surfacePrimary, lineWidth: 3)
                     }
                 }
             }
@@ -297,7 +297,7 @@ struct MyAccountView: View {
 
             Text("Change Photo")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 6)
@@ -313,29 +313,29 @@ struct MyAccountView: View {
 
             HStack(spacing: 12) {
                 Image(systemName: "envelope")
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .accessibilityHidden(true)
 
                 Text(authenticationService.currentUser?.email ?? "Email unavailable")
                     .font(.body.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(1)
 
                 Spacer()
 
                 Text("Read Only")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 5)
-                    .background(HomeyDashboardTheme.appBackground.opacity(0.72), in: Capsule())
+                    .background(HomeyTheme.backgroundPrimary.opacity(0.72), in: Capsule())
             }
             .padding(.horizontal, 16)
             .frame(minHeight: 56)
-            .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
             }
             .accessibilityLabel("Email, \(authenticationService.currentUser?.email ?? "unavailable"), read only")
         }
@@ -345,53 +345,53 @@ struct MyAccountView: View {
         Button(action: onShowInvitations) {
             HStack(spacing: 16) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 17, style: .continuous)
-                        .fill(HomeyDashboardTheme.selectedSidebarBackground)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .fill(HomeyTheme.primarySoft)
                         .frame(width: 54, height: 54)
 
                     Image(systemName: "envelope.badge")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                 }
 
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 10) {
                         Text("Home Invitations")
                             .font(.headline.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
 
                         if pendingInvitationCount > 0 {
                             Text("\(pendingInvitationCount) Pending")
                                 .font(.caption.weight(.bold))
-                                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                                .foregroundStyle(HomeyTheme.primary)
                                 .padding(.horizontal, 9)
                                 .padding(.vertical, 4)
-                                .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                                .background(HomeyTheme.primarySoft, in: Capsule())
                         }
                     }
 
                     Text("View invitations to join another home.")
                         .font(.subheadline)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
 
                 Spacer()
 
                 if homeService.isLoadingMyInvitations {
                     ProgressView()
-                        .tint(HomeyDashboardTheme.warmBrown)
+                        .tint(HomeyTheme.primary)
                         .accessibilityLabel("Loading Home invitations")
                 } else {
                     Image(systemName: "chevron.right")
                         .font(.body.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.7))
+                        .foregroundStyle(HomeyTheme.textSecondary.opacity(0.7))
                 }
             }
             .padding(22)
-            .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous))
         }
         .buttonStyle(.plain)
-        .dashboardCard(cornerRadius: 28)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
         .accessibilityLabel("Home Invitations, \(pendingInvitationCount) pending")
     }
 
@@ -399,11 +399,11 @@ struct MyAccountView: View {
         VStack(alignment: .leading, spacing: 5) {
             Text(title)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text(subtitle)
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
@@ -601,11 +601,11 @@ private struct MyAccountTextField: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(label)
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 Text(supportingText)
                     .font(.caption)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             TextField(label, text: $text)
@@ -613,13 +613,13 @@ private struct MyAccountTextField: View {
                 .textInputAutocapitalization(.words)
                 .autocorrectionDisabled(true)
                 .font(.body.weight(.medium))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(.horizontal, 16)
                 .frame(minHeight: 56)
-                .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
                 .accessibilityLabel(accessibilityLabel)
         }
@@ -632,16 +632,16 @@ private struct MyAccountStatusBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                .foregroundStyle(HomeyTheme.success)
                 .accessibilityHidden(true)
 
             Text(message)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.sageAccent.opacity(0.14), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.success.opacity(0.14), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .accessibilityLabel(message)
     }
 }
@@ -652,17 +652,17 @@ private struct MyAccountErrorBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "exclamationmark.circle.fill")
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
                 .accessibilityHidden(true)
 
             Text(message)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.destructiveRed.opacity(0.10), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.danger.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .accessibilityLabel(message)
     }
 }

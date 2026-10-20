@@ -71,7 +71,7 @@ struct ChoresView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground
+            HomeyTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             ScrollView {
@@ -209,12 +209,12 @@ struct ChoresView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Chores")
                 .font(.system(size: 34, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .accessibilityAddTraits(.isHeader)
 
             Text("Keep your home organized, one task at a time.")
                 .font(.title3)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
@@ -225,11 +225,11 @@ struct ChoresView: View {
             } label: {
                 Image(systemName: "magnifyingglass")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .frame(width: 44, height: 44)
-                    .background(HomeyDashboardTheme.cardBackground, in: Circle())
+                    .background(HomeyTheme.surfacePrimary, in: Circle())
                     .overlay {
-                        Circle().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        Circle().stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                     }
             }
             .buttonStyle(.plain)
@@ -268,7 +268,7 @@ struct ChoresView: View {
                             .font(.caption.weight(.bold))
                     }
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .frame(width: 124)
                 .accessibilityLabel("Add")
                 .accessibilityHint("Shows creation options")
@@ -337,30 +337,30 @@ private struct ChoreRoomEditorSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground.ignoresSafeArea()
+                HomeyTheme.backgroundPrimary.ignoresSafeArea()
 
                 VStack(alignment: .leading, spacing: 18) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Room Name")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                             .textCase(.uppercase)
 
                         TextField("Guest Bedroom", text: $viewModel.name)
                             .textFieldStyle(.plain)
                             .font(.body.weight(.medium))
                             .padding(14)
-                            .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                             .overlay {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                             }
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Preferred Cleaning Day")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                             .textCase(.uppercase)
 
                         Picker("Preferred Cleaning Day", selection: $viewModel.preferredCleaningWeekday) {
@@ -373,17 +373,17 @@ private struct ChoreRoomEditorSheet: View {
                         .font(.body.weight(.medium))
                         .padding(14)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                         .overlay {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                         }
                     }
 
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                            .foregroundStyle(HomeyTheme.danger)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
@@ -595,25 +595,25 @@ private struct ChoresFirstRunSetupHero: View {
         VStack(spacing: 28) {
             ZStack {
                 Circle()
-                    .fill(HomeyDashboardTheme.selectedSidebarBackground)
+                    .fill(HomeyTheme.primarySoft)
                     .frame(width: 118, height: 118)
 
                 Circle()
-                    .stroke(HomeyDashboardTheme.warmBrown.opacity(0.18), lineWidth: 1)
+                    .stroke(HomeyTheme.primary.opacity(0.18), lineWidth: 1)
                     .frame(width: 148, height: 148)
 
                 Image(systemName: "house.fill")
                     .font(.system(size: 44, weight: .bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
 
                 Image(systemName: "sparkles")
                     .font(.title2.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.orangeAccent)
+                    .foregroundStyle(HomeyTheme.peach)
                     .offset(x: 50, y: -44)
 
                 Image(systemName: "gift.fill")
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                    .foregroundStyle(HomeyTheme.success)
                     .offset(x: -52, y: 44)
             }
             .accessibilityHidden(true)
@@ -621,16 +621,16 @@ private struct ChoresFirstRunSetupHero: View {
             VStack(spacing: 12) {
                 Text("Welcome to Chores")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
 
                 Text("Ready to set up your home?")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .multilineTextAlignment(.center)
 
                 Text("Homey can help you organize rooms, choose cleaning days, create recurring chores, and set up rewards.")
                     .font(.title3)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: 660)
@@ -652,7 +652,7 @@ private struct ChoresFirstRunSetupHero: View {
                 } label: {
                     Label("Set Up Chores & Rewards", systemImage: "sparkles")
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .frame(maxWidth: 360)
 
                 Button {
@@ -660,12 +660,12 @@ private struct ChoresFirstRunSetupHero: View {
                 } label: {
                     Text("I'll Set It Up Myself")
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .frame(maxWidth: 360, minHeight: 52)
-                        .background(HomeyDashboardTheme.cardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+                        .background(HomeyTheme.surfacePrimary.opacity(0.72), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                         .overlay {
-                            RoundedRectangle(cornerRadius: 17, style: .continuous)
-                                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                         }
                 }
                 .buttonStyle(.plain)
@@ -677,19 +677,19 @@ private struct ChoresFirstRunSetupHero: View {
         .background(
             LinearGradient(
                 colors: [
-                    HomeyDashboardTheme.cardBackground,
-                    HomeyDashboardTheme.selectedSidebarBackground.opacity(0.72)
+                    HomeyTheme.surfacePrimary,
+                    HomeyTheme.primarySoft.opacity(0.72)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             ),
-            in: RoundedRectangle(cornerRadius: 28, style: .continuous)
+            in: RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous)
         )
         .overlay {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
-        .shadow(color: HomeyDashboardTheme.shadow.opacity(0.14), radius: 24, x: 0, y: 16)
+        .shadow(color: HomeyTheme.shadow.opacity(0.14), radius: 24, x: 0, y: 16)
     }
 
     @ViewBuilder
@@ -708,23 +708,23 @@ private struct ChoresFirstRunBenefit: View {
         VStack(spacing: 8) {
             Image(systemName: systemImage)
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 42, height: 42)
-                .background(HomeyDashboardTheme.appBackground.opacity(0.72), in: Circle())
+                .background(HomeyTheme.backgroundPrimary.opacity(0.72), in: Circle())
 
             Text(title)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 16)
         .frame(maxWidth: .infinity, minHeight: 104)
-        .background(HomeyDashboardTheme.cardBackground.opacity(0.68), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.surfacePrimary.opacity(0.68), in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder.opacity(0.82), lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle.opacity(0.82), lineWidth: 1)
         }
     }
 }

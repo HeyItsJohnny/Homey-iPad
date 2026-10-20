@@ -84,7 +84,7 @@ struct ChoreQuickSetupView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground
+                HomeyTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -136,23 +136,23 @@ struct ChoreQuickSetupView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Chores Quick Setup")
                         .font(.system(size: 30, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
 
                     Text(step.progressText)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
 
                 Spacer()
             }
 
             ProgressView(value: Double(step.rawValue + 1), total: Double(ChoreQuickSetupStep.allCases.count))
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
         }
         .padding(.horizontal, horizontalSizeClass == .compact ? 18 : 32)
         .padding(.top, 18)
         .padding(.bottom, 18)
-        .background(HomeyDashboardTheme.cardBackground.opacity(0.74))
+        .background(HomeyTheme.surfacePrimary.opacity(0.74))
     }
 
     @ViewBuilder
@@ -188,10 +188,10 @@ struct ChoreQuickSetupView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("How many areas do you want to set up?")
                             .font(.headline)
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                         Text("\(areaCount) \(areaCount == 1 ? "area" : "areas")")
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                     }
                 }
 
@@ -200,7 +200,7 @@ struct ChoreQuickSetupView: View {
                         VStack(alignment: .leading, spacing: 7) {
                             Text("Area \(index + 1)")
                                 .font(.caption.weight(.bold))
-                                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                .foregroundStyle(HomeyTheme.textSecondary)
                             TextField("Area name", text: $rooms[index].name)
                                 .textFieldStyle(QuickSetupTextFieldStyle())
                                 .onChange(of: rooms[index].name) { _, newValue in
@@ -308,10 +308,10 @@ struct ChoreQuickSetupView: View {
             if let creationErrorMessage {
                 Text(creationErrorMessage)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                    .foregroundStyle(HomeyTheme.danger)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(HomeyDashboardTheme.destructiveRed.opacity(0.09), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(HomeyTheme.danger.opacity(0.09), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             }
 
             QuickSetupCard {
@@ -337,10 +337,10 @@ struct ChoreQuickSetupView: View {
             VStack(spacing: 24) {
                 Image(systemName: creationPhase.systemImage)
                     .font(.system(size: 46, weight: .bold))
-                    .foregroundStyle(creationPhase == .failed ? HomeyDashboardTheme.destructiveRed : HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(creationPhase == .failed ? HomeyTheme.danger : HomeyTheme.primary)
                     .frame(width: 104, height: 104)
                     .background(
-                        (creationPhase == .failed ? HomeyDashboardTheme.destructiveRed : HomeyDashboardTheme.selectedSidebarBackground)
+                        (creationPhase == .failed ? HomeyTheme.danger : HomeyTheme.primarySoft)
                             .opacity(creationPhase == .failed ? 0.12 : 1),
                         in: Circle()
                     )
@@ -348,41 +348,41 @@ struct ChoreQuickSetupView: View {
                 VStack(spacing: 8) {
                     Text(creationPhase.title)
                         .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .multilineTextAlignment(.center)
 
                     Text(creationProgressSubtitle)
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(creationPhase == .failed ? HomeyDashboardTheme.destructiveRed : HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(creationPhase == .failed ? HomeyTheme.danger : HomeyTheme.textSecondary)
                         .multilineTextAlignment(.center)
                 }
 
                 if creationPhase == .creatingChores || creationPhase == .finishing || creationPhase == .failed {
                     ProgressView(value: Double(progressValue), total: Double(max(totalChoresToCreate, 1)))
-                        .tint(creationPhase == .failed ? HomeyDashboardTheme.destructiveRed : HomeyDashboardTheme.warmBrown)
+                        .tint(creationPhase == .failed ? HomeyTheme.danger : HomeyTheme.primary)
                         .frame(maxWidth: 560)
                         .animation(.easeInOut(duration: 0.2), value: progressValue)
                 } else {
                     ProgressView()
-                        .tint(HomeyDashboardTheme.warmBrown)
+                        .tint(HomeyTheme.primary)
                 }
 
                 VStack(spacing: 6) {
                     if let currentRoomName {
                         Text(currentRoomName)
                             .font(.subheadline.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                     }
 
                     if let currentChoreName {
                         Text(currentChoreName)
                             .font(.headline)
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                     }
 
                     Text(creationPhase == .failed ? "Setup stopped before creating the remaining chores." : "This may take a moment.")
                         .font(.subheadline)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .multilineTextAlignment(.center)
                 }
             }
@@ -396,18 +396,18 @@ struct ChoreQuickSetupView: View {
             VStack(spacing: 24) {
                 Image(systemName: "checkmark.seal.fill")
                     .font(.system(size: 54, weight: .bold))
-                    .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                    .foregroundStyle(HomeyTheme.success)
                     .frame(width: 112, height: 112)
-                    .background(HomeyDashboardTheme.sageAccent.opacity(0.14), in: Circle())
+                    .background(HomeyTheme.success.opacity(0.14), in: Circle())
 
                 VStack(spacing: 10) {
                     Text("Your chores are ready!")
                         .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
 
                     Text("\(createdRoomCount) \(createdRoomCount == 1 ? "room" : "rooms") and \(createdChoreCount) \(createdChoreCount == 1 ? "chore" : "chores") were created.")
                         .font(.title3)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .multilineTextAlignment(.center)
                 }
 
@@ -418,7 +418,7 @@ struct ChoreQuickSetupView: View {
                     } label: {
                         Label("Set Up Rewards", systemImage: "gift.fill")
                     }
-                    .buttonStyle(DashboardPrimaryButtonStyle())
+                    .buttonStyle(HomeyPrimaryButtonStyle())
                     .frame(maxWidth: 320)
 
                     Button {
@@ -427,12 +427,12 @@ struct ChoreQuickSetupView: View {
                     } label: {
                         Text("View My Chores")
                             .font(.body.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                             .frame(maxWidth: 320, minHeight: 52)
-                            .background(HomeyDashboardTheme.cardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+                            .background(HomeyTheme.surfacePrimary.opacity(0.72), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                             .overlay {
-                                RoundedRectangle(cornerRadius: 17, style: .continuous)
-                                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                             }
                     }
                     .buttonStyle(.plain)
@@ -448,7 +448,7 @@ struct ChoreQuickSetupView: View {
                 Spacer()
                 Text("Please keep this open while setup finishes.")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                 Spacer()
             } else if creationPhase == .failed {
                 Spacer()
@@ -457,7 +457,7 @@ struct ChoreQuickSetupView: View {
                 } label: {
                     Text("Close")
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .frame(maxWidth: horizontalSizeClass == .compact ? .infinity : 220)
                 Spacer()
             } else {
@@ -468,7 +468,7 @@ struct ChoreQuickSetupView: View {
                         .frame(maxWidth: horizontalSizeClass == .compact ? .infinity : 160, minHeight: 52)
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(step == .areas || step == .complete ? HomeyDashboardTheme.secondaryText.opacity(0.45) : HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(step == .areas || step == .complete ? HomeyTheme.textSecondary.opacity(0.45) : HomeyTheme.primary)
                 .disabled(step == .areas || step == .complete || isCreating)
 
                 Spacer()
@@ -479,7 +479,7 @@ struct ChoreQuickSetupView: View {
                     } label: {
                         Text(step == .review ? "Create My Chores" : "Continue")
                     }
-                    .buttonStyle(DashboardPrimaryButtonStyle())
+                    .buttonStyle(HomeyPrimaryButtonStyle())
                     .frame(maxWidth: horizontalSizeClass == .compact ? .infinity : 260)
                     .disabled(!canContinue || isCreating)
                 }
@@ -487,7 +487,7 @@ struct ChoreQuickSetupView: View {
         }
         .padding(.horizontal, horizontalSizeClass == .compact ? 18 : 32)
         .padding(.vertical, 16)
-        .background(HomeyDashboardTheme.cardBackground.opacity(0.82))
+        .background(HomeyTheme.surfacePrimary.opacity(0.82))
     }
 
     private var progressValue: Int {
@@ -545,17 +545,17 @@ struct ChoreQuickSetupView: View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: systemImage)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 48, height: 48)
-                .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
                     .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 Text(body)
                     .font(.body)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -566,14 +566,14 @@ struct ChoreQuickSetupView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
             Text(value)
                 .font(.title.bold())
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.appBackground.opacity(0.52), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.backgroundPrimary.opacity(0.52), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
     }
 
     private func adaptiveColumns(minimum: CGFloat) -> [GridItem] {
@@ -1279,12 +1279,12 @@ private struct QuickSetupCard<Content: View>: View {
         content
             .padding(22)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
             }
-            .shadow(color: HomeyDashboardTheme.shadow.opacity(0.10), radius: 12, x: 0, y: 8)
+            .shadow(color: HomeyTheme.shadow.opacity(0.10), radius: 12, x: 0, y: 8)
     }
 }
 
@@ -1299,10 +1299,10 @@ private struct QuickSetupRoomDetailsCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Room \(index + 1) of \(total)")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                     Text(room.name)
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                 }
 
                 ViewThatFits(in: .horizontal) {
@@ -1370,7 +1370,7 @@ private struct QuickSetupRoomDetailsCard: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
 
             picker()
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -1378,10 +1378,10 @@ private struct QuickSetupRoomDetailsCard: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.appBackground.opacity(0.54), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(HomeyTheme.backgroundPrimary.opacity(0.54), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 
@@ -1389,7 +1389,7 @@ private struct QuickSetupRoomDetailsCard: View {
         HStack(spacing: 6) {
             Text(value)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
 
@@ -1397,7 +1397,7 @@ private struct QuickSetupRoomDetailsCard: View {
 
             Image(systemName: "chevron.up.chevron.down")
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .contentShape(Rectangle())
     }
@@ -1426,7 +1426,7 @@ private struct QuickSetupChoreSelectionCard: View {
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.white)
-                    .background(HomeyDashboardTheme.warmBrown, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(HomeyTheme.primary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     .disabled(customTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
@@ -1437,10 +1437,10 @@ private struct QuickSetupChoreSelectionCard: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(room.name)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             Text("Cleaning Day: \(room.preferredCleaningWeekday?.displayName ?? "No Preference")")
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
@@ -1448,7 +1448,7 @@ private struct QuickSetupChoreSelectionCard: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             ForEach(choreIds, id: \.self) { choreId in
                 if let index = room.chores.firstIndex(where: { $0.id == choreId }) {
@@ -1465,7 +1465,7 @@ private struct QuickSetupChoreSelectionCard: View {
             } label: {
                 Image(systemName: room.chores[index].isSelected ? "checkmark.square.fill" : "square")
                     .font(.title3.weight(.semibold))
-                    .foregroundStyle(room.chores[index].isSelected ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(room.chores[index].isSelected ? HomeyTheme.primary : HomeyTheme.textSecondary)
             }
             .buttonStyle(.plain)
 
@@ -1477,7 +1477,7 @@ private struct QuickSetupChoreSelectionCard: View {
                     remove(room.chores[index])
                 } label: {
                     Image(systemName: "trash")
-                        .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                        .foregroundStyle(HomeyTheme.danger)
                 }
                 .buttonStyle(.plain)
             }
@@ -1516,7 +1516,7 @@ private struct QuickSetupScheduleCard: View {
             VStack(alignment: .leading, spacing: 14) {
                 Text(room.name)
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 ForEach(selectedChoreIndices, id: \.self) { choreIndex in
                     choreScheduleRow(choreIndex: choreIndex)
@@ -1529,7 +1529,7 @@ private struct QuickSetupScheduleCard: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(room.chores[choreIndex].title)
                 .font(.headline)
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             HStack(spacing: 10) {
                 Picker("Frequency", selection: $room.chores[choreIndex].frequency) {
@@ -1555,10 +1555,10 @@ private struct QuickSetupScheduleCard: View {
 
             Toggle("Regular Cleaning", isOn: $room.chores[choreIndex].contributesToRoomCleaning)
                 .font(.subheadline.weight(.semibold))
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
         }
         .padding(12)
-        .background(HomeyDashboardTheme.appBackground.opacity(0.52), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(HomeyTheme.backgroundPrimary.opacity(0.52), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
     }
 }
 
@@ -1576,7 +1576,7 @@ private struct QuickSetupAssignmentsCard: View {
                 HStack {
                     Text(room.name)
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                     Spacer()
                     Menu("Apply") {
                         Button("Leave all open") {
@@ -1602,7 +1602,7 @@ private struct QuickSetupAssignmentsCard: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(room.chores[choreIndex].title)
                 .font(.headline)
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Picker("Assignment", selection: $room.chores[choreIndex].assignmentMode) {
                 Text("Leave Open").tag(ChoreAssignmentMode.open)
@@ -1619,7 +1619,7 @@ private struct QuickSetupAssignmentsCard: View {
                 if members.isEmpty {
                     Text("No household members are available.")
                         .font(.caption)
-                        .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                        .foregroundStyle(HomeyTheme.danger)
                 } else {
                     ForEach(members) { member in
                         Button {
@@ -1634,10 +1634,10 @@ private struct QuickSetupAssignmentsCard: View {
                                     accessibilityLabel: "\(member.displayName) avatar"
                                 )
                                 Text(member.displayName)
-                                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                                    .foregroundStyle(HomeyTheme.textPrimary)
                                 Spacer()
                                 Image(systemName: room.chores[choreIndex].assigneeIds.contains(member.userId) ? "checkmark.circle.fill" : "circle")
-                                    .foregroundStyle(room.chores[choreIndex].assigneeIds.contains(member.userId) ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.secondaryText)
+                                    .foregroundStyle(room.chores[choreIndex].assigneeIds.contains(member.userId) ? HomeyTheme.primary : HomeyTheme.textSecondary)
                             }
                         }
                         .buttonStyle(.plain)
@@ -1646,7 +1646,7 @@ private struct QuickSetupAssignmentsCard: View {
             }
         }
         .padding(12)
-        .background(HomeyDashboardTheme.appBackground.opacity(0.52), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(HomeyTheme.backgroundPrimary.opacity(0.52), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
     }
 
     private func applyOpenToRoom() {
@@ -1687,14 +1687,14 @@ private struct QuickSetupReviewRoom: View {
                 ForEach(selectedChores) { chore in
                     HStack(alignment: .top, spacing: 10) {
                         Image(systemName: chore.contributesToRoomCleaning ? "checkmark.seal.fill" : "circle")
-                            .foregroundStyle(chore.contributesToRoomCleaning ? HomeyDashboardTheme.sageAccent : HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(chore.contributesToRoomCleaning ? HomeyTheme.success : HomeyTheme.textSecondary)
                         VStack(alignment: .leading, spacing: 3) {
                             Text(chore.title)
                                 .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                                .foregroundStyle(HomeyTheme.textPrimary)
                             Text("\(chore.frequency.displayName) - \(chore.weekday?.displayName ?? "Today") - \(chore.points) pts - \(assignmentText(for: chore))")
                                 .font(.caption)
-                                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                .foregroundStyle(HomeyTheme.textSecondary)
                         }
                     }
                 }
@@ -1705,16 +1705,16 @@ private struct QuickSetupReviewRoom: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(room.name)
                         .font(.headline)
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                     Text("\(room.preferredCleaningWeekday?.displayName ?? "No preferred day") - \(selectedChores.count) chores")
                         .font(.caption)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 Spacer()
             }
         }
         .padding(14)
-        .background(HomeyDashboardTheme.appBackground.opacity(0.52), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(HomeyTheme.backgroundPrimary.opacity(0.52), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
     }
 
     private func assignmentText(for chore: QuickSetupChoreDraft) -> String {
@@ -1731,13 +1731,13 @@ private struct QuickSetupTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
             .font(.body)
-            .foregroundStyle(HomeyDashboardTheme.primaryText)
+            .foregroundStyle(HomeyTheme.textPrimary)
             .padding(.horizontal, 12)
             .frame(minHeight: 44)
-            .background(HomeyDashboardTheme.appBackground.opacity(0.64), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+            .background(HomeyTheme.backgroundPrimary.opacity(0.64), in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous)
+                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
             }
     }
 }

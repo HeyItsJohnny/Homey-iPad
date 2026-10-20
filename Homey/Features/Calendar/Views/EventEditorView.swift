@@ -100,7 +100,7 @@ struct EventEditorView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground
+                HomeyTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 ScrollView {
@@ -175,12 +175,12 @@ struct EventEditorView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(mode.title)
                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .accessibilityAddTraits(.isHeader)
 
             Text(mode.subtitle)
                 .font(.title3)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
@@ -195,8 +195,8 @@ struct EventEditorView: View {
 
             Toggle("All-Day", isOn: $isAllDay)
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
-                .tint(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.textPrimary)
+                .tint(HomeyTheme.primary)
                 .frame(minHeight: 44)
                 .accessibilityLabel("All-Day")
 
@@ -236,7 +236,7 @@ struct EventEditorView: View {
                     HStack(spacing: 9) {
                         if isDeleting {
                             ProgressView()
-                                .tint(HomeyDashboardTheme.destructiveRed)
+                                .tint(HomeyTheme.danger)
                                 .accessibilityLabel("Deleting event")
                         } else {
                             Image(systemName: "trash")
@@ -244,12 +244,12 @@ struct EventEditorView: View {
                         }
                     }
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                    .foregroundStyle(HomeyTheme.danger)
                     .frame(maxWidth: .infinity, minHeight: 48)
-                    .background(HomeyDashboardTheme.destructiveRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+                    .background(HomeyTheme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 17, style: .continuous)
-                            .stroke(HomeyDashboardTheme.destructiveRed.opacity(0.18), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                            .stroke(HomeyTheme.danger.opacity(0.18), lineWidth: 1)
                     }
                 }
                 .buttonStyle(.plain)
@@ -258,7 +258,7 @@ struct EventEditorView: View {
             }
         }
         .padding(28)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var bottomActionButtons: some View {
@@ -268,10 +268,10 @@ struct EventEditorView: View {
             }
             .buttonStyle(.plain)
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+            .foregroundStyle(HomeyTheme.primary)
             .frame(maxWidth: .infinity, minHeight: 52)
-            .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
-            .overlay { RoundedRectangle(cornerRadius: 17, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+            .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
+            .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
             .disabled(isSaving || isDeleting)
 
             Button {
@@ -285,7 +285,7 @@ struct EventEditorView: View {
                     Text(mode.saveTitle)
                 }
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .frame(maxWidth: .infinity)
             .disabled(!canSave)
             .accessibilityLabel(mode.saveTitle)
@@ -314,12 +314,12 @@ struct EventEditorView: View {
                 }
             }
             .font(.body.weight(.medium))
-            .foregroundStyle(HomeyDashboardTheme.primaryText)
+            .foregroundStyle(HomeyTheme.textPrimary)
             .padding(16)
-            .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
             }
         }
     }
@@ -348,20 +348,20 @@ struct EventEditorView: View {
 
                     Text(selectedCategoryTitle)
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
 
                     Spacer()
 
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .padding(.horizontal, 16)
                 .frame(minHeight: 56)
-                .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -389,25 +389,25 @@ struct EventEditorView: View {
                 HStack(spacing: 12) {
                     Image(systemName: recurrence.iconName)
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .frame(width: 22)
 
                     Text(recurrencePreset.displayName)
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
 
                     Spacer()
 
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .padding(.horizontal, 16)
                 .frame(minHeight: 56)
-                .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -417,11 +417,11 @@ struct EventEditorView: View {
             if shouldShowSeriesWarning {
                 Text("Updating the repeat pattern edits the series and may reset individual occurrence changes.")
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(HomeyDashboardTheme.selectedSidebarBackground.opacity(0.65), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(HomeyTheme.primarySoft.opacity(0.65), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             }
         }
     }
@@ -450,21 +450,21 @@ struct EventEditorView: View {
                     )
                     .datePickerStyle(.compact)
                     .font(.body.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 case .afterCount:
                     Stepper(value: recurrenceCountBinding, in: 1...999) {
                         Text("\(recurrence.count ?? 10) \((recurrence.count ?? 10) == 1 ? "occurrence" : "occurrences")")
                             .font(.body.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                     }
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
                 }
             }
             .padding(16)
-            .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
             }
         }
     }
@@ -478,7 +478,7 @@ struct EventEditorView: View {
     }
 
     private var selectedCategoryColor: Color {
-        Color(hex: selectedCategory?.colorHex) ?? HomeyDashboardTheme.warmBrown.opacity(0.45)
+        Color(hex: selectedCategory?.colorHex) ?? HomeyTheme.primary.opacity(0.45)
     }
 
     private var recurrenceSummary: String {
@@ -597,14 +597,14 @@ struct EventEditorView: View {
                 .textInputAutocapitalization(.sentences)
                 .autocorrectionDisabled(false)
                 .font(.body.weight(.medium))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, axis == .vertical ? 14 : 10)
                 .frame(minHeight: axis == .vertical ? 104 : 56, alignment: axis == .vertical ? .topLeading : .center)
-                .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
                 .disabled(isSaving || isDeleting)
                 .accessibilityLabel(label)
@@ -615,11 +615,11 @@ struct EventEditorView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text(supportingText)
                 .font(.caption)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
@@ -896,17 +896,17 @@ struct EventEditorErrorBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "exclamationmark.circle.fill")
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
                 .accessibilityHidden(true)
 
             Text(message)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.destructiveRed.opacity(0.10), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.danger.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .accessibilityLabel(message)
     }
 }

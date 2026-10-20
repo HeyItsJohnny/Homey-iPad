@@ -52,7 +52,7 @@ struct ChoreEditorView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground
+                HomeyTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 if !canManageChores {
@@ -91,7 +91,7 @@ struct ChoreEditorView: View {
                     } label: {
                         if viewModel.isSaving {
                             ProgressView()
-                                .tint(HomeyDashboardTheme.warmBrown)
+                                .tint(HomeyTheme.primary)
                                 .accessibilityLabel("Saving chore")
                         } else {
                             Text(mode.saveTitle)
@@ -149,12 +149,12 @@ struct ChoreEditorView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(mode.title)
                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .accessibilityAddTraits(.isHeader)
 
             Text(mode == .add ? "Create a scheduled chore for your Home." : "Update this household chore.")
                 .font(.title3)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
@@ -285,8 +285,8 @@ struct ChoreEditorView: View {
                                     imageURL: member.avatarURL,
                                     initials: member.initials,
                                     size: 38,
-                                    accentColor: HomeyDashboardTheme.sageAccent,
-                                    borderColor: HomeyDashboardTheme.appBackground,
+                                    accentColor: HomeyTheme.success,
+                                    borderColor: HomeyTheme.backgroundPrimary,
                                     borderWidth: 2,
                                     showsShadow: false,
                                     accessibilityLabel: "\(member.displayName) avatar"
@@ -295,11 +295,11 @@ struct ChoreEditorView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(member.displayName)
                                         .font(.subheadline.weight(.semibold))
-                                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                                        .foregroundStyle(HomeyTheme.textPrimary)
                                     if let email = member.email, !email.isEmpty {
                                         Text(email)
                                             .font(.caption)
-                                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                            .foregroundStyle(HomeyTheme.textSecondary)
                                             .lineLimit(1)
                                     }
                                 }
@@ -308,7 +308,7 @@ struct ChoreEditorView: View {
 
                                 Image(systemName: viewModel.assigneeIds.contains(member.userId) ? "checkmark.circle.fill" : "circle")
                                     .font(.title3.weight(.semibold))
-                                    .foregroundStyle(viewModel.assigneeIds.contains(member.userId) ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.secondaryText)
+                                    .foregroundStyle(viewModel.assigneeIds.contains(member.userId) ? HomeyTheme.primary : HomeyTheme.textSecondary)
                             }
                             .padding(.vertical, 10)
                             .contentShape(Rectangle())
@@ -318,7 +318,7 @@ struct ChoreEditorView: View {
 
                         if member.id != viewModel.members.last?.id {
                             Divider()
-                                .overlay(HomeyDashboardTheme.softBorder)
+                                .overlay(HomeyTheme.borderSubtle)
                         }
                     }
                 }
@@ -333,15 +333,15 @@ struct ChoreEditorView: View {
             DatePicker("Due Date", selection: $viewModel.startDate, displayedComponents: .date)
                 .datePickerStyle(.compact)
                 .font(.body.weight(.medium))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(16)
                 .background(fieldBackground)
                 .accessibilityLabel("Due date")
 
             Toggle("All-Day Chore", isOn: $viewModel.isAllDay)
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
-                .tint(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.textPrimary)
+                .tint(HomeyTheme.primary)
                 .padding(16)
                 .background(fieldBackground)
                 .accessibilityLabel("All-day chore")
@@ -350,7 +350,7 @@ struct ChoreEditorView: View {
                 DatePicker("Due Time", selection: $viewModel.dueDateTime, displayedComponents: .hourAndMinute)
                     .datePickerStyle(.compact)
                     .font(.body.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .padding(16)
                     .background(fieldBackground)
                     .accessibilityLabel("Due time")
@@ -425,9 +425,9 @@ struct ChoreEditorView: View {
                         } label: {
                             Text(weekday.shortTitle)
                                 .font(.subheadline.weight(.bold))
-                                .foregroundStyle(viewModel.weekdays.contains(weekday.value) ? .white : HomeyDashboardTheme.primaryText)
+                                .foregroundStyle(viewModel.weekdays.contains(weekday.value) ? .white : HomeyTheme.textPrimary)
                                 .frame(width: 42, height: 38)
-                                .background(viewModel.weekdays.contains(weekday.value) ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.appBackground, in: Capsule())
+                                .background(viewModel.weekdays.contains(weekday.value) ? HomeyTheme.primary : HomeyTheme.backgroundPrimary, in: Capsule())
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("\(weekday.title), \(viewModel.weekdays.contains(weekday.value) ? "selected" : "not selected")")
@@ -488,7 +488,7 @@ struct ChoreEditorView: View {
                 DatePicker("End Date", selection: $viewModel.endsOn, in: viewModel.startDate..., displayedComponents: .date)
                     .datePickerStyle(.compact)
                     .font(.body.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .padding(16)
                     .background(fieldBackground)
                     .accessibilityLabel("End date")
@@ -496,9 +496,9 @@ struct ChoreEditorView: View {
                 Stepper(value: $viewModel.occurrenceCount, in: 1...999) {
                     Text("\(viewModel.occurrenceCount) \(viewModel.occurrenceCount == 1 ? "occurrence" : "occurrences")")
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                 }
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
                 .padding(16)
                 .background(fieldBackground)
                 .accessibilityLabel("End after number of occurrences")
@@ -509,7 +509,7 @@ struct ChoreEditorView: View {
     private var requirementsSection: some View {
         ChoreEditorSection(title: "Completion Requirements") {
             Toggle("Require Approval", isOn: $viewModel.requiresApproval)
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
                 .accessibilityLabel("Require approval")
             helperText("An owner or admin must approve completion before points are awarded.")
         }
@@ -520,9 +520,9 @@ struct ChoreEditorView: View {
             Stepper(value: $viewModel.pointsValue, in: 0...9999) {
                 Text("\(viewModel.pointsValue) Points")
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
             }
-            .tint(HomeyDashboardTheme.warmBrown)
+            .tint(HomeyTheme.primary)
             .padding(16)
             .background(fieldBackground)
             .accessibilityLabel("Points")
@@ -535,7 +535,7 @@ struct ChoreEditorView: View {
         ChoreEditorSection(title: "Calendar Summary") {
             Text(viewModel.calendarSummary)
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -550,17 +550,17 @@ struct ChoreEditorView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     Text("Stops this chore from being scheduled again.")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
 
                     Text("Past history, earned points, approvals, and rewards will be kept.")
                         .font(.caption)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
 
                     if let deleteErrorMessage = viewModel.deleteErrorMessage {
                         Text(deleteErrorMessage)
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                            .foregroundStyle(HomeyTheme.danger)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
@@ -598,16 +598,16 @@ struct ChoreEditorView: View {
     }
 
     private var fieldBackground: some ShapeStyle {
-        HomeyDashboardTheme.appBackground.opacity(0.62)
+        HomeyTheme.backgroundPrimary.opacity(0.62)
     }
 
     private func intervalStepper(label: String) -> some View {
         Stepper(value: $viewModel.intervalValue, in: 1...99) {
             Text(label)
                 .font(.body.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
         }
-        .tint(HomeyDashboardTheme.warmBrown)
+        .tint(HomeyTheme.primary)
         .padding(16)
         .background(fieldBackground)
         .accessibilityLabel("Recurrence interval")
@@ -620,14 +620,14 @@ struct ChoreEditorView: View {
             TextField(label, text: limitedBinding(text, limit: characterLimit), axis: axis)
                 .textInputAutocapitalization(.sentences)
                 .font(.body.weight(.medium))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, axis == .vertical ? 14 : 10)
                 .frame(minHeight: axis == .vertical ? 96 : 54, alignment: axis == .vertical ? .topLeading : .center)
-                .background(fieldBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(fieldBackground, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
                 .disabled(viewModel.isSaving)
                 .accessibilityLabel(label)
@@ -650,26 +650,26 @@ struct ChoreEditorView: View {
                 HStack(spacing: 10) {
                     ProgressView()
                         .controlSize(.small)
-                        .tint(HomeyDashboardTheme.warmBrown)
+                        .tint(HomeyTheme.primary)
                     Text("Loading \(title.lowercased())...")
                         .font(.subheadline)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(fieldBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(fieldBackground, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             } else if let errorMessage {
                 VStack(alignment: .leading, spacing: 10) {
                     Text(errorMessage)
                         .font(.subheadline)
-                        .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                        .foregroundStyle(HomeyTheme.danger)
                     Button("Try Again", action: retry)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(fieldBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(fieldBackground, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             } else {
                 Menu {
                     content()
@@ -677,18 +677,18 @@ struct ChoreEditorView: View {
                     HStack(spacing: 12) {
                         Text(selectedTitle.isEmpty ? emptyTitle : selectedTitle)
                             .font(.body.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                         Spacer()
                         Image(systemName: "chevron.up.chevron.down")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                     }
                     .padding(.horizontal, 16)
                     .frame(minHeight: 54)
-                    .background(fieldBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(fieldBackground, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                            .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                     }
                 }
                 .buttonStyle(.plain)
@@ -701,32 +701,32 @@ struct ChoreEditorView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text(supportingText)
                 .font(.caption)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
     private func helperText(_ text: String) -> some View {
         Text(text)
             .font(.caption)
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
     }
 
     private func errorCard(_ message: String) -> some View {
         Text(message)
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+            .foregroundStyle(HomeyTheme.danger)
             .fixedSize(horizontal: false, vertical: true)
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(HomeyDashboardTheme.destructiveRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(HomeyDashboardTheme.destructiveRed.opacity(0.22), lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                    .stroke(HomeyTheme.danger.opacity(0.22), lineWidth: 1)
             }
     }
 
@@ -786,13 +786,13 @@ private struct ChoreEditorSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 16) {
             Text(title)
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             content
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .dashboardCard(cornerRadius: 26)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -803,7 +803,7 @@ private struct ChoreDestructiveButtonStyle: ButtonStyle {
             .foregroundStyle(.white)
             .padding(.horizontal, 16)
             .frame(minHeight: 46)
-            .background(HomeyDashboardTheme.destructiveRed.opacity(configuration.isPressed ? 0.82 : 1), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.danger.opacity(configuration.isPressed ? 0.82 : 1), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .scaleEffect(configuration.isPressed ? 0.98 : 1)
     }
 }

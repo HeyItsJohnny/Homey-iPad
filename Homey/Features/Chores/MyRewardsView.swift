@@ -79,14 +79,14 @@ struct MyRewardsView: View {
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                    .foregroundStyle(HomeyTheme.danger)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             VStack(alignment: .leading, spacing: 12) {
                 Text("Points Activity")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 if viewModel.isLoading && viewModel.transactions.isEmpty {
                     MyRewardsLedgerLoadingView()
@@ -104,19 +104,19 @@ struct MyRewardsView: View {
                             if viewModel.isLoadingMore {
                                 ProgressView()
                                     .controlSize(.small)
-                                    .tint(HomeyDashboardTheme.warmBrown)
+                                    .tint(HomeyTheme.primary)
                             }
                             Text(viewModel.isLoadingMore ? "Loading..." : "Load More")
                         }
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .padding(.horizontal, 14)
                         .frame(minHeight: 44)
                         .frame(maxWidth: .infinity)
-                        .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                         .overlay {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                         }
                     }
                     .buttonStyle(.plain)
@@ -127,7 +127,7 @@ struct MyRewardsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("My Redemptions")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 if viewModel.isLoading && viewModel.redemptions.isEmpty {
                     MyRedemptionsLoadingView()
@@ -145,19 +145,19 @@ struct MyRewardsView: View {
                             if viewModel.isLoadingMoreRedemptions {
                                 ProgressView()
                                     .controlSize(.small)
-                                    .tint(HomeyDashboardTheme.warmBrown)
+                                    .tint(HomeyTheme.primary)
                             }
                             Text(viewModel.isLoadingMoreRedemptions ? "Loading..." : "Load More")
                         }
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .padding(.horizontal, 14)
                         .frame(minHeight: 44)
                         .frame(maxWidth: .infinity)
-                        .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                         .overlay {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                         }
                     }
                     .buttonStyle(.plain)
@@ -223,7 +223,7 @@ struct MyRewardsView: View {
                 .font(.subheadline.weight(.bold))
                 .frame(minHeight: 42)
         }
-        .buttonStyle(DashboardPrimaryButtonStyle())
+        .buttonStyle(HomeyPrimaryButtonStyle())
         .accessibilityLabel("Adjust Rewards")
     }
 
@@ -264,7 +264,7 @@ private struct MyRewardsMemberSelector: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Member")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .textCase(.uppercase)
 
             Menu {
@@ -282,8 +282,8 @@ private struct MyRewardsMemberSelector: View {
                             imageURL: selectedMember.avatarURL,
                             initials: selectedMember.initials,
                             size: isCompact ? 34 : 36,
-                            accentColor: HomeyDashboardTheme.sageAccent,
-                            borderColor: HomeyDashboardTheme.appBackground,
+                            accentColor: HomeyTheme.success,
+                            borderColor: HomeyTheme.backgroundPrimary,
                             borderWidth: 2,
                             showsShadow: false,
                             accessibilityLabel: "\(selectedMember.displayName) avatar"
@@ -292,34 +292,34 @@ private struct MyRewardsMemberSelector: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(selectedMember.displayName)
                                 .font(.body.weight(.semibold))
-                                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                                .foregroundStyle(HomeyTheme.textPrimary)
                                 .lineLimit(1)
 
                             if let email = selectedMember.email, !email.isEmpty {
                                 Text(email)
                                     .font(.caption)
-                                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                    .foregroundStyle(HomeyTheme.textSecondary)
                                     .lineLimit(1)
                             }
                         }
                     } else {
                         Text("Select Member")
                             .font(.body.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                     }
 
                     Spacer()
 
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .padding(.horizontal, 16)
                 .frame(minHeight: isCompact ? 86 : 58, alignment: .center)
-                .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -425,13 +425,13 @@ private struct AdjustRewardsView: View {
                     if let visibleMessage = errorMessage ?? validationMessage {
                         Text(visibleMessage)
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                            .foregroundStyle(HomeyTheme.danger)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .padding(22)
             }
-            .background(HomeyDashboardTheme.appBackground.ignoresSafeArea())
+            .background(HomeyTheme.backgroundPrimary.ignoresSafeArea())
             .navigationTitle("Adjust Rewards")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -448,7 +448,7 @@ private struct AdjustRewardsView: View {
                     } label: {
                         if isSaving {
                             ProgressView()
-                                .tint(HomeyDashboardTheme.warmBrown)
+                                .tint(HomeyTheme.primary)
                         } else {
                             Text("Save Adjustment")
                         }
@@ -487,26 +487,26 @@ private struct AdjustRewardsView: View {
                             imageURL: selectedMember.avatarURL,
                             initials: selectedMember.initials,
                             size: 36,
-                            accentColor: HomeyDashboardTheme.sageAccent,
-                            borderColor: HomeyDashboardTheme.appBackground,
+                            accentColor: HomeyTheme.success,
+                            borderColor: HomeyTheme.backgroundPrimary,
                             borderWidth: 2,
                             showsShadow: false,
                             accessibilityLabel: "\(selectedMember.displayName) avatar"
                         )
                         Text(selectedMember.displayName)
                             .font(.body.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                             .lineLimit(1)
                     } else {
                         Text("Select Member")
                             .font(.body.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                     }
 
                     Spacer()
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .padding(.horizontal, 16)
                 .frame(minHeight: 54)
@@ -528,7 +528,7 @@ private struct AdjustRewardsView: View {
 
     private func adjustmentTypeButton(_ type: AdjustmentType) -> some View {
         let isSelected = adjustmentType == type
-        let color = type == .add ? HomeyDashboardTheme.sageAccent : HomeyDashboardTheme.destructiveRed
+        let color = type == .add ? HomeyTheme.success : HomeyTheme.danger
         return Button {
             adjustmentType = type
         } label: {
@@ -536,9 +536,9 @@ private struct AdjustRewardsView: View {
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(isSelected ? .white : color)
                 .frame(maxWidth: .infinity, minHeight: 44)
-                .background(isSelected ? color.opacity(0.9) : color.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(isSelected ? color.opacity(0.9) : color.opacity(0.12), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
                         .stroke(color.opacity(isSelected ? 0 : 0.35), lineWidth: 1)
                 }
         }
@@ -565,7 +565,7 @@ private struct AdjustRewardsView: View {
             TextField("25", text: $amountText)
                 .keyboardType(.numberPad)
                 .font(.body.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(16)
                 .background(adjustmentFieldBackground)
                 .onChange(of: amountText) { _, newValue in
@@ -584,7 +584,7 @@ private struct AdjustRewardsView: View {
             TextField("Bonus for helping with groceries", text: $description, axis: .vertical)
                 .lineLimit(3...5)
                 .font(.body)
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(16)
                 .background(adjustmentFieldBackground)
                 .accessibilityLabel("Description")
@@ -597,26 +597,26 @@ private struct AdjustRewardsView: View {
             HStack(spacing: 8) {
                 ProgressView()
                     .controlSize(.small)
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
                 Text("Loading available points...")
             }
             .font(.caption.weight(.medium))
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
         } else {
             Text("Available points: \(selectedBalance.formatted(.number))")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
     private var adjustmentFieldBackground: some ShapeStyle {
-        HomeyDashboardTheme.cardBackground
+        HomeyTheme.surfacePrimary
     }
 
     private func fieldLabel(_ title: String) -> some View {
         Text(title)
             .font(.subheadline.weight(.bold))
-            .foregroundStyle(HomeyDashboardTheme.primaryText)
+            .foregroundStyle(HomeyTheme.textPrimary)
     }
 
     private func loadSelectedBalance() async {
@@ -688,17 +688,17 @@ private struct MyRewardsBalanceCard: View {
         VStack(alignment: .leading, spacing: isCompact ? 8 : 12) {
             Text("Total Available Points")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
 
             if isLoading {
                 ProgressView()
                     .controlSize(.regular)
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
                     .accessibilityLabel("Loading total available points")
             } else {
                 Text(pointBalance.formatted(.number))
                     .font(.system(size: isCompact ? 30 : 46, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .minimumScaleFactor(0.7)
                     .lineLimit(1)
             }
@@ -721,15 +721,15 @@ private struct MyRewardsLedgerList: View {
 
                 if item.id != items.last?.id {
                     Divider()
-                        .overlay(HomeyDashboardTheme.softBorder)
+                        .overlay(HomeyTheme.borderSubtle)
                 }
             }
         }
         .padding(.horizontal, 14)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 }
@@ -744,16 +744,16 @@ private struct MyRewardsLedgerRow: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text(title)
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
 
                 Text(transaction.createdAt.formatted(date: .abbreviated, time: .shortened))
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
 
                 Text(transaction.transactionType.rewardsDisplayName)
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer(minLength: 10)
@@ -790,7 +790,7 @@ private struct MyRewardsLedgerRow: View {
     }
 
     private var pointsColor: Color {
-        transaction.pointsDelta >= 0 ? HomeyDashboardTheme.sageAccent : HomeyDashboardTheme.destructiveRed
+        transaction.pointsDelta >= 0 ? HomeyTheme.success : HomeyTheme.danger
     }
 }
 
@@ -806,18 +806,18 @@ private struct MyRewardsEmptyLedgerView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("No point activity yet.")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text("Complete chores to start earning points.")
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 }
@@ -827,17 +827,17 @@ private struct MyRewardsLedgerLoadingView: View {
         HStack(spacing: 10) {
             ProgressView()
                 .controlSize(.small)
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
             Text("Loading point activity...")
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 }
@@ -852,15 +852,15 @@ private struct MyRedemptionsList: View {
 
                 if redemption.id != redemptions.last?.id {
                     Divider()
-                        .overlay(HomeyDashboardTheme.softBorder)
+                        .overlay(HomeyTheme.borderSubtle)
                 }
             }
         }
         .padding(.horizontal, 14)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 }
@@ -890,11 +890,11 @@ private struct MyRedemptionRow: View {
     private var statusColor: Color {
         switch redemption.status {
         case .pending:
-            return HomeyDashboardTheme.orangeAccent
+            return HomeyTheme.peach
         case .redeemed:
-            return HomeyDashboardTheme.sageAccent
+            return HomeyTheme.success
         case .cancelled:
-            return HomeyDashboardTheme.destructiveRed.opacity(0.8)
+            return HomeyTheme.danger.opacity(0.8)
         }
     }
 
@@ -909,33 +909,33 @@ private struct MyRedemptionRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(redemption.rewardNameSnapshot)
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
 
                 Text("\(redemption.pointCostSnapshot.formatted(.number)) Points")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
 
                 Text(requestedText)
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
 
                 if let lifecycleText {
                     Text(lifecycleText)
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
 
                 if let refundText {
                     Text(refundText)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                        .foregroundStyle(HomeyTheme.success)
                 }
 
                 if let reason = redemption.cancellationReason?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
                     Text(reason)
                         .font(.caption)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(2)
                 }
             }
@@ -986,18 +986,18 @@ private struct MyRedemptionsEmptyView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(isViewingAnotherMember ? "No redemptions for this member yet." : "No rewards redeemed yet.")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text("Browse Reward Center to spend your points.")
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 }
@@ -1007,17 +1007,17 @@ private struct MyRedemptionsLoadingView: View {
         HStack(spacing: 10) {
             ProgressView()
                 .controlSize(.small)
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
             Text("Loading redemptions...")
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 }

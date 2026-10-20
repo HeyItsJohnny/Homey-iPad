@@ -226,12 +226,12 @@ private struct ImportedRecipeEditorCard<Content: View>: View {
         VStack(alignment: .leading, spacing: spacing) {
             Text(title)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             content()
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -249,7 +249,7 @@ private struct ImportedRecipeImageView: View {
                             .scaledToFill()
                     case .empty:
                         ProgressView()
-                            .tint(HomeyDashboardTheme.warmBrown)
+                            .tint(HomeyTheme.primary)
                     case .failure:
                         placeholder
                     @unknown default:
@@ -268,13 +268,13 @@ private struct ImportedRecipeImageView: View {
     private var placeholder: some View {
         ZStack {
             LinearGradient(
-                colors: [HomeyDashboardTheme.warmBeige.opacity(0.82), HomeyDashboardTheme.selectedSidebarBackground],
+                colors: [HomeyTheme.borderSubtle.opacity(0.82), HomeyTheme.primarySoft],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             Image(systemName: "fork.knife")
                 .font(.system(size: 36, weight: .semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
         }
     }
 }
@@ -309,8 +309,8 @@ private struct ImportedRecipeIngredientRow: View {
             rowActions(moveUpLabel: "Move ingredient up", moveDownLabel: "Move ingredient down", deleteLabel: "Remove Ingredient")
         }
         .padding(14)
-        .background(HomeyDashboardTheme.warmBeige.opacity(0.14), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay { RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+        .background(HomeyTheme.borderSubtle.opacity(0.14), in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
         .accessibilityElement(children: .contain)
     }
 
@@ -326,7 +326,7 @@ private struct ImportedRecipeIngredientRow: View {
             }
         }
         .buttonStyle(.bordered)
-        .tint(HomeyDashboardTheme.warmBrown)
+        .tint(HomeyTheme.primary)
     }
 }
 
@@ -356,11 +356,11 @@ private struct ImportedRecipeStepRow: View {
                 }
             }
             .buttonStyle(.bordered)
-            .tint(HomeyDashboardTheme.warmBrown)
+            .tint(HomeyTheme.primary)
         }
         .padding(14)
-        .background(HomeyDashboardTheme.warmBeige.opacity(0.14), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay { RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+        .background(HomeyTheme.borderSubtle.opacity(0.14), in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
         .accessibilityElement(children: .contain)
     }
 }
@@ -373,27 +373,27 @@ private struct ImportedRecipeExistingMealCard: View {
         HStack(spacing: 14) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.title2.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                .foregroundStyle(HomeyTheme.success)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("This recipe is already in your Home.")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 Text(meal.name)
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer(minLength: 0)
 
             Button("View Recipe", action: onViewRecipe)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .buttonStyle(.plain)
         }
         .padding(16)
-        .dashboardCard(cornerRadius: 20)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
     }
 }
 
@@ -403,11 +403,11 @@ private struct ImportedRecipeNoticeCard: View {
     var body: some View {
         Label(message, systemImage: "exclamationmark.triangle.fill")
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.softRed)
+            .foregroundStyle(HomeyTheme.danger)
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(HomeyDashboardTheme.softRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay { RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(HomeyDashboardTheme.softRed.opacity(0.24), lineWidth: 1) }
+            .background(HomeyTheme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
+            .overlay { RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous).stroke(HomeyTheme.danger.opacity(0.24), lineWidth: 1) }
     }
 }
 

@@ -37,7 +37,7 @@ struct MealEditorView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground
+            HomeyTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             ScrollViewReader { proxy in
@@ -134,11 +134,11 @@ struct MealEditorView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(viewModel.title)
                         .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                     Text(viewModel.subtitle)
                         .font(.title3)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 Spacer()
                 if horizontalSizeClass != .compact {
@@ -171,10 +171,10 @@ struct MealEditorView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(HomeyDashboardTheme.cardBackground.opacity(0.96))
+        .background(HomeyTheme.surfacePrimary.opacity(0.96))
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(HomeyDashboardTheme.softBorder)
+                .fill(HomeyTheme.borderSubtle)
                 .frame(height: 1)
         }
     }
@@ -183,11 +183,11 @@ struct MealEditorView: View {
         Button("Cancel") { requestCancel() }
             .buttonStyle(.plain)
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
             .padding(.horizontal, 14)
             .frame(minHeight: 44)
-            .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-            .overlay { Capsule().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+            .background(HomeyTheme.surfacePrimary, in: Capsule())
+            .overlay { Capsule().stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
             .accessibilityLabel("Cancel meal editing")
     }
 
@@ -299,13 +299,13 @@ struct MealEditorView: View {
             } label: {
                 Label("Delete Recipe", systemImage: "trash")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.coralAccent)
+                    .foregroundStyle(HomeyTheme.coral)
                     .padding(.horizontal, 18)
                     .frame(minHeight: 48)
-                    .background(HomeyDashboardTheme.cardBackground, in: Capsule())
+                    .background(HomeyTheme.surfacePrimary, in: Capsule())
                     .overlay {
                         Capsule()
-                            .stroke(HomeyDashboardTheme.coralAccent.opacity(0.35), lineWidth: 1)
+                            .stroke(HomeyTheme.coral.opacity(0.35), lineWidth: 1)
                     }
             }
             .buttonStyle(.plain)
@@ -334,7 +334,7 @@ struct MealEditorView: View {
                             .frame(minHeight: 44)
                     }
                     .buttonStyle(.bordered)
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
                     .disabled(viewModel.isProcessingPhoto || viewModel.isSaving)
 
                     if hasPhoto {
@@ -371,7 +371,7 @@ struct MealEditorView: View {
                 case .success(let image):
                     MealPhotoPreviewImage(image: image)
                 case .empty:
-                    ProgressView().tint(HomeyDashboardTheme.warmBrown)
+                    ProgressView().tint(HomeyTheme.primary)
                 case .failure:
                     photoPlaceholder
                 @unknown default:
@@ -387,10 +387,10 @@ struct MealEditorView: View {
         VStack(spacing: 12) {
             Image(systemName: "fork.knife.circle.fill")
                 .font(.system(size: 48, weight: .semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
             Text("Add a meal photo")
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -445,7 +445,7 @@ struct MealEditorView: View {
                     destinationToggle("Share with Community", isOn: $viewModel.shareWithCommunity)
                 }
             }
-            .tint(HomeyDashboardTheme.warmBrown)
+            .tint(HomeyTheme.primary)
         }
     }
 
@@ -453,7 +453,7 @@ struct MealEditorView: View {
         Toggle(title, isOn: isOn)
             .toggleStyle(.switch)
             .font(.caption.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
             .fixedSize(horizontal: true, vertical: false)
             .disabled(viewModel.isSaving)
     }
@@ -463,7 +463,7 @@ struct MealEditorView: View {
         if viewModel.showsDestinationControls && !viewModel.hasSelectedSaveDestination {
             Text("Choose at least one place to save this recipe.")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.coralAccent)
+                .foregroundStyle(HomeyTheme.coral)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -472,7 +472,7 @@ struct MealEditorView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Meal Types")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
             FlowLayout(spacing: 10, minimumItemWidth: 126) {
                 ForEach(MealType.allCases) { mealType in
                     let isSelected = viewModel.selectedMealTypes.contains(mealType)
@@ -484,9 +484,9 @@ struct MealEditorView: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.9)
                             .frame(width: 126, height: 42)
-                            .background(isSelected ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.cardBackground, in: Capsule())
-                            .foregroundStyle(isSelected ? .white : HomeyDashboardTheme.primaryText)
-                            .overlay { Capsule().stroke(isSelected ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.softBorder, lineWidth: 1) }
+                            .background(isSelected ? HomeyTheme.primary : HomeyTheme.surfacePrimary, in: Capsule())
+                            .foregroundStyle(isSelected ? .white : HomeyTheme.textPrimary)
+                            .overlay { Capsule().stroke(isSelected ? HomeyTheme.primary : HomeyTheme.borderSubtle, lineWidth: 1) }
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("\(mealType.displayName) meal type")
@@ -500,7 +500,7 @@ struct MealEditorView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Difficulty")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
             Picker("Difficulty", selection: $viewModel.difficulty) {
                 Text("None").tag(MealDifficulty?.none)
                 ForEach(MealDifficulty.allCases) { difficulty in
@@ -510,8 +510,8 @@ struct MealEditorView: View {
             .pickerStyle(.menu)
             .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
             .padding(.horizontal, 14)
-            .background(HomeyDashboardTheme.appBackground.opacity(0.65), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay { RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+            .background(HomeyTheme.backgroundPrimary.opacity(0.65), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
+            .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
         }
     }
 
@@ -521,10 +521,10 @@ struct MealEditorView: View {
                 ForEach(Self.cuisineSuggestions, id: \.self) { cuisine in
                     Button(cuisine) { viewModel.cuisine = cuisine }
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .padding(.horizontal, 10)
                         .frame(minHeight: 34)
-                        .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                        .background(HomeyTheme.primarySoft, in: Capsule())
                         .buttonStyle(.plain)
                 }
             }
@@ -536,20 +536,20 @@ struct MealEditorView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Tags")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
             HStack(spacing: 8) {
                 TextField("Add tag", text: $tagText)
                     .textInputAutocapitalization(.words)
                     .focused($focusedField, equals: .tag)
                     .padding(.horizontal, 14)
                     .frame(minHeight: 48)
-                    .background(HomeyDashboardTheme.appBackground.opacity(0.65), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(HomeyTheme.backgroundPrimary.opacity(0.65), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 Button("Add") {
                     viewModel.addTag(tagText)
                     tagText = ""
                 }
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(minWidth: 58, minHeight: 44)
             }
             FlowLayout(spacing: 8) {
@@ -559,11 +559,11 @@ struct MealEditorView: View {
                     } label: {
                         Label(tag, systemImage: "xmark.circle.fill")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                             .padding(.horizontal, 10)
                             .frame(minHeight: 34)
-                            .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
-                            .overlay { Capsule().stroke(HomeyDashboardTheme.softBorder.opacity(0.7), lineWidth: 1) }
+                            .background(HomeyTheme.primarySoft, in: Capsule())
+                            .overlay { Capsule().stroke(HomeyTheme.borderSubtle.opacity(0.7), lineWidth: 1) }
                     }
                     .buttonStyle(.plain)
                     .transition(.scale.combined(with: .opacity))
@@ -584,7 +584,7 @@ struct MealEditorView: View {
                     .frame(minHeight: 42)
             }
             .buttonStyle(.bordered)
-            .tint(HomeyDashboardTheme.warmBrown)
+            .tint(HomeyTheme.primary)
         } content: {
             VStack(alignment: .leading, spacing: 12) {
                 validationText(for: .ingredients)
@@ -593,7 +593,7 @@ struct MealEditorView: View {
                         if shouldShowIngredientSectionTitle(group.section) {
                             Text(group.section)
                                 .font(.subheadline.weight(.bold))
-                                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                                .foregroundStyle(HomeyTheme.textPrimary)
                         }
                         ForEach(group.items) { ingredient in
                             IngredientRow(
@@ -623,7 +623,7 @@ struct MealEditorView: View {
                     .frame(minHeight: 42)
             }
             .buttonStyle(.bordered)
-            .tint(HomeyDashboardTheme.warmBrown)
+            .tint(HomeyTheme.primary)
         } content: {
             VStack(alignment: .leading, spacing: 12) {
                 validationText(for: .steps)
@@ -672,11 +672,11 @@ struct MealEditorView: View {
                     }
                 }
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .padding(.horizontal, 12)
                 .frame(minHeight: 38)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-                .overlay { Capsule().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
+                .overlay { Capsule().stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
                 .buttonStyle(.plain)
             }
         }
@@ -688,7 +688,7 @@ struct MealEditorView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
             HStack(spacing: 8) {
                 TextField(placeholder, text: text)
                     .keyboardType(keyboard)
@@ -698,13 +698,13 @@ struct MealEditorView: View {
                 if let suffix, !text.wrappedValue.isEmpty {
                     Text(suffix)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
             }
             .padding(.horizontal, 14)
             .frame(minHeight: 50)
-            .background(HomeyDashboardTheme.appBackground.opacity(0.65), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay { RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+            .background(HomeyTheme.backgroundPrimary.opacity(0.65), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
+            .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
         }
     }
 
@@ -712,12 +712,12 @@ struct MealEditorView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
             ZStack(alignment: .topLeading) {
                 if text.wrappedValue.isEmpty {
                     Text(placeholder)
                         .font(.body)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.75))
+                        .foregroundStyle(HomeyTheme.textSecondary.opacity(0.75))
                         .padding(.horizontal, 18)
                         .padding(.vertical, 14)
                 }
@@ -727,8 +727,8 @@ struct MealEditorView: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
             }
-            .background(HomeyDashboardTheme.appBackground.opacity(0.65), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay { RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+            .background(HomeyTheme.backgroundPrimary.opacity(0.65), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
+            .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
         }
     }
 
@@ -737,7 +737,7 @@ struct MealEditorView: View {
         if let message = viewModel.validationMessage(for: field) {
             Label(message, systemImage: "exclamationmark.circle.fill")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.coralAccent)
+                .foregroundStyle(HomeyTheme.coral)
                 .accessibilityLabel(message)
         }
     }
@@ -747,7 +747,7 @@ struct MealEditorView: View {
             if viewModel.isSaving {
                 ProgressView()
                     .controlSize(.small)
-                    .tint(isPrimary ? .white : HomeyDashboardTheme.warmBrown)
+                    .tint(isPrimary ? .white : HomeyTheme.primary)
                     .transition(.scale.combined(with: .opacity))
             }
             Text(horizontalSizeClass == .compact ? compactTitle : title)
@@ -755,12 +755,12 @@ struct MealEditorView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
         }
-        .foregroundStyle(isPrimary ? .white : HomeyDashboardTheme.warmBrown)
+        .foregroundStyle(isPrimary ? .white : HomeyTheme.primary)
         .padding(.horizontal, horizontalSizeClass == .compact ? 12 : 16)
         .frame(maxWidth: horizontalSizeClass == .compact ? .infinity : nil)
         .frame(minHeight: 44)
-        .background(isPrimary ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.cardBackground, in: Capsule())
-        .overlay { Capsule().stroke(HomeyDashboardTheme.softBorder, lineWidth: isPrimary ? 0 : 1) }
+        .background(isPrimary ? HomeyTheme.primary : HomeyTheme.surfacePrimary, in: Capsule())
+        .overlay { Capsule().stroke(HomeyTheme.borderSubtle, lineWidth: isPrimary ? 0 : 1) }
         .opacity((viewModel.isSaving || !canSave) ? 0.72 : 1)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: viewModel.isSaving)
     }
@@ -1080,7 +1080,7 @@ private struct MealEditorCard<HeaderAccessory: View, Content: View>: View {
             HStack(alignment: .center, spacing: 12) {
                 Text(title)
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 Spacer(minLength: 12)
                 headerAccessory
             }
@@ -1088,9 +1088,9 @@ private struct MealEditorCard<HeaderAccessory: View, Content: View>: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
-        .overlay { RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(HomeyDashboardTheme.softBorder.opacity(0.85), lineWidth: 1) }
-        .shadow(color: HomeyDashboardTheme.shadow.opacity(0.22), radius: 14, x: 0, y: 7)
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous).stroke(HomeyTheme.borderSubtle.opacity(0.85), lineWidth: 1) }
+        .shadow(color: HomeyTheme.shadow.opacity(0.22), radius: 14, x: 0, y: 7)
     }
 }
 
@@ -1103,8 +1103,8 @@ private struct MealPhotoPreviewContainer<Content: View>: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(HomeyDashboardTheme.selectedSidebarBackground)
+            RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous)
+                .fill(HomeyTheme.primarySoft)
 
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1113,19 +1113,19 @@ private struct MealPhotoPreviewContainer<Content: View>: View {
             if isProcessing {
                 Color.black.opacity(0.18)
                 ProgressView()
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
             }
         }
         .frame(width: fixedWidth)
         .frame(maxWidth: fixedWidth == nil ? .infinity : fixedWidth)
         .frame(height: height)
         .clipped()
-        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
-        .shadow(color: HomeyDashboardTheme.shadow.opacity(0.28), radius: 14, x: 0, y: 8)
+        .shadow(color: HomeyTheme.shadow.opacity(0.28), radius: 14, x: 0, y: 8)
         .accessibilityLabel(accessibilityLabel)
     }
 }
@@ -1161,18 +1161,18 @@ private struct MealEditorNoticeCard: View {
         HStack(spacing: 14) {
             Image(systemName: systemImage)
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 44, height: 44)
-                .background(HomeyDashboardTheme.selectedSidebarBackground, in: Circle())
+                .background(HomeyTheme.primarySoft, in: Circle())
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.headline.weight(.bold))
-                Text(message).font(.subheadline).foregroundStyle(HomeyDashboardTheme.secondaryText)
+                Text(message).font(.subheadline).foregroundStyle(HomeyTheme.textSecondary)
             }
             Spacer()
         }
-        .foregroundStyle(HomeyDashboardTheme.primaryText)
+        .foregroundStyle(HomeyTheme.textPrimary)
         .padding(18)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -1180,8 +1180,8 @@ private struct MealEditorLoadingView: View {
     var body: some View {
         VStack(spacing: 18) {
             ForEach(0..<4, id: \.self) { _ in
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(HomeyDashboardTheme.warmBeige.opacity(0.28))
+                RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous)
+                    .fill(HomeyTheme.borderSubtle.opacity(0.28))
                     .frame(height: 190)
                     .redacted(reason: .placeholder)
             }
@@ -1200,22 +1200,22 @@ private struct IngredientRow: View {
         HStack(alignment: .center, spacing: 12) {
             Image(systemName: "line.3.horizontal")
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .frame(width: 28, height: 44)
                 .accessibilityLabel("Drag handle")
             VStack(alignment: .leading, spacing: 5) {
                 Text(ingredientTitle)
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 if !ingredient.preparation.isEmpty || !ingredient.notes.isEmpty {
                     Text([ingredient.preparation, ingredient.notes].filter { !$0.isEmpty }.joined(separator: " • "))
                         .font(.caption)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 if ingredient.isOptional {
                     Text("Optional")
                         .font(.caption2.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                        .foregroundStyle(HomeyTheme.success)
                 }
             }
             .frame(minHeight: 44, alignment: .center)
@@ -1234,9 +1234,9 @@ private struct IngredientRow: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(HomeyDashboardTheme.cardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay { RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(HomeyDashboardTheme.softBorder.opacity(0.72), lineWidth: 1) }
-        .shadow(color: HomeyDashboardTheme.shadow.opacity(0.08), radius: 8, x: 0, y: 4)
+        .background(HomeyTheme.surfacePrimary.opacity(0.72), in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous).stroke(HomeyTheme.borderSubtle.opacity(0.72), lineWidth: 1) }
+        .shadow(color: HomeyTheme.shadow.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 
     private var ingredientTitle: String {
@@ -1255,22 +1255,22 @@ private struct StepRow: View {
         HStack(alignment: .center, spacing: 12) {
             Image(systemName: "line.3.horizontal")
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .frame(width: 28, height: 44)
                 .accessibilityLabel("Drag handle")
             Text("\(step.stepNumber)")
                 .font(.headline.weight(.bold))
                 .foregroundStyle(.white)
                 .frame(width: 34, height: 34)
-                .background(HomeyDashboardTheme.warmBrown, in: Circle())
+                .background(HomeyTheme.primary, in: Circle())
             VStack(alignment: .leading, spacing: 6) {
                 Text(step.instruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "New direction" : step.instruction)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 if !step.timerMinutesText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Label("\(step.timerMinutesText) min", systemImage: "timer")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
             }
             .frame(minHeight: 44, alignment: .center)
@@ -1290,9 +1290,9 @@ private struct StepRow: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(HomeyDashboardTheme.cardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay { RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(HomeyDashboardTheme.softBorder.opacity(0.72), lineWidth: 1) }
-        .shadow(color: HomeyDashboardTheme.shadow.opacity(0.08), radius: 8, x: 0, y: 4)
+        .background(HomeyTheme.surfacePrimary.opacity(0.72), in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous).stroke(HomeyTheme.borderSubtle.opacity(0.72), lineWidth: 1) }
+        .shadow(color: HomeyTheme.shadow.opacity(0.08), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -1315,14 +1315,14 @@ private struct IngredientEditorSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground
+                HomeyTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
                         Text("Ingredient")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                             .accessibilityAddTraits(.isHeader)
 
                         VStack(alignment: .leading, spacing: 16) {
@@ -1338,11 +1338,11 @@ private struct IngredientEditorSheet: View {
                             mealSheetTextField("Notes", text: $draft.notes, axis: .vertical)
                                 .lineLimit(3...6)
                             Toggle("Optional", isOn: $draft.isOptional)
-                                .tint(HomeyDashboardTheme.warmBrown)
+                                .tint(HomeyTheme.primary)
                                 .frame(minHeight: 44)
                         }
                         .padding(22)
-                        .dashboardCard(cornerRadius: 26)
+                        .dashboardCard(cornerRadius: HomeyRadius.page)
 
                         bottomActions
                     }
@@ -1364,10 +1364,10 @@ private struct IngredientEditorSheet: View {
             Button("Cancel") { dismiss() }
                 .buttonStyle(.plain)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(maxWidth: .infinity, minHeight: 52)
-                .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
-                .overlay { RoundedRectangle(cornerRadius: 17, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+                .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
+                .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
 
             Button {
                 onSave(draft)
@@ -1375,7 +1375,7 @@ private struct IngredientEditorSheet: View {
             } label: {
                 Text(saveTitle)
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .frame(maxWidth: .infinity)
         }
     }
@@ -1398,14 +1398,14 @@ private struct StepEditorSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground
+                HomeyTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
                         Text("Direction")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                             .accessibilityAddTraits(.isHeader)
 
                         VStack(alignment: .leading, spacing: 16) {
@@ -1414,13 +1414,13 @@ private struct StepEditorSheet: View {
                             mealSheetTextField("Timer Minutes", text: $draft.timerMinutesText, keyboard: .numberPad)
                             LabeledContent("Step Photo") {
                                 Text("Coming Soon")
-                                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                    .foregroundStyle(HomeyTheme.textSecondary)
                             }
                             .font(.body.weight(.medium))
                             .frame(minHeight: 44)
                         }
                         .padding(22)
-                        .dashboardCard(cornerRadius: 26)
+                        .dashboardCard(cornerRadius: HomeyRadius.page)
 
                         bottomActions
                     }
@@ -1442,10 +1442,10 @@ private struct StepEditorSheet: View {
             Button("Cancel") { dismiss() }
                 .buttonStyle(.plain)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(maxWidth: .infinity, minHeight: 52)
-                .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
-                .overlay { RoundedRectangle(cornerRadius: 17, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+                .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
+                .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
 
             Button {
                 onSave(draft)
@@ -1453,7 +1453,7 @@ private struct StepEditorSheet: View {
             } label: {
                 Text(saveTitle)
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .frame(maxWidth: .infinity)
         }
     }
@@ -1463,19 +1463,19 @@ private func mealSheetTextField(_ title: String, text: Binding<String>, axis: Ax
     VStack(alignment: .leading, spacing: 6) {
         Text(title)
             .font(.caption.weight(.bold))
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
         TextField(title, text: text, axis: axis)
             .keyboardType(keyboard)
             .textInputAutocapitalization(.sentences)
             .font(.body.weight(.medium))
-            .foregroundStyle(HomeyDashboardTheme.primaryText)
+            .foregroundStyle(HomeyTheme.textPrimary)
             .padding(.horizontal, 16)
             .padding(.vertical, axis == .vertical ? 10 : 0)
             .frame(minHeight: axis == .vertical ? 112 : 56, alignment: axis == .vertical ? .topLeading : .center)
-            .background(HomeyDashboardTheme.appBackground.opacity(0.7), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+            .background(HomeyTheme.backgroundPrimary.opacity(0.7), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 17, style: .continuous)
-                    .stroke(HomeyDashboardTheme.softBorder.opacity(0.9), lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                    .stroke(HomeyTheme.borderSubtle.opacity(0.9), lineWidth: 1)
             }
     }
 }

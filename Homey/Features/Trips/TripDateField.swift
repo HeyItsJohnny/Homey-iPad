@@ -24,13 +24,13 @@ struct TripDateField: View {
 
     var body: some View {
         HStack {
-            Text(title).foregroundStyle(HomeyDashboardTheme.primaryText)
+            Text(title).foregroundStyle(HomeyTheme.textPrimary)
             Spacer()
             Button { showsCalendar = true } label: {
                 Text(selection.formatted(date: .abbreviated, time: .omitted))
-                    .font(.subheadline).foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .font(.subheadline).foregroundStyle(HomeyTheme.primary)
                     .padding(.horizontal, 10).padding(.vertical, 7)
-                    .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 8))
+                    .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: 8))
             }
             .buttonStyle(.plain)
             .accessibilityLabel(title)
@@ -59,7 +59,7 @@ private struct TripInlineCalendar: UIViewRepresentable {
         let picker = UIDatePicker()
         picker.datePickerMode = .date
         picker.preferredDatePickerStyle = .inline
-        picker.tintColor = UIColor(HomeyDashboardTheme.warmBrown)
+        picker.tintColor = UIColor(HomeyTheme.primary)
         picker.addTarget(context.coordinator, action: #selector(Coordinator.selected(_:)), for: .valueChanged)
         return picker
     }

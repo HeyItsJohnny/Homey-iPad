@@ -525,23 +525,23 @@ struct AdminApprovalsView: View {
         HStack(alignment: .firstTextBaseline) {
             Label("Approvals", systemImage: "checkmark.seal.fill")
                 .font(.system(size: 26, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Spacer()
 
             Text("\(viewModel.pendingCount) Pending")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .padding(.horizontal, 13)
                 .padding(.vertical, 7)
-                .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                .background(HomeyTheme.primarySoft, in: Capsule())
         }
     }
 
     private func queueHeading(_ title: String, count: Int) -> some View {
         Text("\(title) · \(count)")
             .font(.subheadline.weight(.bold))
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
             .accessibilityAddTraits(.isHeader)
     }
 
@@ -556,23 +556,23 @@ struct AdminApprovalsView: View {
     private var loadingState: some View {
         HStack(spacing: 12) {
             ProgressView()
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
             Text("Loading approvals…")
                 .font(.headline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .frame(maxWidth: .infinity, minHeight: 220)
-        .dashboardCard(cornerRadius: 28)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private func loadErrorState(_ message: String) -> some View {
         VStack(spacing: 14) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 34))
-                .foregroundStyle(HomeyDashboardTheme.softRed)
+                .foregroundStyle(HomeyTheme.danger)
             Text(message)
                 .font(.headline)
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .multilineTextAlignment(.center)
             Button("Try Again") {
                 Task { await viewModel.load(homeID: homeID, sessionToken: session.token, controller: controller) }
@@ -581,38 +581,38 @@ struct AdminApprovalsView: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 22)
             .frame(minHeight: 48)
-            .background(HomeyDashboardTheme.warmBrown, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.primary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity, minHeight: 240)
         .padding(28)
-        .dashboardCard(cornerRadius: 28)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var emptyState: some View {
         VStack(spacing: 10) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 42))
-                .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                .foregroundStyle(HomeyTheme.success)
             Text("All caught up!")
                 .font(.title2.bold())
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             Text("Nothing is waiting for review.")
                 .font(.title3)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .frame(maxWidth: .infinity, minHeight: 240)
         .padding(28)
-        .dashboardCard(cornerRadius: 28)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private func errorBanner(_ message: String) -> some View {
         Label(message, systemImage: "exclamationmark.triangle.fill")
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.softRed)
+            .foregroundStyle(HomeyTheme.danger)
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(HomeyDashboardTheme.softRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
     }
 
     private func review(_ approval: AdminPendingChoreApproval, decision: AdminChoreReviewDecision) {
@@ -649,18 +649,18 @@ private struct AdminApprovalCard: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(approval.choreTitle)
                         .font(.title2.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(2)
 
                     Text(approvalMetadata)
                         .font(.headline)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(1)
 
                     if let description = normalized(approval.choreDescription) {
                         Text(description)
                             .font(.subheadline)
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                             .lineLimit(2)
                     }
                 }
@@ -669,10 +669,10 @@ private struct AdminApprovalCard: View {
 
                 Text("\(approval.pointsValue) pts")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .padding(.horizontal, 13)
                     .padding(.vertical, 8)
-                    .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                    .background(HomeyTheme.primarySoft, in: Capsule())
             }
 
             HStack(spacing: 18) {
@@ -680,11 +680,11 @@ private struct AdminApprovalCard: View {
 
                 if approval.requiresPhoto {
                     Label("Photo Required", systemImage: "camera.fill")
-                        .foregroundStyle(HomeyDashboardTheme.orangeAccent)
+                        .foregroundStyle(HomeyTheme.peach)
                 }
             }
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
 
             HStack(spacing: 14) {
                 Button(action: onNeedsMoreWork) {
@@ -692,12 +692,12 @@ private struct AdminApprovalCard: View {
                         .frame(maxWidth: .infinity)
                 }
                 .font(.headline)
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
                 .frame(minHeight: 54)
-                .background(HomeyDashboardTheme.destructiveRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+                .background(HomeyTheme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 17, style: .continuous)
-                        .stroke(HomeyDashboardTheme.destructiveRed.opacity(0.30), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.danger.opacity(0.30), lineWidth: 1)
                 }
                 .buttonStyle(.plain)
                 .disabled(isProcessing)
@@ -716,13 +716,13 @@ private struct AdminApprovalCard: View {
                 .font(.headline)
                 .foregroundStyle(.white)
                 .frame(minHeight: 54)
-                .background(HomeyDashboardTheme.warmBrown, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+                .background(HomeyTheme.primary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .buttonStyle(.plain)
                 .disabled(isProcessing)
             }
         }
         .padding(24)
-        .dashboardCard(cornerRadius: 28)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
         .opacity(isProcessing ? 0.82 : 1)
     }
 

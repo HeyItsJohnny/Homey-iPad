@@ -4,7 +4,7 @@ enum CalendarEventColorResolver {
     static func color(
         for event: CalendarEvent,
         categories: [CalendarCategory],
-        fallback: Color = HomeyDashboardTheme.warmBrown
+        fallback: Color = HomeyTheme.primary
     ) -> Color {
         guard let category = category(for: event, categories: categories),
               let color = Color(hex: category.colorHex) else {

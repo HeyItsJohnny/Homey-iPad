@@ -125,7 +125,7 @@ struct CreateHomeView: View {
                     Text("Create Home")
                 }
             }
-            .buttonStyle(AuthenticationPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .disabled(homeService.isLoading)
         }
     }

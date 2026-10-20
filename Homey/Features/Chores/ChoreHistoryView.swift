@@ -69,14 +69,14 @@ struct ChoreHistoryView: View {
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                    .foregroundStyle(HomeyTheme.danger)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             VStack(alignment: .leading, spacing: 12) {
                 Text("Activity")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 if viewModel.isLoading && viewModel.activities.isEmpty {
                     ChoreHistoryLoadingView()
@@ -100,20 +100,20 @@ struct ChoreHistoryView: View {
                             if viewModel.isLoadingMore {
                                 ProgressView()
                                     .controlSize(.small)
-                                    .tint(HomeyDashboardTheme.warmBrown)
+                                    .tint(HomeyTheme.primary)
                             }
 
                             Text(viewModel.isLoadingMore ? "Loading..." : "Load More")
                         }
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .padding(.horizontal, 14)
                         .frame(minHeight: 44)
                         .frame(maxWidth: .infinity)
-                        .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                         .overlay {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                         }
                     }
                     .buttonStyle(.plain)
@@ -167,7 +167,7 @@ private struct ChoreHistoryMemberSelector: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Member")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .textCase(.uppercase)
 
             Menu {
@@ -185,8 +185,8 @@ private struct ChoreHistoryMemberSelector: View {
                             imageURL: selectedMember.avatarURL,
                             initials: selectedMember.initials,
                             size: 36,
-                            accentColor: HomeyDashboardTheme.sageAccent,
-                            borderColor: HomeyDashboardTheme.appBackground,
+                            accentColor: HomeyTheme.success,
+                            borderColor: HomeyTheme.backgroundPrimary,
                             borderWidth: 2,
                             showsShadow: false,
                             accessibilityLabel: "\(selectedMember.displayName) avatar"
@@ -195,34 +195,34 @@ private struct ChoreHistoryMemberSelector: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(selectedMember.displayName)
                                 .font(.body.weight(.semibold))
-                                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                                .foregroundStyle(HomeyTheme.textPrimary)
                                 .lineLimit(1)
 
                             if let email = selectedMember.email, !email.isEmpty {
                                 Text(email)
                                     .font(.caption)
-                                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                    .foregroundStyle(HomeyTheme.textSecondary)
                                     .lineLimit(1)
                             }
                         }
                     } else {
                         Text("Select Member")
                             .font(.body.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                     }
 
                     Spacer()
 
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .padding(.horizontal, 16)
                 .frame(minHeight: 58, alignment: .center)
-                .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -236,18 +236,18 @@ private struct ChoreHistoryLoadingView: View {
         HStack(spacing: 10) {
             ProgressView()
                 .controlSize(.small)
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
 
             Text("Loading activity...")
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 }
@@ -265,15 +265,15 @@ private struct ChoreHistoryActivityList: View {
 
                 if activity.id != activities.last?.id {
                     Divider()
-                        .overlay(HomeyDashboardTheme.softBorder)
+                        .overlay(HomeyTheme.borderSubtle)
                         .padding(.leading, 58)
                 }
             }
         }
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 }
@@ -296,19 +296,19 @@ private struct ChoreHistoryActivityRow: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(activity.title)
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(2)
 
                     if let subtitle = activity.subtitle, !subtitle.isEmpty {
                         Text(subtitle)
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                             .lineLimit(2)
                     }
 
                     Text(activity.occurredAt.historyFormattedDate)
                         .font(.caption)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
 
                 Spacer(minLength: 10)
@@ -316,7 +316,7 @@ private struct ChoreHistoryActivityRow: View {
                 if let pointsDelta = activity.pointsDelta {
                     Text(pointsDelta.historyPointsText)
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(pointsDelta >= 0 ? HomeyDashboardTheme.sageAccent : HomeyDashboardTheme.destructiveRed)
+                        .foregroundStyle(pointsDelta >= 0 ? HomeyTheme.success : HomeyTheme.danger)
                         .lineLimit(1)
                         .accessibilityLabel(pointsDelta >= 0 ? "plus \(pointsDelta) points" : "minus \(abs(pointsDelta)) points")
                 }
@@ -324,7 +324,7 @@ private struct ChoreHistoryActivityRow: View {
                 if activity.occurrenceId != nil {
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.7))
+                        .foregroundStyle(HomeyTheme.textSecondary.opacity(0.7))
                 }
             }
             .padding(16)
@@ -558,15 +558,15 @@ private extension ChoreHistoryActivityType {
     var historyAccentColor: Color {
         switch self {
         case .choreApproved, .choreCompleted, .pointsEarned, .rewardRefunded:
-            return HomeyDashboardTheme.sageAccent
+            return HomeyTheme.success
         case .choreNeedsRedo, .choreCancelled:
-            return HomeyDashboardTheme.destructiveRed
+            return HomeyTheme.danger
         case .choreSubmitted:
-            return HomeyDashboardTheme.orangeAccent
+            return HomeyTheme.peach
         case .rewardRedeemed:
-            return HomeyDashboardTheme.warmBrown
+            return HomeyTheme.primary
         case .choreAssigned, .choreStarted, .choreClaimed, .choreSkipped, .pointsAdjustment, .rewardFulfilled, .rewardCancelled:
-            return HomeyDashboardTheme.secondaryText
+            return HomeyTheme.textSecondary
         }
     }
 }

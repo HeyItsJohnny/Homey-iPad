@@ -20,7 +20,7 @@ struct HomeInvitationsView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground
+            HomeyTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             ScrollView {
@@ -100,22 +100,22 @@ struct HomeInvitationsView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 14) {
                     Text("Home Invitations")
                         .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .accessibilityAddTraits(.isHeader)
 
                     if !invitations.isEmpty {
                         Text("\(invitations.count) Pending")
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
-                            .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                            .background(HomeyTheme.primarySoft, in: Capsule())
                     }
                 }
 
                 Text("You have been invited to join a home.")
                     .font(.title3)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer()
@@ -128,13 +128,13 @@ struct HomeInvitationsView: View {
                     Text("Back")
                 }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(minHeight: 44)
                 .padding(.horizontal, 16)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
                 .overlay {
                     Capsule()
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -165,35 +165,35 @@ struct HomeInvitationsView: View {
     private var loadingCard: some View {
         VStack(spacing: 12) {
             ProgressView()
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
                 .accessibilityLabel("Loading Home invitations")
 
             Text("Loading invitations...")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .frame(maxWidth: .infinity, minHeight: 220)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var emptyCard: some View {
         VStack(spacing: 12) {
             Image(systemName: "envelope.open")
                 .font(.system(size: 32, weight: .semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
 
             Text("No Pending Invitations")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text("Invitations to join another home will appear here.")
                 .font(.body)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .padding(34)
         .frame(maxWidth: .infinity, minHeight: 240)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
         .accessibilityElement(children: .combine)
     }
 
@@ -201,15 +201,15 @@ struct HomeInvitationsView: View {
         VStack(spacing: 14) {
             Image(systemName: "exclamationmark.circle.fill")
                 .font(.system(size: 30, weight: .semibold))
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
 
             Text("Unable to Load Invitations")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text(message)
                 .font(.body)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .multilineTextAlignment(.center)
 
             Button {
@@ -219,12 +219,12 @@ struct HomeInvitationsView: View {
             } label: {
                 Text("Try Again")
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .frame(maxWidth: 260)
         }
         .padding(30)
         .frame(maxWidth: .infinity, minHeight: 260)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private func loadInvitations() async {
@@ -300,49 +300,49 @@ struct HomeInvitationCard: View {
         VStack(alignment: .leading, spacing: 20) {
             HStack(alignment: .top, spacing: 18) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(HomeyDashboardTheme.selectedSidebarBackground)
+                    RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                        .fill(HomeyTheme.primarySoft)
                         .frame(width: 62, height: 62)
 
                     Image(systemName: "house.fill")
                         .font(.title2.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                 }
                 .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 7) {
                     Text("You’re Invited")
                         .font(.headline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
 
                     Text(invitation.homeName ?? "A Homey Home")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
 
                     Text(inviterText)
                         .font(.subheadline)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
 
                 Spacer()
 
                 Text(invitation.formattedRole)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 7)
-                    .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                    .background(HomeyTheme.primarySoft, in: Capsule())
             }
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(invitation.invitedDateText)
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
 
                 if let expirationText = invitation.expirationText {
                     Text(expirationText)
                         .font(.subheadline)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
             }
 
@@ -350,18 +350,18 @@ struct HomeInvitationCard: View {
                 Button(action: onDecline) {
                     if isDeclining {
                         ProgressView()
-                            .tint(HomeyDashboardTheme.destructiveRed)
+                            .tint(HomeyTheme.danger)
                     } else {
                         Text("Decline")
                     }
                 }
                 .font(.body.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
                 .frame(maxWidth: .infinity, minHeight: 52)
-                .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+                .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 17, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
                 .disabled(isBusy)
                 .buttonStyle(.plain)
@@ -374,12 +374,12 @@ struct HomeInvitationCard: View {
                         Text("Accept Invitation")
                     }
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .disabled(isBusy)
             }
         }
         .padding(26)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Invitation to join \(invitation.homeName ?? "a Home"), role \(invitation.formattedRole)")
     }
@@ -419,5 +419,5 @@ struct HomeInvitationCard: View {
         onDecline: {}
     )
     .padding()
-    .background(HomeyDashboardTheme.appBackground)
+    .background(HomeyTheme.backgroundPrimary)
 }

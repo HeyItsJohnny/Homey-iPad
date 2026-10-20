@@ -12,7 +12,7 @@ struct ImportRecipeURLView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground
+            HomeyTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             ScrollView {
@@ -22,13 +22,13 @@ struct ImportRecipeURLView: View {
                     VStack(alignment: .leading, spacing: 18) {
                         Text("Paste a public recipe link and Homey will look for recipe details it can import.")
                             .font(.body)
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
 
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Recipe URL")
                                 .font(.caption.weight(.bold))
-                                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                .foregroundStyle(HomeyTheme.textSecondary)
                             TextField("https://example.com/recipe", text: $urlText)
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
@@ -41,11 +41,11 @@ struct ImportRecipeURLView: View {
                         if let errorMessage {
                             Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                                 .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(HomeyDashboardTheme.softRed)
+                                .foregroundStyle(HomeyTheme.danger)
                                 .padding(14)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(HomeyDashboardTheme.softRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                .overlay { RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(HomeyDashboardTheme.softRed.opacity(0.24), lineWidth: 1) }
+                                .background(HomeyTheme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
+                                .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous).stroke(HomeyTheme.danger.opacity(0.24), lineWidth: 1) }
                         }
 
                         Button {
@@ -61,11 +61,11 @@ struct ImportRecipeURLView: View {
                                 Label("Import Recipe", systemImage: "link.badge.plus")
                             }
                         }
-                        .buttonStyle(DashboardPrimaryButtonStyle())
+                        .buttonStyle(HomeyPrimaryButtonStyle())
                         .disabled(isImporting || homeId == nil)
                     }
                     .padding(24)
-                    .dashboardCard(cornerRadius: 28)
+                    .dashboardCard(cornerRadius: HomeyRadius.page)
                 }
                 .padding(.horizontal, horizontalSizeClass == .compact ? 18 : 34)
                 .padding(.top, horizontalSizeClass == .compact ? 22 : 34)
@@ -83,11 +83,11 @@ struct ImportRecipeURLView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Import Recipe")
                 .font(.system(size: 34, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             Text("Add a recipe from a public URL.")
                 .font(.title3)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 

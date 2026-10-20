@@ -19,7 +19,7 @@ struct HomeSelectionView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground
+            HomeyTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             ScrollView {
@@ -60,12 +60,12 @@ struct HomeSelectionView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Change Home")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .accessibilityAddTraits(.isHeader)
 
                 Text("Choose which home you want to view and manage.")
                     .font(.title3)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer()
@@ -78,13 +78,13 @@ struct HomeSelectionView: View {
                     Text("Back")
                 }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(minHeight: 44)
                 .padding(.horizontal, 16)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
                 .overlay {
                     Capsule()
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -112,15 +112,15 @@ struct HomeSelectionView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("No Home Selected")
                         .font(.headline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
 
                     Text("Choose a home below to continue.")
                         .font(.subheadline)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .padding(22)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .dashboardCard(cornerRadius: 28)
+                .dashboardCard(cornerRadius: HomeyRadius.page)
             }
         }
     }
@@ -150,7 +150,7 @@ struct HomeSelectionView: View {
                 if hasOneHome {
                     Text("You currently belong to one home.")
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.top, 4)
                 }
@@ -162,20 +162,20 @@ struct HomeSelectionView: View {
         VStack(spacing: 12) {
             Image(systemName: "house")
                 .font(.system(size: 34, weight: .semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
 
             Text("No Homes Available")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text("Create or join a home to get started.")
                 .font(.body)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .padding(34)
         .frame(maxWidth: .infinity, minHeight: 260)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var secondaryActionsSection: some View {
@@ -190,34 +190,34 @@ struct HomeSelectionView: View {
             } label: {
                 HStack(spacing: 13) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(HomeyDashboardTheme.warmBrown.opacity(0.12))
+                        RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                            .fill(HomeyTheme.primary.opacity(0.12))
                             .frame(width: 44, height: 44)
 
                         Image(systemName: "plus")
                             .font(.body.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                     }
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text("Create Another Home")
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
 
                         Text("Start a separate household space.")
                             .font(.caption)
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                     }
 
                     Spacer()
 
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.7))
+                        .foregroundStyle(HomeyTheme.textSecondary.opacity(0.7))
                 }
                 .padding(18)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .dashboardCard(cornerRadius: 24)
+                .dashboardCard(cornerRadius: HomeyRadius.page)
             }
             .buttonStyle(.plain)
         }
@@ -246,11 +246,11 @@ struct HomeSelectionView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text(subtitle)
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 }
@@ -278,16 +278,16 @@ private struct ChangeHomeCard: View {
                     HStack(spacing: 9) {
                         Text(home.name)
                             .font(.headline.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                             .lineLimit(1)
 
                         if isCurrent {
                             Text("Current")
                                 .font(.caption.weight(.bold))
-                                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                                .foregroundStyle(HomeyTheme.primary)
                                 .padding(.horizontal, 9)
                                 .padding(.vertical, 4)
-                                .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                                .background(HomeyTheme.primarySoft, in: Capsule())
                         }
                     }
 
@@ -301,7 +301,7 @@ private struct ChangeHomeCard: View {
                         }
                     }
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                 }
 
                 Spacer(minLength: 18)
@@ -311,28 +311,28 @@ private struct ChangeHomeCard: View {
             .padding(20)
             .frame(maxWidth: .infinity, minHeight: 84, alignment: .leading)
             .background(
-                isCurrent ? HomeyDashboardTheme.selectedSidebarBackground.opacity(0.72) : HomeyDashboardTheme.cardBackground,
-                in: RoundedRectangle(cornerRadius: 26, style: .continuous)
+                isCurrent ? HomeyTheme.primarySoft.opacity(0.72) : HomeyTheme.surfacePrimary,
+                in: RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous)
             )
             .overlay {
-                RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .stroke(isCurrent ? HomeyDashboardTheme.warmBrown.opacity(0.22) : HomeyDashboardTheme.softBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous)
+                    .stroke(isCurrent ? HomeyTheme.primary.opacity(0.22) : HomeyTheme.borderSubtle, lineWidth: 1)
             }
-            .shadow(color: HomeyDashboardTheme.shadow, radius: 14, x: 0, y: 8)
-            .contentShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+            .shadow(color: HomeyTheme.shadow, radius: 14, x: 0, y: 8)
+            .contentShape(RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous))
         }
         .buttonStyle(.plain)
     }
 
     private var homeIcon: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 17, style: .continuous)
-                .fill(HomeyDashboardTheme.warmBeige.opacity(isCurrent ? 0.90 : 0.70))
+            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                .fill(HomeyTheme.borderSubtle.opacity(isCurrent ? 0.90 : 0.70))
                 .frame(width: 52, height: 52)
 
             Image(systemName: "house.fill")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
         }
         .accessibilityHidden(true)
     }
@@ -341,17 +341,17 @@ private struct ChangeHomeCard: View {
     private var trailingIndicator: some View {
         if isSwitching {
             ProgressView()
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
                 .accessibilityLabel("Switching Home")
         } else if isCurrent {
             Image(systemName: "checkmark.circle.fill")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .accessibilityLabel("Selected")
         } else {
             Image(systemName: "chevron.right")
                 .font(.body.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.7))
+                .foregroundStyle(HomeyTheme.textSecondary.opacity(0.7))
                 .accessibilityHidden(true)
         }
     }

@@ -80,7 +80,7 @@ struct HomeSettingsView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground
+            HomeyTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             ScrollView {
@@ -280,11 +280,11 @@ struct HomeSettingsView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Home Settings")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 Text("Manage the basic details and preferences for your home.")
                     .font(.title3)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer()
@@ -297,13 +297,13 @@ struct HomeSettingsView: View {
                     Text("Back")
                 }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(minHeight: 44)
                 .padding(.horizontal, 16)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
                 .overlay {
                     Capsule()
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -314,15 +314,15 @@ struct HomeSettingsView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Unable to load Home Settings.")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text("Please choose a Home and try again.")
                 .font(.body)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .padding(28)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var settingsCard: some View {
@@ -375,12 +375,12 @@ struct HomeSettingsView: View {
                     Text("Save Changes")
                 }
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .disabled(!canSave)
             .accessibilityLabel("Save Changes")
         }
         .padding(28)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var settingsContent: some View {
@@ -398,11 +398,11 @@ struct HomeSettingsView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Danger Zone")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                    .foregroundStyle(HomeyTheme.danger)
 
                 Text("These actions permanently clear data for this Home. Each action has its own confirmation.")
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -416,7 +416,7 @@ struct HomeSettingsView: View {
             )
 
             Divider()
-                .overlay(HomeyDashboardTheme.destructiveRed.opacity(0.18))
+                .overlay(HomeyTheme.danger.opacity(0.18))
 
             dangerZoneAction(
                 title: "Clear Meals",
@@ -432,7 +432,7 @@ struct HomeSettingsView: View {
             )
 
             Divider()
-                .overlay(HomeyDashboardTheme.destructiveRed.opacity(0.18))
+                .overlay(HomeyTheme.danger.opacity(0.18))
 
             dangerZoneAction(
                 title: "Clear Calendar",
@@ -442,7 +442,7 @@ struct HomeSettingsView: View {
                 loadingTitle: "Clearing Calendar...",
                 action: { isShowingClearCalendarDialog = true }
             )
-            Divider().overlay(HomeyDashboardTheme.destructiveRed.opacity(0.18))
+            Divider().overlay(HomeyTheme.danger.opacity(0.18))
             dangerZoneAction(
                 title: "Clear Trips",
                 description: "Deletes organized Trips and removes this Home from other households’ Trips. Calendar events remain.",
@@ -458,10 +458,10 @@ struct HomeSettingsView: View {
         .disabled(isClearingTrips)
         .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.destructiveRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .background(HomeyTheme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .stroke(HomeyDashboardTheme.destructiveRed.opacity(0.28), lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous)
+                .stroke(HomeyTheme.danger.opacity(0.28), lineWidth: 1)
         }
     }
 
@@ -477,11 +477,11 @@ struct HomeSettingsView: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text(title)
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 Text(description)
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -765,13 +765,13 @@ private struct DashboardSettingsTextField: View {
                 .textInputAutocapitalization(.words)
                 .autocorrectionDisabled(false)
                 .font(.body.weight(.medium))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(.horizontal, 16)
                 .frame(minHeight: 56)
-                .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
                 .accessibilityLabel("Home Name field")
         }
@@ -793,21 +793,21 @@ private struct DashboardSettingsPickerButton: View {
                 HStack(spacing: 12) {
                     Text(value)
                         .font(.body.weight(.medium))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(1)
 
                     Spacer()
 
                     Image(systemName: "chevron.down")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .padding(.horizontal, 16)
                 .frame(minHeight: 56)
-                .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -826,23 +826,23 @@ private struct DashboardSettingsNavigationRow: View {
         Button(action: action) {
             HStack(spacing: 14) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(HomeyDashboardTheme.selectedSidebarBackground)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .fill(HomeyTheme.primarySoft)
                         .frame(width: 44, height: 44)
 
                     Image(systemName: systemImage)
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
 
                     Text(supportingText)
                         .font(.caption)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(2)
                 }
 
@@ -850,14 +850,14 @@ private struct DashboardSettingsNavigationRow: View {
 
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.72))
+                    .foregroundStyle(HomeyTheme.textSecondary.opacity(0.72))
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
             }
         }
         .buttonStyle(.plain)
@@ -882,11 +882,11 @@ private struct DashboardWeekStartPicker: View {
                     } label: {
                         Text(option.title)
                             .font(.body.weight(.semibold))
-                            .foregroundStyle(selection == option.rawValue ? .white : HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(selection == option.rawValue ? .white : HomeyTheme.primary)
                             .frame(maxWidth: .infinity, minHeight: 52)
                             .background(
-                                selection == option.rawValue ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.selectedSidebarBackground,
-                                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                selection == option.rawValue ? HomeyTheme.primary : HomeyTheme.primarySoft,
+                                in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
                             )
                     }
                     .buttonStyle(.plain)
@@ -904,16 +904,16 @@ private struct DashboardSettingsSuccessBanner: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                .foregroundStyle(HomeyTheme.success)
                 .accessibilityHidden(true)
 
             Text(message)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.sageAccent.opacity(0.14), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.success.opacity(0.14), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .accessibilityLabel(message)
     }
 }
@@ -924,41 +924,21 @@ private struct DashboardSettingsErrorBanner: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "exclamationmark.circle.fill")
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
                 .accessibilityHidden(true)
 
             Text(message)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.destructiveRed.opacity(0.10), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.danger.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .accessibilityLabel(message)
     }
 }
 
-struct DashboardPrimaryButtonStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var isEnabled
 
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.body.weight(.semibold))
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity, minHeight: 56)
-            .background(
-                HomeyDashboardTheme.warmBrown.opacity(isEnabled ? 1 : 0.38),
-                in: RoundedRectangle(cornerRadius: 17, style: .continuous)
-            )
-            .shadow(
-                color: HomeyDashboardTheme.warmBrown.opacity(isEnabled && !configuration.isPressed ? 0.18 : 0.06),
-                radius: 14,
-                x: 0,
-                y: 8
-            )
-            .opacity(configuration.isPressed ? 0.90 : 1)
-    }
-}
 
 private struct DashboardDestructiveButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
@@ -969,11 +949,11 @@ private struct DashboardDestructiveButtonStyle: ButtonStyle {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity, minHeight: 56)
             .background(
-                HomeyDashboardTheme.destructiveRed.opacity(isEnabled ? 1 : 0.38),
-                in: RoundedRectangle(cornerRadius: 17, style: .continuous)
+                HomeyTheme.danger.opacity(isEnabled ? 1 : 0.38),
+                in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
             )
             .shadow(
-                color: HomeyDashboardTheme.destructiveRed.opacity(isEnabled && !configuration.isPressed ? 0.16 : 0.05),
+                color: HomeyTheme.danger.opacity(isEnabled && !configuration.isPressed ? 0.16 : 0.05),
                 radius: 12,
                 x: 0,
                 y: 7
@@ -1002,25 +982,25 @@ private struct ClearHomeDataConfirmationSheet: View {
             HStack(alignment: .top, spacing: 14) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.title2.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                    .foregroundStyle(HomeyTheme.danger)
                     .frame(width: 46, height: 46)
-                    .background(HomeyDashboardTheme.destructiveRed.opacity(0.12), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                    .background(HomeyTheme.danger.opacity(0.12), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(title)
                         .font(.title2.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
 
                     Text(homeName)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
             }
 
             Text(message)
                 .font(.body)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(alignment: .leading, spacing: 9) {
@@ -1030,13 +1010,13 @@ private struct ClearHomeDataConfirmationSheet: View {
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
                     .font(.body.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .padding(.horizontal, 16)
                     .frame(minHeight: 54)
-                    .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                            .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                     }
                     .disabled(isClearing)
             }
@@ -1044,12 +1024,12 @@ private struct ClearHomeDataConfirmationSheet: View {
             HStack(spacing: 12) {
                 Button("Cancel", action: onCancel)
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .frame(maxWidth: .infinity, minHeight: 52)
-                    .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                            .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                     }
                     .buttonStyle(.plain)
                     .disabled(isClearing)
@@ -1078,11 +1058,11 @@ private func settingsLabel(_ title: String, supportingText: String) -> some View
     VStack(alignment: .leading, spacing: 4) {
         Text(title)
             .font(.subheadline.weight(.bold))
-            .foregroundStyle(HomeyDashboardTheme.primaryText)
+            .foregroundStyle(HomeyTheme.textPrimary)
 
         Text(supportingText)
             .font(.caption)
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
     }
 }
 
@@ -1115,11 +1095,11 @@ private struct TimeZonePickerView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(friendlyName(for: identifier))
-                                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                                .foregroundStyle(HomeyTheme.textPrimary)
 
                             Text(identifier)
                                 .font(.caption)
-                                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                .foregroundStyle(HomeyTheme.textSecondary)
                         }
 
                         Spacer()
@@ -1127,7 +1107,7 @@ private struct TimeZonePickerView: View {
                         if selectedTimezone == identifier {
                             Image(systemName: "checkmark")
                                 .font(.body.weight(.bold))
-                                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                                .foregroundStyle(HomeyTheme.primary)
                         }
                     }
                 }

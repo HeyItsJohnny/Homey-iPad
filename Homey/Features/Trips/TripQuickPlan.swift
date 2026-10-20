@@ -35,7 +35,7 @@ struct TripQuickPlan: View {
                         if let time = attempt.startTime { Text("\(time) – \(attempt.endTime ?? time)") }
                         Text(attempt.addToCalendar == true ? "Add to Calendar: Yes" : "Add to Calendar: No")
                         Text("The original dates and Calendar choice are preserved while this request is unresolved.")
-                            .font(.caption).foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .font(.caption).foregroundStyle(HomeyTheme.textSecondary)
                     } else {
                         TripDateField("Start Date", selection: $start)
                         TripDateField("End Date", selection: $end, in: start...)
@@ -53,23 +53,23 @@ struct TripQuickPlan: View {
                 Button(finished ? "Done" : "Close") {
                     if finished { onPlanned() } else { dismiss() }
                 }
-                    .buttonStyle(TripModalSecondaryButtonStyle()).disabled(saving)
+                    .buttonStyle(HomeySecondaryButtonStyle()).disabled(saving)
                 if !finished {
                     Button { plan() } label: {
                         if saving { ProgressView().tint(.white).accessibilityLabel("Planning Trip") }
                         else { Text(attempt == nil ? "Plan Trip" : "Retry Original Request") }
                     }
-                    .buttonStyle(DashboardPrimaryButtonStyle())
+                    .buttonStyle(HomeyPrimaryButtonStyle())
                     .disabled(!ready || saving || homes.selectedHomeID != homeID)
                 } else if confirmedTripID != nil {
                     Button(calendarSubmission.needsReconciliation ? "Check Calendar" : "Retry Calendar") { retryCalendar() }
-                        .buttonStyle(DashboardPrimaryButtonStyle())
+                        .buttonStyle(HomeyPrimaryButtonStyle())
                         .disabled(saving || calendarSubmission.isSaving || homes.selectedHomeID != homeID)
                 }
             }
             if finished, confirmedTripID != nil {
                 Button("Close and Keep Trip") { keepTripOnly() }
-                    .buttonStyle(TripModalSecondaryButtonStyle())
+                    .buttonStyle(HomeySecondaryButtonStyle())
                     .disabled(saving || homes.selectedHomeID != homeID)
             }
         }

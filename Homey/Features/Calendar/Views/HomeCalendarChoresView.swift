@@ -69,10 +69,10 @@ struct HomeCalendarChoresView: View {
         .overlay {
             if viewModel.isLoading && viewModel.occurrences.isEmpty {
                 ProgressView()
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
                     .padding(14)
-                    .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-                    .shadow(color: HomeyDashboardTheme.shadow, radius: 10, x: 0, y: 6)
+                    .background(HomeyTheme.surfacePrimary, in: Capsule())
+                    .shadow(color: HomeyTheme.shadow, radius: 10, x: 0, y: 6)
                     .accessibilityLabel("Loading chores")
             }
         }
@@ -146,7 +146,7 @@ private struct HomeCalendarChoresHeader: View {
             assigneeStrip
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 26)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var periodControls: some View {
@@ -156,12 +156,12 @@ private struct HomeCalendarChoresHeader: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text("This Week's Chores")
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .accessibilityAddTraits(.isHeader)
 
                 Text(weekTitle)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
             .accessibilityElement(children: .combine)
 
@@ -173,11 +173,11 @@ private struct HomeCalendarChoresHeader: View {
         HStack(spacing: 10) {
             Button("Today", action: onToday)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .padding(.horizontal, 16)
                 .frame(minHeight: 38)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-                .overlay { Capsule().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
+                .overlay { Capsule().stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Go to today")
 
@@ -195,11 +195,11 @@ private struct HomeCalendarChoresHeader: View {
                         .font(.caption.weight(.bold))
                 }
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(.horizontal, 14)
                 .frame(minHeight: 38)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-                .overlay { Capsule().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
+                .overlay { Capsule().stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Assignee filter, \(selectedAssigneeTitle)")
@@ -207,7 +207,7 @@ private struct HomeCalendarChoresHeader: View {
             if isLoading {
                 ProgressView()
                     .controlSize(.small)
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
             }
         }
     }
@@ -255,9 +255,9 @@ private struct HomeCalendarChoresHeader: View {
                 .frame(width: 38, height: 38)
         }
         .buttonStyle(.plain)
-        .foregroundStyle(HomeyDashboardTheme.warmBrown)
-        .background(HomeyDashboardTheme.cardBackground, in: Circle())
-        .overlay { Circle().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+        .foregroundStyle(HomeyTheme.primary)
+        .background(HomeyTheme.surfacePrimary, in: Circle())
+        .overlay { Circle().stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
         .accessibilityLabel(label)
     }
 
@@ -287,8 +287,8 @@ private struct HomeCalendarChoreAssigneeChip: View {
                     imageURL: avatarURL,
                     initials: initials,
                     size: 42,
-                    accentColor: isSelected ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.secondaryText,
-                    borderColor: isSelected ? HomeyDashboardTheme.warmBrown.opacity(0.42) : HomeyDashboardTheme.cardBackground,
+                    accentColor: isSelected ? HomeyTheme.primary : HomeyTheme.textSecondary,
+                    borderColor: isSelected ? HomeyTheme.primary.opacity(0.42) : HomeyTheme.surfacePrimary,
                     borderWidth: isSelected ? 2 : 1,
                     showsShadow: false,
                     accessibilityLabel: "\(title) avatar"
@@ -296,13 +296,13 @@ private struct HomeCalendarChoreAssigneeChip: View {
 
                 Text(title)
                     .font(.caption2.weight(.bold))
-                    .foregroundStyle(isSelected ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(isSelected ? HomeyTheme.primary : HomeyTheme.textSecondary)
                     .lineLimit(1)
                     .frame(width: 62)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 8)
-            .background(isSelected ? HomeyDashboardTheme.selectedSidebarBackground : Color.clear, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(isSelected ? HomeyTheme.primarySoft : Color.clear, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Filter chores by \(title)")
@@ -350,7 +350,7 @@ private struct HomeCalendarChoresWeekBoard: View {
                 scrollToToday(proxy: proxy, animated: true)
             }
         }
-        .dashboardCard(cornerRadius: 26)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var daysKey: String {
@@ -422,13 +422,13 @@ private struct HomeCalendarChoresDayColumn: View {
                 VStack(spacing: 8) {
                     Image(systemName: "checklist")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.65))
+                        .foregroundStyle(HomeyTheme.textSecondary.opacity(0.65))
                     Text("No chores")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .frame(maxWidth: .infinity, minHeight: 110)
-                .background(HomeyDashboardTheme.appBackground.opacity(0.34), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(HomeyTheme.backgroundPrimary.opacity(0.34), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             } else {
                 ForEach(sections) { section in
                     HomeCalendarChoreAssigneeSection(section: section, onSelectItem: onSelectItem)
@@ -438,10 +438,10 @@ private struct HomeCalendarChoresDayColumn: View {
             Spacer(minLength: 0)
         }
         .padding(10)
-        .background(HomeyDashboardTheme.appBackground.opacity(0.38), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.backgroundPrimary.opacity(0.38), in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder.opacity(0.78), lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle.opacity(0.78), lineWidth: 1)
         }
     }
 
@@ -466,26 +466,26 @@ private struct HomeCalendarChoresDayHeader: View {
         VStack(spacing: 3) {
             Text(Self.weekdayFormatter.string(from: date))
                 .font(.caption.weight(.bold))
-                .foregroundStyle(isToday ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(isToday ? HomeyTheme.primary : HomeyTheme.textSecondary)
                 .lineLimit(1)
 
             Text(Self.dayFormatter.string(from: date))
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .lineLimit(1)
 
             Text(isToday ? "Today" : " ")
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity, minHeight: 52)
         .padding(.horizontal, 6)
         .padding(.vertical, 7)
-        .background(isToday ? HomeyDashboardTheme.selectedSidebarBackground : HomeyDashboardTheme.cardBackground.opacity(0.78), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(isToday ? HomeyTheme.primarySoft : HomeyTheme.surfacePrimary.opacity(0.78), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(isToday ? HomeyDashboardTheme.warmBrown.opacity(0.38) : HomeyDashboardTheme.softBorder.opacity(0.72), lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                .stroke(isToday ? HomeyTheme.primary.opacity(0.38) : HomeyTheme.borderSubtle.opacity(0.72), lineWidth: 1)
         }
         .accessibilityElement(children: .combine)
     }
@@ -522,7 +522,7 @@ private struct HomeCalendarChoreAssigneeSection: View {
         VStack(alignment: .leading, spacing: 7) {
             Text(section.name)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .lineLimit(1)
 
             VStack(alignment: .leading, spacing: 6) {
@@ -548,14 +548,14 @@ private struct HomeCalendarChoreChecklistItem: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.occurrence.titleSnapshot)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(2)
                         .truncationMode(.tail)
                         .fixedSize(horizontal: false, vertical: false)
 
                     Text(item.roomName)
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(1)
                         .truncationMode(.tail)
 
@@ -570,9 +570,9 @@ private struct HomeCalendarChoreChecklistItem: View {
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 7)
-            .background(statusColor.opacity(0.10), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .background(statusColor.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous)
                     .stroke(statusColor.opacity(0.28), lineWidth: 1)
             }
         }
@@ -601,12 +601,14 @@ private struct HomeCalendarChoreChecklistItem: View {
 
     private var statusColor: Color {
         switch item.status {
-        case .notStarted, .needsRedo:
-            return HomeyDashboardTheme.softRed
+        case .notStarted:
+            return HomeyTheme.choreRemaining
+        case .needsRedo:
+            return HomeyTheme.danger
         case .awaitingApproval:
-            return HomeyDashboardTheme.orangeAccent
+            return HomeyTheme.warning
         case .completed:
-            return HomeyDashboardTheme.sageAccent
+            return HomeyTheme.success
         }
     }
 }
@@ -618,16 +620,16 @@ private struct HomeCalendarChoresFooter: View {
         HStack(spacing: 14) {
             Text(choreCountText)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
 
             Spacer(minLength: 12)
 
-            HomeCalendarChoreLegendItem(systemImage: "circle", title: "Not Started", color: HomeyDashboardTheme.softRed)
-            HomeCalendarChoreLegendItem(systemImage: "clock.fill", title: "Awaiting Approval", color: HomeyDashboardTheme.orangeAccent)
-            HomeCalendarChoreLegendItem(systemImage: "checkmark.circle.fill", title: "Completed", color: HomeyDashboardTheme.sageAccent)
+            HomeCalendarChoreLegendItem(systemImage: "circle", title: "Not Started", color: HomeyTheme.choreRemaining)
+            HomeCalendarChoreLegendItem(systemImage: "clock.fill", title: "Awaiting Approval", color: HomeyTheme.warning)
+            HomeCalendarChoreLegendItem(systemImage: "checkmark.circle.fill", title: "Completed", color: HomeyTheme.success)
         }
         .padding(14)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
     }
 
     private var choreCountText: String {
@@ -647,7 +649,7 @@ private struct HomeCalendarChoreLegendItem: View {
                 .foregroundStyle(color)
             Text(title)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .lineLimit(1)
     }
@@ -669,7 +671,7 @@ struct HomeChoreSubmissionView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground.ignoresSafeArea()
+                HomeyTheme.backgroundPrimary.ignoresSafeArea()
 
                 ScrollView {
                     VStack(alignment: .center, spacing: 18) {
@@ -688,7 +690,7 @@ struct HomeChoreSubmissionView: View {
                         if let errorMessage, !errorMessage.isEmpty {
                             Text(errorMessage)
                                 .font(.footnote.weight(.semibold))
-                                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                                .foregroundStyle(HomeyTheme.danger)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
@@ -739,27 +741,27 @@ struct HomeChoreSubmissionView: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(item.occurrence.titleSnapshot)
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
 
                     Text("Assigned to \(assigneeName)")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
 
                     Text(Self.dueFormatter.string(from: item.occurrence.dueAt))
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
             }
 
             if item.occurrence.pointsValue > 0 {
                 Label("\(item.occurrence.pointsValue) \(item.occurrence.pointsValue == 1 ? "point" : "points")", systemImage: "star.fill")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
             }
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
         .frame(maxWidth: 430)
     }
 
@@ -767,7 +769,7 @@ struct HomeChoreSubmissionView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("What would you like to do?")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .accessibilityAddTraits(.isHeader)
 
             VStack(spacing: 12) {
@@ -789,7 +791,7 @@ struct HomeChoreSubmissionView: View {
                     }
                     .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .disabled(isSubmitting || resolvedAssigneeUserId == nil)
                 .accessibilityLabel("Complete Chore")
 
@@ -809,12 +811,12 @@ struct HomeChoreSubmissionView: View {
                         .frame(maxWidth: .infinity)
                     }
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                    .foregroundStyle(HomeyTheme.danger)
                     .frame(minHeight: 44)
-                    .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(HomeyDashboardTheme.destructiveRed.opacity(0.35), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                            .stroke(HomeyTheme.danger.opacity(0.35), lineWidth: 1)
                     }
                     .buttonStyle(.plain)
                     .disabled(isSubmitting || resolvedAssigneeUserId == nil)
@@ -823,12 +825,12 @@ struct HomeChoreSubmissionView: View {
 
                 Button("Cancel", action: onCancel)
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .frame(maxWidth: .infinity, minHeight: 44)
-                    .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                            .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                     }
                     .buttonStyle(.plain)
                     .disabled(isSubmitting)
@@ -836,7 +838,7 @@ struct HomeChoreSubmissionView: View {
             }
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
         .frame(maxWidth: 430)
     }
 
@@ -844,7 +846,7 @@ struct HomeChoreSubmissionView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Who completed this?")
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Picker("Household member", selection: Binding(
                 get: { selectedOpenAssigneeUserId ?? members.first?.userId },
@@ -858,7 +860,7 @@ struct HomeChoreSubmissionView: View {
             .disabled(members.isEmpty)
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
         .frame(maxWidth: 430)
     }
 
@@ -870,11 +872,11 @@ struct HomeChoreSubmissionView: View {
 
             Text(readOnlyMessage)
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
         .frame(maxWidth: 430)
     }
 
@@ -930,12 +932,14 @@ struct HomeChoreSubmissionView: View {
 
     private var statusColor: Color {
         switch item.status {
-        case .notStarted, .needsRedo:
-            return HomeyDashboardTheme.softRed
+        case .notStarted:
+            return HomeyTheme.choreRemaining
+        case .needsRedo:
+            return HomeyTheme.danger
         case .awaitingApproval:
-            return HomeyDashboardTheme.orangeAccent
+            return HomeyTheme.warning
         case .completed:
-            return HomeyDashboardTheme.sageAccent
+            return HomeyTheme.success
         }
     }
 
@@ -955,22 +959,22 @@ private struct HomeCalendarChoresMessage: View {
         HStack(spacing: 12) {
             Image(systemName: systemImage)
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 42, height: 42)
-                .background(HomeyDashboardTheme.selectedSidebarBackground, in: Circle())
+                .background(HomeyTheme.primarySoft, in: Circle())
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 Text(message)
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
             Spacer()
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -981,19 +985,19 @@ private struct HomeCalendarChoresError: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(HomeyDashboardTheme.orangeAccent)
+                .foregroundStyle(HomeyTheme.warning)
             Text(message)
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .lineLimit(2)
             Spacer()
             Button("Retry", action: onRetry)
                 .font(.footnote.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .buttonStyle(.plain)
         }
         .padding(12)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay { RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
     }
 }

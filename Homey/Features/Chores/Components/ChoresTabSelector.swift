@@ -77,17 +77,17 @@ struct ModuleTabSelector<Tab: Identifiable & Equatable>: View {
 
                                 AttentionBadge(count: badgeCount(tab))
                             }
-                            .foregroundStyle(selectedTab == tab ? Color.white : HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(selectedTab == tab ? Color.white : HomeyTheme.textPrimary)
                             .padding(.horizontal, 14)
                             .frame(minHeight: 40)
                             .frame(maxWidth: .infinity)
                             .background(
-                                selectedTab == tab ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.cardBackground,
-                                in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                selectedTab == tab ? HomeyTheme.primary : HomeyTheme.surfacePrimary,
+                                in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
                             )
                             .overlay {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                             }
                         }
                         .buttonStyle(.plain)
@@ -118,7 +118,7 @@ struct ModuleTabSelector<Tab: Identifiable & Equatable>: View {
 
 struct AttentionBadge: View {
     let count: Int?
-    var color: Color = HomeyDashboardTheme.destructiveRed
+    var color: Color = HomeyTheme.danger
 
     private var badgeText: String? {
         guard let count, count > 0 else {

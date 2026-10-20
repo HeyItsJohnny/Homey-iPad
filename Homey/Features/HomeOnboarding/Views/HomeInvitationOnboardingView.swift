@@ -92,22 +92,22 @@ struct HomeInvitationOnboardingView: View {
                 VStack(spacing: 10) {
                     Image(systemName: "house.fill")
                         .font(.title2.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .frame(width: 56, height: 56)
-                        .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
 
                     Text(primaryInvitation.homeName ?? "A Homey Home")
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .multilineTextAlignment(.center)
 
                     Text("Role: \(primaryInvitation.formattedRole)")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .padding(18)
                 .frame(maxWidth: .infinity)
-                .background(HomeyDashboardTheme.selectedSidebarBackground.opacity(0.55), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .background(HomeyTheme.primarySoft.opacity(0.55), in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
             }
 
             Button {
@@ -115,7 +115,7 @@ struct HomeInvitationOnboardingView: View {
             } label: {
                 Text(invitationCount == 1 ? "View Invitation" : "View Invitations")
             }
-            .buttonStyle(AuthenticationPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
 
             Button {
                 isShowingCreateHome = true
@@ -123,12 +123,12 @@ struct HomeInvitationOnboardingView: View {
                 Text("Create My Own Home")
             }
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+            .foregroundStyle(HomeyTheme.primary)
             .frame(maxWidth: .infinity, minHeight: 48)
-            .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
             }
         }
     }

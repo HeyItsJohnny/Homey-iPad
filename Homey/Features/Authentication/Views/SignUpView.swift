@@ -190,7 +190,7 @@ struct SignUpView: View {
                     Text("Create Account")
                 }
             }
-            .buttonStyle(AuthenticationPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .disabled(authenticationService.isLoading)
 
             AuthenticationDividerWithText(text: "or")

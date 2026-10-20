@@ -70,7 +70,7 @@ struct CustomRecurrenceView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground
+                HomeyTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 ScrollView {
@@ -113,17 +113,17 @@ struct CustomRecurrenceView: View {
             }
             .buttonStyle(.plain)
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+            .foregroundStyle(HomeyTheme.primary)
             .frame(maxWidth: .infinity, minHeight: 52)
-            .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
-            .overlay { RoundedRectangle(cornerRadius: 17, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+            .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
+            .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
 
             Button {
                 save()
             } label: {
                 Text("Save Repeat")
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .frame(maxWidth: .infinity)
             .disabled(!canSave)
         }
@@ -133,12 +133,12 @@ struct CustomRecurrenceView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Custom Repeat")
                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .accessibilityAddTraits(.isHeader)
 
             Text("Choose how often this event repeats.")
                 .font(.title3)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
@@ -147,19 +147,19 @@ struct CustomRecurrenceView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Repeat Every")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 Text("Recurring events keep their local wall-clock time.")
                     .font(.caption)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Stepper(value: $interval, in: 1...99) {
                 Text("\(interval) \(unit.label(for: interval))")
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
             }
-            .tint(HomeyDashboardTheme.warmBrown)
+            .tint(HomeyTheme.primary)
 
             Picker("Unit", selection: $unit) {
                 ForEach(CustomRecurrenceUnit.allCases) { unit in
@@ -173,14 +173,14 @@ struct CustomRecurrenceView: View {
             }
         }
         .padding(22)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var weekdaySelector: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Repeat On")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             HStack(spacing: 9) {
                 ForEach(CalendarWeekday.weekSelectorOrder) { weekday in
@@ -189,15 +189,15 @@ struct CustomRecurrenceView: View {
                     } label: {
                         Text(weekday.singleLetterDisplayName)
                             .font(.subheadline.weight(.bold))
-                            .foregroundStyle(selectedWeekdays.contains(weekday) ? .white : HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(selectedWeekdays.contains(weekday) ? .white : HomeyTheme.textPrimary)
                             .frame(width: 38, height: 38)
                             .background(
-                                selectedWeekdays.contains(weekday) ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.appBackground.opacity(0.72),
+                                selectedWeekdays.contains(weekday) ? HomeyTheme.primary : HomeyTheme.backgroundPrimary.opacity(0.72),
                                 in: Circle()
                             )
                             .overlay {
                                 Circle()
-                                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: selectedWeekdays.contains(weekday) ? 0 : 1)
+                                    .stroke(HomeyTheme.borderSubtle, lineWidth: selectedWeekdays.contains(weekday) ? 0 : 1)
                             }
                     }
                     .buttonStyle(.plain)
@@ -212,7 +212,7 @@ struct CustomRecurrenceView: View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Ends")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Picker("Ends", selection: $endOption) {
                 ForEach(RecurrenceEndMode.allCases) { option in
@@ -225,23 +225,23 @@ struct CustomRecurrenceView: View {
             case .never:
                 Text("This event repeats until someone updates or deletes the series.")
                     .font(.caption)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             case .onDate:
                 DatePicker("End Date", selection: $endDate, in: normalizedStartDate..., displayedComponents: .date)
                     .datePickerStyle(.compact)
                     .font(.body.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
             case .afterCount:
                 Stepper(value: $occurrenceCount, in: 1...999) {
                     Text("\(occurrenceCount) \(occurrenceCount == 1 ? "occurrence" : "occurrences")")
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                 }
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
             }
         }
         .padding(22)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private func toggleWeekday(_ weekday: CalendarWeekday) {

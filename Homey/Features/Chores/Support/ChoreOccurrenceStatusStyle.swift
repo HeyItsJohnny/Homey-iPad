@@ -13,38 +13,38 @@ struct ChoreOccurrenceStatusStyle: Equatable {
         switch displayStatus {
         case .overdue:
             title = "Overdue"
-            color = HomeyDashboardTheme.softRed
+            color = HomeyTheme.danger
             backgroundColor = color.opacity(0.12)
         case .stored(let status):
             switch status {
             case .notStarted:
                 title = "Not Started"
-                color = HomeyDashboardTheme.softRed
-                backgroundColor = color.opacity(0.12)
+                color = HomeyTheme.choreRemaining
+                backgroundColor = HomeyTheme.surfaceSecondary
             case .inProgress:
                 title = "In Progress"
-                color = HomeyDashboardTheme.softRed
-                backgroundColor = color.opacity(0.12)
+                color = HomeyTheme.primary
+                backgroundColor = HomeyTheme.primarySoft
             case .awaitingApproval:
                 title = "Pending Approval"
-                color = HomeyDashboardTheme.orangeAccent
+                color = HomeyTheme.warning
                 backgroundColor = color.opacity(0.12)
             case .completed:
                 title = "Approved"
-                color = HomeyDashboardTheme.sageAccent
+                color = HomeyTheme.success
                 backgroundColor = color.opacity(0.12)
             case .needsRedo:
                 title = "Needs Redo"
-                color = HomeyDashboardTheme.softRed
+                color = HomeyTheme.danger
                 backgroundColor = color.opacity(0.12)
             case .skipped:
                 title = "Skipped"
-                color = HomeyDashboardTheme.secondaryText
-                backgroundColor = HomeyDashboardTheme.cardBackground
+                color = HomeyTheme.textSecondary
+                backgroundColor = HomeyTheme.surfacePrimary
             case .cancelled:
                 title = "Cancelled"
-                color = HomeyDashboardTheme.secondaryText
-                backgroundColor = HomeyDashboardTheme.cardBackground
+                color = HomeyTheme.danger
+                backgroundColor = HomeyTheme.dangerSoft
             }
         }
     }

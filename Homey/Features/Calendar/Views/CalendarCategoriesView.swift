@@ -32,7 +32,7 @@ struct CalendarCategoriesView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground
+            HomeyTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             ScrollView {
@@ -113,12 +113,12 @@ struct CalendarCategoriesView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Calendar Categories")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .accessibilityAddTraits(.isHeader)
 
                 Text("Organize shared events with home-wide colors and icons.")
                     .font(.title3)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer()
@@ -138,7 +138,7 @@ struct CalendarCategoriesView: View {
                         Text("Add Category")
                     }
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .frame(width: 180)
                 .disabled(viewModel.isSaving)
             }
@@ -151,13 +151,13 @@ struct CalendarCategoriesView: View {
                     Text("Back")
                 }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(minHeight: 44)
                 .padding(.horizontal, 16)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
                 .overlay {
                     Capsule()
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -188,7 +188,7 @@ struct CalendarCategoriesView: View {
                         }
                     }
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .buttonStyle(.plain)
                     .disabled(viewModel.isReordering)
                 }
@@ -215,7 +215,7 @@ struct CalendarCategoriesView: View {
             }
         }
         .padding(24)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var categoryList: some View {
@@ -264,10 +264,10 @@ struct CalendarCategoriesView: View {
     private var loadingState: some View {
         VStack(spacing: 12) {
             ProgressView()
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
             Text("Loading categories...")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .frame(maxWidth: .infinity, minHeight: 170)
         .accessibilityLabel("Loading calendar categories")
@@ -283,7 +283,7 @@ struct CalendarCategoriesView: View {
                 }
             }
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+            .foregroundStyle(HomeyTheme.primary)
             .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity)
@@ -396,11 +396,11 @@ struct CalendarCategoriesView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text(subtitle)
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 }
@@ -415,33 +415,33 @@ private struct CategoryRow: View {
         Button(action: action) {
             HStack(spacing: 14) {
                 Circle()
-                    .fill(Color(hex: category.colorHex) ?? HomeyDashboardTheme.lavenderAccent)
+                    .fill(Color(hex: category.colorHex) ?? HomeyTheme.lavender)
                     .frame(width: 18, height: 18)
                     .overlay {
                         Circle()
-                            .stroke(HomeyDashboardTheme.cardBackground, lineWidth: 2)
+                            .stroke(HomeyTheme.surfacePrimary, lineWidth: 2)
                     }
-                    .shadow(color: HomeyDashboardTheme.shadow.opacity(0.5), radius: 5, x: 0, y: 2)
+                    .shadow(color: HomeyTheme.shadow.opacity(0.5), radius: 5, x: 0, y: 2)
 
                 if let iconName = category.iconName, !iconName.isEmpty {
                     Image(systemName: iconName)
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .frame(width: 28)
                 }
 
                 Text(category.name)
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(1)
 
                 if !category.capabilities.canDelete {
                     Text("System")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                         .padding(.horizontal, 9)
                         .padding(.vertical, 4)
-                        .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                        .background(HomeyTheme.primarySoft, in: Capsule())
                         .accessibilityLabel("Protected system category")
                 }
 
@@ -450,18 +450,18 @@ private struct CategoryRow: View {
                 if canManage && !isReordering {
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.72))
+                        .foregroundStyle(HomeyTheme.textSecondary.opacity(0.72))
                 }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 15)
-            .background(HomeyDashboardTheme.appBackground.opacity(0.52), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .background(HomeyTheme.backgroundPrimary.opacity(0.52), in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
             }
             .padding(.vertical, 5)
-            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         }
         .buttonStyle(.plain)
         .disabled(!canManage || isReordering)
@@ -566,7 +566,7 @@ private struct CalendarCategoryEditorView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground
+                HomeyTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 ScrollView {
@@ -591,15 +591,15 @@ private struct CalendarCategoryEditorView: View {
                             } label: {
                                 if isDeleting {
                                     ProgressView()
-                                        .tint(HomeyDashboardTheme.destructiveRed)
+                                        .tint(HomeyTheme.danger)
                                 } else {
                                     Text("Delete Category")
                                 }
                             }
                             .font(.body.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                            .foregroundStyle(HomeyTheme.danger)
                             .frame(maxWidth: .infinity, minHeight: 54)
-                            .background(HomeyDashboardTheme.destructiveRed.opacity(0.10), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+                            .background(HomeyTheme.danger.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                             .buttonStyle(.plain)
                             .disabled(isSaving || isDeleting)
                         }
@@ -635,10 +635,10 @@ private struct CalendarCategoryEditorView: View {
             Button("Cancel", action: onCancel)
                 .buttonStyle(.plain)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(maxWidth: .infinity, minHeight: 52)
-                .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
-                .overlay { RoundedRectangle(cornerRadius: 17, style: .continuous).stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+                .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
+                .overlay { RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous).stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
                 .disabled(isSaving || isDeleting)
 
             Button {
@@ -653,7 +653,7 @@ private struct CalendarCategoryEditorView: View {
                     Text(mode.saveTitle)
                 }
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .frame(maxWidth: .infinity)
             .disabled(!canSave)
         }
@@ -663,36 +663,36 @@ private struct CalendarCategoryEditorView: View {
         VStack(alignment: .leading, spacing: 9) {
             Text("Name")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             if isSystemCategory {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(name)
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                     Text("System category names are protected.")
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .padding(.horizontal, 16)
                 .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-                .background(HomeyDashboardTheme.cardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(HomeyTheme.surfacePrimary.opacity(0.72), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             } else {
                 TextField("Category name", text: $name)
                     .textInputAutocapitalization(.words)
                     .autocorrectionDisabled(false)
                     .font(.body.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .padding(.horizontal, 16)
                     .frame(minHeight: 56)
-                    .background(HomeyDashboardTheme.cardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(HomeyTheme.surfacePrimary.opacity(0.72), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                            .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                     }
             }
         }
@@ -702,7 +702,7 @@ private struct CalendarCategoryEditorView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Color")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(44), spacing: 12), count: 6), alignment: .leading, spacing: 12) {
                 ForEach(colors, id: \.self) { color in
@@ -710,13 +710,13 @@ private struct CalendarCategoryEditorView: View {
                         colorHex = color
                     } label: {
                         Circle()
-                            .fill(Color(hex: color) ?? HomeyDashboardTheme.lavenderAccent)
+                            .fill(Color(hex: color) ?? HomeyTheme.lavender)
                             .frame(width: 38, height: 38)
                             .overlay {
                                 Circle()
-                                    .stroke(colorHex == color ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.softBorder, lineWidth: colorHex == color ? 3 : 1)
+                                    .stroke(colorHex == color ? HomeyTheme.primary : HomeyTheme.borderSubtle, lineWidth: colorHex == color ? 3 : 1)
                             }
-                            .shadow(color: HomeyDashboardTheme.shadow.opacity(0.45), radius: 6, x: 0, y: 3)
+                            .shadow(color: HomeyTheme.shadow.opacity(0.45), radius: 6, x: 0, y: 3)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Color \(color)")
@@ -729,7 +729,7 @@ private struct CalendarCategoryEditorView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Icon")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(54), spacing: 10), count: 6), alignment: .leading, spacing: 10) {
                 ForEach(icons.indices, id: \.self) { index in
@@ -738,22 +738,22 @@ private struct CalendarCategoryEditorView: View {
                         iconName = icon
                     } label: {
                         ZStack {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(iconName == icon ? HomeyDashboardTheme.selectedSidebarBackground : HomeyDashboardTheme.cardBackground.opacity(0.72))
+                            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                .fill(iconName == icon ? HomeyTheme.primarySoft : HomeyTheme.surfacePrimary.opacity(0.72))
                                 .frame(width: 50, height: 50)
                                 .overlay {
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(iconName == icon ? HomeyDashboardTheme.warmBrown.opacity(0.58) : HomeyDashboardTheme.softBorder, lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                        .stroke(iconName == icon ? HomeyTheme.primary.opacity(0.58) : HomeyTheme.borderSubtle, lineWidth: 1)
                                 }
 
                             if let icon {
                                 Image(systemName: icon)
                                     .font(.body.weight(.semibold))
-                                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                                    .foregroundStyle(HomeyTheme.primary)
                             } else {
                                 Text("None")
                                     .font(.caption2.weight(.bold))
-                                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                    .foregroundStyle(HomeyTheme.textSecondary)
                             }
                         }
                     }
@@ -768,31 +768,31 @@ private struct CalendarCategoryEditorView: View {
         VStack(alignment: .leading, spacing: 9) {
             Text("Icon")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             HStack(spacing: 12) {
                 Image(systemName: iconName ?? "fork.knife")
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .frame(width: 44, height: 44)
-                    .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Homey Meal")
                         .font(.body.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                     Text("System category icons are protected.")
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
 
                 Spacer()
             }
             .padding(12)
-            .background(HomeyDashboardTheme.cardBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.surfacePrimary.opacity(0.72), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
             }
         }
     }
@@ -835,11 +835,11 @@ private struct CategoryStatusBanner: View {
 
             Text(message)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(color.opacity(backgroundOpacity), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(color.opacity(backgroundOpacity), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .accessibilityLabel(message)
     }
 
@@ -857,11 +857,11 @@ private struct CategoryStatusBanner: View {
     private var color: Color {
         switch style {
         case .success:
-            HomeyDashboardTheme.sageAccent
+            HomeyTheme.success
         case .info:
-            HomeyDashboardTheme.warmBrown
+            HomeyTheme.primary
         case .error:
-            HomeyDashboardTheme.destructiveRed
+            HomeyTheme.danger
         }
     }
 
@@ -885,24 +885,24 @@ private struct CategoryEmptyState: View {
     var body: some View {
         VStack(spacing: 10) {
             ZStack {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(HomeyDashboardTheme.selectedSidebarBackground)
+                RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                    .fill(HomeyTheme.primarySoft)
                     .frame(width: 58, height: 58)
 
                 Image(systemName: systemImage)
                     .font(.title3.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
             }
             .accessibilityHidden(true)
 
             VStack(spacing: 4) {
                 Text(title)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 Text(message)
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .multilineTextAlignment(.center)
             }
         }

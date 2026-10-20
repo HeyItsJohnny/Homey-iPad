@@ -8,19 +8,19 @@ struct RoomCleaningSummaryView: View {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "sparkles")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .frame(width: 28, height: 28)
-                    .background(HomeyDashboardTheme.selectedSidebarBackground, in: Circle())
+                    .background(HomeyTheme.primarySoft, in: Circle())
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(summary.room.name)
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(1)
 
                     Text(summary.room.displayRoomType.displayName)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
 
                 Spacer(minLength: 0)
@@ -32,10 +32,10 @@ struct RoomCleaningSummaryView: View {
             }
         }
         .padding(12)
-        .background(HomeyDashboardTheme.cardBackground.opacity(0.74), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.surfacePrimary.opacity(0.74), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder.opacity(0.78), lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle.opacity(0.78), lineWidth: 1)
         }
     }
 
@@ -43,13 +43,13 @@ struct RoomCleaningSummaryView: View {
         HStack(alignment: .firstTextBaseline) {
             Text(title)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
 
             Spacer(minLength: 8)
 
             Text(value)
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .multilineTextAlignment(.trailing)
         }
     }

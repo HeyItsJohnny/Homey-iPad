@@ -159,14 +159,14 @@ struct RewardCenterView: View {
 
                         AttentionBadge(count: section == .pendingRedemptions ? viewModel.pendingRedemptions.count : nil)
                     }
-                    .foregroundStyle(selectedSection == section ? Color.white : HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(selectedSection == section ? Color.white : HomeyTheme.textPrimary)
                     .padding(.horizontal, 14)
                     .frame(minHeight: 40)
                     .frame(maxWidth: .infinity)
-                    .background(section == selectedSection ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(section == selectedSection ? HomeyTheme.primary : HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                            .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                     }
                 }
                 .buttonStyle(.plain)
@@ -180,19 +180,19 @@ struct RewardCenterView: View {
         if let successMessage = viewModel.successMessage {
             Text(successMessage)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                .foregroundStyle(HomeyTheme.success)
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(HomeyDashboardTheme.sageAccent.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(HomeyTheme.success.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         }
 
         if let actionErrorMessage = viewModel.actionErrorMessage {
             Text(actionErrorMessage)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(HomeyDashboardTheme.destructiveRed.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(HomeyTheme.danger.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         }
     }
 
@@ -270,7 +270,7 @@ struct RewardCenterView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Pending Redemptions")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 VStack(spacing: 0) {
                     ForEach(viewModel.pendingRedemptions) { redemption in
@@ -291,10 +291,10 @@ struct RewardCenterView: View {
                         }
                     }
                 }
-                .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
         }
@@ -305,7 +305,7 @@ struct RewardCenterView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Redemption History")
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             RedemptionHistoryFilters(
                 members: viewModel.members,
@@ -341,19 +341,19 @@ struct RewardCenterView: View {
                         if viewModel.isLoadingMoreRedemptionHistory {
                             ProgressView()
                                 .controlSize(.small)
-                                .tint(HomeyDashboardTheme.warmBrown)
+                                .tint(HomeyTheme.primary)
                         }
                         Text(viewModel.isLoadingMoreRedemptionHistory ? "Loading..." : "Load More")
                     }
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .padding(.horizontal, 14)
                     .frame(minHeight: 44)
                     .frame(maxWidth: .infinity)
-                    .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                            .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                     }
                 }
                 .buttonStyle(.plain)
@@ -429,17 +429,17 @@ private struct RewardAvailablePointsCard: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text("Available Points")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .textCase(.uppercase)
 
                 if isLoading && pointBalance == nil {
                     Text("Loading...")
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                 } else {
                     Text((pointBalance ?? 0).formatted(.number))
                         .font(.title2.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                 }
             }
 
@@ -447,14 +447,14 @@ private struct RewardAvailablePointsCard: View {
 
             Image(systemName: "star.circle.fill")
                 .font(.title2)
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Available points, \((pointBalance ?? 0).formatted(.number))")
@@ -491,19 +491,19 @@ private struct RewardCatalogControls: View {
                 HStack(spacing: 8) {
                     Text(selectedSort.title)
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(1)
 
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.caption2.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .padding(.horizontal, 12)
                 .frame(minHeight: 36)
-                .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -547,9 +547,9 @@ private struct RewardTile: View {
 
     private var affordabilityColor: Color {
         if isPendingRedemption || !reward.isActive || pointsNeeded > 0 {
-            return HomeyDashboardTheme.secondaryText
+            return HomeyTheme.textSecondary
         }
-        return HomeyDashboardTheme.sageAccent
+        return HomeyTheme.success
     }
 
     private var accessibilityDescription: String {
@@ -578,20 +578,20 @@ private struct RewardTile: View {
                 HStack(alignment: .top, spacing: 8) {
                     Text(reward.name)
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     if canEdit, !reward.isActive {
                         Text("Inactive")
                             .font(.caption2.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 5)
-                            .background(HomeyDashboardTheme.appBackground.opacity(0.9), in: Capsule())
+                            .background(HomeyTheme.backgroundPrimary.opacity(0.9), in: Capsule())
                             .overlay {
                                 Capsule()
-                                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                             }
                     }
 
@@ -601,12 +601,12 @@ private struct RewardTile: View {
                         } label: {
                             Image(systemName: "pencil")
                                 .font(.caption.weight(.bold))
-                                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                                .foregroundStyle(HomeyTheme.primary)
                                 .frame(width: 32, height: 32)
-                                .background(HomeyDashboardTheme.selectedSidebarBackground, in: Circle())
+                                .background(HomeyTheme.primarySoft, in: Circle())
                                 .overlay {
                                     Circle()
-                                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                                 }
                         }
                         .buttonStyle(.plain)
@@ -617,7 +617,7 @@ private struct RewardTile: View {
                 if let description = reward.description, !description.isEmpty {
                     Text(description)
                         .font(.subheadline)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(3)
                 }
             }
@@ -627,7 +627,7 @@ private struct RewardTile: View {
             HStack(alignment: .bottom, spacing: 12) {
                 Text("\(reward.pointCost.formatted(.number)) Points")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .lineLimit(1)
 
                 Spacer()
@@ -636,13 +636,13 @@ private struct RewardTile: View {
                     if isPendingRedemption {
                         Text("Pending")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                             .padding(.horizontal, 12)
                             .frame(minHeight: 34)
-                            .background(HomeyDashboardTheme.appBackground, in: Capsule())
+                            .background(HomeyTheme.backgroundPrimary, in: Capsule())
                             .overlay {
                                 Capsule()
-                                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                             }
                     } else {
                         Button {
@@ -652,7 +652,7 @@ private struct RewardTile: View {
                                 if isRedeeming {
                                     ProgressView()
                                         .controlSize(.small)
-                                        .tint(HomeyDashboardTheme.warmBrown)
+                                        .tint(HomeyTheme.primary)
                                 }
                                 Text(isRedeeming ? "Redeeming..." : "Redeem")
                             }
@@ -661,11 +661,11 @@ private struct RewardTile: View {
                             .frame(minHeight: 34)
                         }
                         .buttonStyle(.plain)
-                        .foregroundStyle(canRedeem ? Color.white : HomeyDashboardTheme.secondaryText)
-                        .background(canRedeem ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.appBackground, in: Capsule())
+                        .foregroundStyle(canRedeem ? Color.white : HomeyTheme.textSecondary)
+                        .background(canRedeem ? HomeyTheme.primary : HomeyTheme.backgroundPrimary, in: Capsule())
                         .overlay {
                             Capsule()
-                                .stroke(canRedeem ? Color.clear : HomeyDashboardTheme.softBorder, lineWidth: 1)
+                                .stroke(canRedeem ? Color.clear : HomeyTheme.borderSubtle, lineWidth: 1)
                         }
                         .disabled(!canRedeem)
                         .accessibilityLabel("Redeem \(reward.name)")
@@ -680,10 +680,10 @@ private struct RewardTile: View {
         }
         .padding(18)
         .frame(maxWidth: .infinity, minHeight: 180, alignment: .topLeading)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 }
@@ -705,11 +705,11 @@ private struct PendingRewardRedemptionRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(memberName)
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 Text(redemption.rewardNameSnapshot)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 HStack(spacing: 8) {
                     Text("\(redemption.pointCostSnapshot.formatted(.number)) Points")
@@ -717,7 +717,7 @@ private struct PendingRewardRedemptionRow: View {
                     Text(redemption.status.displayName)
                 }
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -729,18 +729,18 @@ private struct PendingRewardRedemptionRow: View {
                         if isMarkingRedeemed {
                             ProgressView()
                                 .controlSize(.small)
-                                .tint(HomeyDashboardTheme.warmBrown)
+                                .tint(HomeyTheme.primary)
                         }
                         Text(isMarkingRedeemed ? "Updating..." : "Mark Redeemed")
                     }
                     .font(.caption.weight(.bold))
                     .padding(.horizontal, 12)
                     .frame(minHeight: 36)
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
-                    .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                    .foregroundStyle(HomeyTheme.primary)
+                    .background(HomeyTheme.primarySoft, in: Capsule())
                     .overlay {
                         Capsule()
-                            .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                            .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                     }
                 }
                 .buttonStyle(.plain)
@@ -753,18 +753,18 @@ private struct PendingRewardRedemptionRow: View {
                         if isCancelling {
                             ProgressView()
                                 .controlSize(.small)
-                                .tint(HomeyDashboardTheme.destructiveRed)
+                                .tint(HomeyTheme.danger)
                         }
                         Text(isCancelling ? "Cancelling..." : "Cancel")
                     }
                     .font(.caption.weight(.bold))
                     .padding(.horizontal, 12)
                     .frame(minHeight: 36)
-                    .foregroundStyle(HomeyDashboardTheme.destructiveRed)
-                    .background(HomeyDashboardTheme.destructiveRed.opacity(0.10), in: Capsule())
+                    .foregroundStyle(HomeyTheme.danger)
+                    .background(HomeyTheme.danger.opacity(0.10), in: Capsule())
                     .overlay {
                         Capsule()
-                            .stroke(HomeyDashboardTheme.destructiveRed.opacity(0.18), lineWidth: 1)
+                            .stroke(HomeyTheme.danger.opacity(0.18), lineWidth: 1)
                     }
                 }
                 .buttonStyle(.plain)
@@ -960,12 +960,12 @@ private struct RedemptionHistoryFilters: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.caption2.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .textCase(.uppercase)
 
                 Text(value)
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(1)
             }
 
@@ -973,15 +973,15 @@ private struct RedemptionHistoryFilters: View {
 
             Image(systemName: "chevron.up.chevron.down")
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .padding(.horizontal, 12)
         .frame(minHeight: 52)
         .frame(maxWidth: .infinity)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 }
@@ -1002,15 +1002,15 @@ private struct RedemptionHistoryList: View {
 
                 if redemption.id != redemptions.last?.id {
                     Divider()
-                        .overlay(HomeyDashboardTheme.softBorder)
+                        .overlay(HomeyTheme.borderSubtle)
                         .padding(.leading, 18)
                 }
             }
         }
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 
@@ -1034,11 +1034,11 @@ private struct RedemptionHistoryRow: View {
     private var statusColor: Color {
         switch redemption.status {
         case .redeemed:
-            return HomeyDashboardTheme.sageAccent
+            return HomeyTheme.success
         case .cancelled:
-            return HomeyDashboardTheme.destructiveRed.opacity(0.8)
+            return HomeyTheme.danger.opacity(0.8)
         case .pending:
-            return HomeyDashboardTheme.orangeAccent
+            return HomeyTheme.peach
         }
     }
 
@@ -1068,29 +1068,29 @@ private struct RedemptionHistoryRow: View {
             VStack(alignment: .leading, spacing: 7) {
                 Text(memberName)
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 Text(redemption.rewardNameSnapshot)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
 
                 Text("\(redemption.pointCostSnapshot.formatted(.number)) Points")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
 
                 Text(requestedText)
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
 
                 Text(finalizedText)
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
 
                 if let handledByName {
                     Text("Handled by: \(handledByName)")
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
 
                 if redemption.status == .cancelled,
@@ -1098,14 +1098,14 @@ private struct RedemptionHistoryRow: View {
                    !reason.isEmpty {
                     Text("Reason: \(reason)")
                         .font(.caption)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(2)
                 }
 
                 if redemption.status == .cancelled, redemption.refundTransactionId != nil {
                     Text("\(redemption.pointCostSnapshot.formatted(.number)) Points Refunded")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                        .foregroundStyle(HomeyTheme.success)
                 }
             }
 
@@ -1207,7 +1207,7 @@ struct RewardEditorView: View {
                     if let visibleMessage = errorMessage ?? validationMessage {
                         Text(visibleMessage)
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                            .foregroundStyle(HomeyTheme.danger)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
@@ -1218,7 +1218,7 @@ struct RewardEditorView: View {
                 }
                 .padding(22)
             }
-            .background(HomeyDashboardTheme.appBackground.ignoresSafeArea())
+            .background(HomeyTheme.backgroundPrimary.ignoresSafeArea())
             .navigationTitle(mode.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1235,7 +1235,7 @@ struct RewardEditorView: View {
                     } label: {
                         if isSaving {
                             ProgressView()
-                                .tint(HomeyDashboardTheme.warmBrown)
+                                .tint(HomeyTheme.primary)
                         } else {
                             Text("Save Reward")
                         }
@@ -1267,7 +1267,7 @@ struct RewardEditorView: View {
             TextField("Movie Night", text: $name)
                 .textInputAutocapitalization(.words)
                 .font(.body.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(16)
                 .background(fieldBackground)
                 .accessibilityLabel("Reward name")
@@ -1279,7 +1279,7 @@ struct RewardEditorView: View {
             TextField("Choose Friday's movie.", text: $description, axis: .vertical)
                 .lineLimit(3...5)
                 .font(.body)
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(16)
                 .background(fieldBackground)
                 .accessibilityLabel("Description")
@@ -1291,7 +1291,7 @@ struct RewardEditorView: View {
             TextField("150", text: $pointCostText)
                 .keyboardType(.numberPad)
                 .font(.body.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(16)
                 .background(fieldBackground)
                 .onChange(of: pointCostText) { _, newValue in
@@ -1309,15 +1309,15 @@ struct RewardEditorView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Active")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 Text("Inactive rewards stay in the catalog for admins but are not ready for redemption.")
                     .font(.caption)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
         }
         .toggleStyle(.switch)
-        .tint(HomeyDashboardTheme.sageAccent)
+        .tint(HomeyTheme.success)
         .padding(16)
         .background(fieldBackground)
     }
@@ -1330,17 +1330,17 @@ struct RewardEditorView: View {
                 if isArchiving {
                     ProgressView()
                         .controlSize(.small)
-                        .tint(HomeyDashboardTheme.destructiveRed)
+                        .tint(HomeyTheme.danger)
                 }
                 Text(isArchiving ? "Archiving..." : "Archive Reward")
                     .font(.subheadline.weight(.bold))
             }
-            .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+            .foregroundStyle(HomeyTheme.danger)
             .frame(maxWidth: .infinity, minHeight: 48)
-            .background(HomeyDashboardTheme.destructiveRed.opacity(0.10), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(HomeyTheme.danger.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(HomeyDashboardTheme.destructiveRed.opacity(0.18), lineWidth: 1)
+                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                    .stroke(HomeyTheme.danger.opacity(0.18), lineWidth: 1)
             }
         }
         .buttonStyle(.plain)
@@ -1348,14 +1348,14 @@ struct RewardEditorView: View {
     }
 
     private var fieldBackground: some ShapeStyle {
-        HomeyDashboardTheme.cardBackground
+        HomeyTheme.surfacePrimary
     }
 
     private func formField<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             content()
         }
     }
@@ -1453,47 +1453,47 @@ private struct CancelRewardRedemptionView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Cancel Redemption?")
                             .font(.title3.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
 
                         Text("This will cancel the pending reward and refund \(redemption.pointCostSnapshot.formatted(.number)) points to \(memberName).")
                             .font(.subheadline)
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(18)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                            .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Cancellation Reason")
                             .font(.subheadline.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
 
                         TextField("Reward unavailable", text: $cancellationReason, axis: .vertical)
                             .lineLimit(3...5)
                             .font(.body)
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                             .padding(16)
-                            .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                             .overlay {
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                                RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                    .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                             }
                             .accessibilityLabel("Cancellation reason")
 
                         Text("Optional")
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                     }
 
                     if let errorMessage {
                         Text(errorMessage)
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                            .foregroundStyle(HomeyTheme.danger)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
@@ -1504,18 +1504,18 @@ private struct CancelRewardRedemptionView: View {
                             if isCancelling {
                                 ProgressView()
                                     .controlSize(.small)
-                                    .tint(HomeyDashboardTheme.destructiveRed)
+                                    .tint(HomeyTheme.danger)
                             }
 
                             Text(isCancelling ? "Cancelling..." : "Cancel & Refund")
                                 .font(.subheadline.weight(.bold))
                         }
-                        .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                        .foregroundStyle(HomeyTheme.danger)
                         .frame(maxWidth: .infinity, minHeight: 48)
-                        .background(HomeyDashboardTheme.destructiveRed.opacity(0.10), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .background(HomeyTheme.danger.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                         .overlay {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(HomeyDashboardTheme.destructiveRed.opacity(0.18), lineWidth: 1)
+                            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                .stroke(HomeyTheme.danger.opacity(0.18), lineWidth: 1)
                         }
                     }
                     .buttonStyle(.plain)
@@ -1523,7 +1523,7 @@ private struct CancelRewardRedemptionView: View {
                 }
                 .padding(22)
             }
-            .background(HomeyDashboardTheme.appBackground.ignoresSafeArea())
+            .background(HomeyTheme.backgroundPrimary.ignoresSafeArea())
             .navigationTitle("Cancel Redemption")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

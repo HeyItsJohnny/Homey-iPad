@@ -20,7 +20,7 @@ struct MealPhotoThumbnail: View {
                             .onAppear { didFail = true }
                     case .empty:
                         ProgressView()
-                            .tint(HomeyDashboardTheme.warmBrown)
+                            .tint(HomeyTheme.primary)
                     @unknown default:
                         fallback
                     }
@@ -39,13 +39,13 @@ struct MealPhotoThumbnail: View {
     private var fallback: some View {
         ZStack {
             LinearGradient(
-                colors: [HomeyDashboardTheme.warmBeige.opacity(0.82), HomeyDashboardTheme.selectedSidebarBackground],
+                colors: [HomeyTheme.borderSubtle.opacity(0.82), HomeyTheme.primarySoft],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             Image(systemName: "fork.knife")
                 .font(.system(size: 32, weight: .semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
         }
         .accessibilityHidden(true)
     }

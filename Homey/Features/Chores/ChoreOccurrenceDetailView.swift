@@ -21,7 +21,7 @@ struct ChoreOccurrenceDetailView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground
+                HomeyTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 ScrollView {
@@ -132,18 +132,18 @@ struct ChoreOccurrenceDetailView: View {
         return VStack(alignment: .leading, spacing: 10) {
             Text(occurrence.titleSnapshot)
                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .lineLimit(3)
                 .accessibilityAddTraits(.isHeader)
 
             HStack(spacing: 8) {
                 metadataPill(statusStyle.title, color: statusStyle.color)
-                metadataPill("\(occurrence.pointsValue) \(occurrence.pointsValue == 1 ? "point" : "points")", color: HomeyDashboardTheme.warmBrown)
+                metadataPill("\(occurrence.pointsValue) \(occurrence.pointsValue == 1 ? "point" : "points")", color: HomeyTheme.primary)
             }
         }
         .padding(24)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .dashboardCard(cornerRadius: 28)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private func detailSection(for occurrence: ChoreOccurrence) -> some View {
@@ -168,7 +168,7 @@ struct ChoreOccurrenceDetailView: View {
             if occurrence.assignmentMode == .open {
                 Text(openClaimText(for: occurrence))
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -186,14 +186,14 @@ struct ChoreOccurrenceDetailView: View {
             ChoreOccurrenceDetailSection(title: "Instructions") {
                 Text(instructions)
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         } else if let description = occurrence.descriptionSnapshot?.trimmingCharacters(in: .whitespacesAndNewlines), !description.isEmpty {
             ChoreOccurrenceDetailSection(title: "Details") {
                 Text(description)
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -204,14 +204,14 @@ struct ChoreOccurrenceDetailView: View {
             if let actionErrorMessage = viewModel.actionErrorMessage {
                 Text(actionErrorMessage)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                    .foregroundStyle(HomeyTheme.danger)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             if occurrence.status == .cancelled || occurrence.status == .skipped {
                 Text("This chore is read-only.")
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             } else if canManageChores, shouldShowReviewActions(for: occurrence) {
                 reviewActions(for: occurrence)
             } else if personalStatus(for: occurrence) == .completed {
@@ -227,7 +227,7 @@ struct ChoreOccurrenceDetailView: View {
                     Label("Manage Chore", systemImage: "slider.horizontal.3")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .disabled(viewModel.isPerformingAction)
                 .accessibilityLabel("Manage Chore")
             }
@@ -242,7 +242,7 @@ struct ChoreOccurrenceDetailView: View {
             } label: {
                 actionLabel("Claim Chore", systemImage: "hand.raised")
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .disabled(viewModel.isPerformingAction)
             .accessibilityLabel("Claim Chore")
         } else if currentUserCanAct(on: occurrence) {
@@ -259,7 +259,7 @@ struct ChoreOccurrenceDetailView: View {
                 } label: {
                     actionLabel("Submit Chore", systemImage: "checkmark.circle.fill")
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .disabled(viewModel.isPerformingAction)
                 .accessibilityLabel("Submit Chore")
 
@@ -277,18 +277,18 @@ struct ChoreOccurrenceDetailView: View {
             } else if personalStatus == .awaitingApproval {
                 Text("This chore is pending approval.")
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             } else if personalStatus == .completed {
                 completedSummary(for: occurrence, assignee: activeAssignee(for: occurrence))
             } else if personalStatus == .skipped {
                 Text("This chore was skipped.")
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
         } else {
             Text("You can view this chore, but there are no actions available for your account.")
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -311,7 +311,7 @@ struct ChoreOccurrenceDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Review Completion")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             if let pendingSubmission = viewModel.pendingSubmission {
                 detailRow(
@@ -345,14 +345,14 @@ struct ChoreOccurrenceDetailView: View {
                     } label: {
                         actionLabel("Approve Chore", systemImage: "checkmark.seal.fill")
                     }
-                    .buttonStyle(DashboardPrimaryButtonStyle())
+                    .buttonStyle(HomeyPrimaryButtonStyle())
                     .disabled(viewModel.isPerformingAction)
                     .accessibilityLabel("Approve Chore")
                 }
             } else {
                 Text("No pending submission was found for this chore.")
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -376,17 +376,17 @@ struct ChoreOccurrenceDetailView: View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: systemImage)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 22)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                 Text(value)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -518,7 +518,7 @@ private struct ChoreOccurrenceDetailSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 14) {
             Text(title)
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             VStack(alignment: .leading, spacing: 13) {
                 content
@@ -526,7 +526,7 @@ private struct ChoreOccurrenceDetailSection<Content: View>: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 

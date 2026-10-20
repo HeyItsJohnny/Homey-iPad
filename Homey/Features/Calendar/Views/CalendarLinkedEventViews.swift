@@ -11,7 +11,7 @@ struct CalendarLinkedEventColorResolver {
         }
 
         if presentation?.plannedMeal != nil {
-            return CalendarEventColorResolver.color(for: event, categories: categories, fallback: HomeyDashboardTheme.sageAccent)
+            return CalendarEventColorResolver.color(for: event, categories: categories, fallback: HomeyTheme.success)
         }
 
         return CalendarEventColorResolver.color(for: event, categories: categories)
@@ -57,13 +57,13 @@ private struct MealLinkedCalendarChip: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(plannedMeal.meal.name)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
 
                 Text("\(plannedMeal.mealType.displayName) · \(timeText(for: plannedMeal.calendarEvent))")
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .lineLimit(1)
             }
 
@@ -71,10 +71,10 @@ private struct MealLinkedCalendarChip: View {
         }
         .padding(8)
         .frame(maxWidth: .infinity, minHeight: 58, alignment: .leading)
-        .background(HomeyDashboardTheme.sageAccent.opacity(0.12), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .background(HomeyTheme.success.opacity(0.12), in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .stroke(CalendarEventColorResolver.color(for: plannedMeal.calendarEvent, categories: categories, fallback: HomeyDashboardTheme.sageAccent).opacity(0.62), lineWidth: 1.3)
+            RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous)
+                .stroke(CalendarEventColorResolver.color(for: plannedMeal.calendarEvent, categories: categories, fallback: HomeyTheme.success).opacity(0.62), lineWidth: 1.3)
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(plannedMeal.meal.name), \(plannedMeal.mealType.displayName), \(timeText(for: plannedMeal.calendarEvent))")
@@ -103,11 +103,11 @@ private struct MealLinkedCalendarChip: View {
 
     private var fallbackThumbnail: some View {
         RoundedRectangle(cornerRadius: 9, style: .continuous)
-            .fill(HomeyDashboardTheme.sageAccent.opacity(0.16))
+            .fill(HomeyTheme.success.opacity(0.16))
             .overlay {
                 Image(systemName: plannedMeal.mealType.systemImageName)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                    .foregroundStyle(HomeyTheme.success)
             }
     }
 }
@@ -119,7 +119,7 @@ private struct ChoreLinkedCalendarChip: View {
         VStack(alignment: .leading, spacing: 3) {
             Text(chore.title)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
 
@@ -131,16 +131,16 @@ private struct ChoreLinkedCalendarChip: View {
 
                 Text(timeText(for: chore.occurrence))
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .lineLimit(1)
             }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 7)
         .frame(maxWidth: .infinity, minHeight: 66, alignment: .leading)
-        .background(chore.statusStyle.backgroundColor, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .background(chore.statusStyle.backgroundColor, in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 13, style: .continuous)
+            RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous)
                 .stroke(chore.statusStyle.color.opacity(0.62), lineWidth: 1.5)
         }
         .accessibilityElement(children: .combine)
@@ -159,17 +159,17 @@ private struct MealLinkedAgendaEventRow: View {
             VStack(alignment: .leading, spacing: 7) {
                 Text(plannedMeal.meal.name)
                     .font(.headline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
 
                 Label(plannedMeal.mealType.displayName, systemImage: plannedMeal.mealType.systemImageName)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(CalendarEventColorResolver.color(for: plannedMeal.calendarEvent, categories: categories, fallback: HomeyDashboardTheme.sageAccent))
+                    .foregroundStyle(CalendarEventColorResolver.color(for: plannedMeal.calendarEvent, categories: categories, fallback: HomeyTheme.success))
                     .lineLimit(1)
 
                 Text(timeText(for: plannedMeal.calendarEvent))
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer(minLength: 0)
@@ -201,16 +201,16 @@ private struct MealLinkedAgendaThumbnail: View {
             }
         }
         .frame(width: 48, height: 48)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
     }
 
     private var fallback: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(HomeyDashboardTheme.sageAccent.opacity(0.16))
+        RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous)
+            .fill(HomeyTheme.success.opacity(0.16))
             .overlay {
                 Image(systemName: plannedMeal.mealType.systemImageName)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                    .foregroundStyle(HomeyTheme.success)
             }
     }
 }
@@ -228,7 +228,7 @@ private struct ChoreLinkedAgendaEventRow: View {
             VStack(alignment: .leading, spacing: 7) {
                 Text(chore.title)
                     .font(.headline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
 
                 HStack(spacing: 8) {
@@ -241,11 +241,11 @@ private struct ChoreLinkedAgendaEventRow: View {
 
                     Text(chore.pointsText)
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
 
                     Text(timeText(for: chore.occurrence))
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .lineLimit(1)
             }

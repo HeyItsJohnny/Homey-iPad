@@ -75,7 +75,7 @@ private final class CalendarHomeHubViewModel: ObservableObject {
                 end: event.occurrenceEndsAt,
                 isAllDay: event.isAllDay,
                 iconName: event.categoryIconName ?? "calendar",
-                color: Color(hex: event.categoryColorHex) ?? HomeyDashboardTheme.lavenderAccent,
+                color: Color(hex: event.categoryColorHex) ?? HomeyTheme.lavender,
                 location: event.location,
                 event: event
             )
@@ -351,7 +351,7 @@ struct CalendarHomeHubView: View {
         HStack(alignment: .center, spacing: 18) {
             Text("Calendar")
                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .accessibilityAddTraits(.isHeader)
 
             Spacer()
@@ -362,7 +362,7 @@ struct CalendarHomeHubView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 16)
                     .frame(height: 42)
-                    .background(HomeyDashboardTheme.warmBrown, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(HomeyTheme.primary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             }
             .buttonStyle(.plain)
             .disabled(homeService.selectedHomeID == nil)
@@ -378,18 +378,18 @@ struct CalendarHomeHubView: View {
                 } label: {
                     Text(option.rawValue)
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(mode == option ? .white : HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(mode == option ? .white : HomeyTheme.textPrimary)
                         .frame(width: 76, height: 36)
                         .background(
-                            mode == option ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.cardBackground,
-                            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            mode == option ? HomeyTheme.primary : HomeyTheme.surfacePrimary,
+                            in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous)
                         )
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(4)
-        .background(HomeyDashboardTheme.currentHomeBackground.opacity(0.72), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+        .background(HomeyTheme.surfaceSecondary.opacity(0.72), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
     }
 
     private var dateNavigation: some View {
@@ -401,7 +401,7 @@ struct CalendarHomeHubView: View {
 
             Text(dateNavigationTitle)
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .frame(minWidth: 190)
 
             Button { moveDate(1) } label: {
@@ -415,20 +415,20 @@ struct CalendarHomeHubView: View {
 
             Button("Today") { selectedDate = Date() }
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .padding(.horizontal, 14)
                 .frame(height: 36)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
                 .buttonStyle(.plain)
 
             if viewModel.isLoading {
                 ProgressView()
                     .controlSize(.small)
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
             } else if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
                     .font(.caption)
-                    .foregroundStyle(HomeyDashboardTheme.softRed)
+                    .foregroundStyle(HomeyTheme.danger)
             }
         }
     }
@@ -630,7 +630,7 @@ private struct CalendarHomeHubEventDetailView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground.ignoresSafeArea()
+            HomeyTheme.backgroundPrimary.ignoresSafeArea()
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
@@ -638,17 +638,17 @@ private struct CalendarHomeHubEventDetailView: View {
                         Spacer()
                         Button("Done") { dismiss() }
                             .font(.subheadline.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                             .padding(.horizontal, 18)
                             .frame(minHeight: 44)
-                            .background(.white.opacity(0.28), in: Capsule())
+                            .background(HomeyTheme.surfacePrimary, in: Capsule())
                     }
 
                     categoryLabel
 
                     Text(event.title)
                         .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
 
                     dateCard
@@ -721,29 +721,29 @@ private struct CalendarHomeHubEventDetailView: View {
     private var dateCard: some View {
         VStack(spacing: 0) {
             detailRow(title: "Starts", value: startText, systemImage: "calendar.badge.clock")
-            Divider().overlay(HomeyDashboardTheme.softBorder)
+            Divider().overlay(HomeyTheme.borderSubtle)
             detailRow(title: "Ends", value: endText, systemImage: "calendar.badge.checkmark")
             if event.isAllDay {
-                Divider().overlay(HomeyDashboardTheme.softBorder)
+                Divider().overlay(HomeyTheme.borderSubtle)
                 detailRow(title: "Schedule", value: "All Day", systemImage: "sun.max")
             }
         }
         .padding(.horizontal, 18)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
     }
 
     private func detailRow(title: String, value: String, systemImage: String) -> some View {
         HStack(spacing: 13) {
             Image(systemName: systemImage)
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 24)
             Text(title)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
             Spacer()
             Text(value)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .multilineTextAlignment(.trailing)
         }
         .padding(.vertical, 16)
@@ -753,29 +753,29 @@ private struct CalendarHomeHubEventDetailView: View {
         VStack(alignment: .leading, spacing: 10) {
             Label(title, systemImage: systemImage)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
             Text(text)
                 .font(.body)
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
     }
 
     private var assignedMembersSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Assigned Members")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
             HStack(spacing: 10) {
                 ForEach(assignedMembers) { member in
                     AvatarView(
                         imageURL: member.avatarURL,
                         initials: member.initials,
                         size: 38,
-                        accentColor: HomeyDashboardTheme.warmBrown,
+                        accentColor: HomeyTheme.primary,
                         borderWidth: 2,
                         showsShadow: false,
                         accessibilityLabel: "Assigned to \(member.displayName)"
@@ -785,7 +785,7 @@ private struct CalendarHomeHubEventDetailView: View {
             }
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
     }
 
     private var actionButtons: some View {
@@ -800,28 +800,28 @@ private struct CalendarHomeHubEventDetailView: View {
                 Label("Edit Event", systemImage: "pencil")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
 
             Button(role: .destructive) {
                 isChoosingDeleteScope = true
             } label: {
                 if isDeleting {
-                    ProgressView().tint(HomeyDashboardTheme.destructiveRed)
+                    ProgressView().tint(HomeyTheme.danger)
                 } else {
                     Label("Delete", systemImage: "trash")
                 }
             }
             .font(.subheadline.weight(.bold))
-            .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+            .foregroundStyle(HomeyTheme.danger)
             .frame(maxWidth: .infinity, minHeight: 48)
-            .background(HomeyDashboardTheme.destructiveRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+            .background(HomeyTheme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             .buttonStyle(.plain)
             .disabled(isDeleting)
         }
     }
 
     private var eventColor: Color {
-        Color(hex: category?.colorHex ?? event.categoryColorHex) ?? HomeyDashboardTheme.lavenderAccent
+        Color(hex: category?.colorHex ?? event.categoryColorHex) ?? HomeyTheme.lavender
     }
 
     private var startText: String {
@@ -914,7 +914,7 @@ private struct HomeHubTimeline: View {
                     if activities.isEmpty {
                         Text("Nothing scheduled")
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                             .frame(width: max(0, proxy.size.width - labelWidth), alignment: .center)
                             .offset(x: labelWidth, y: timelineOrigin + 42)
                     }
@@ -924,7 +924,7 @@ private struct HomeHubTimeline: View {
             .scrollIndicators(.hidden)
         }
         .padding(14)
-        .dashboardCard(cornerRadius: 26)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
         .onChange(of: selectedDate) { _, _ in
             expandedAllDayKeys.removeAll()
         }
@@ -943,11 +943,11 @@ private struct HomeHubTimeline: View {
                         Text(day.formatted(.dateTime.day()))
                             .font(.headline.weight(.bold))
                     }
-                    .foregroundStyle(calendar.isDate(day, inSameDayAs: selectedDate) ? .white : HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(calendar.isDate(day, inSameDayAs: selectedDate) ? .white : HomeyTheme.textPrimary)
                     .frame(width: columnWidth - 4, height: 44)
                     .background(
-                        calendar.isDate(day, inSameDayAs: selectedDate) ? HomeyDashboardTheme.warmBrown : Color.clear,
-                        in: RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        calendar.isDate(day, inSameDayAs: selectedDate) ? HomeyTheme.primary : Color.clear,
+                        in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous)
                     )
                 }
                 .buttonStyle(.plain)
@@ -958,14 +958,14 @@ private struct HomeHubTimeline: View {
                 let y = timelineOrigin + CGFloat(hour - firstHour) * hourHeight
                 Text(HomeHubFormatters.hour.string(from: calendar.date(bySettingHour: hour, minute: 0, second: 0, of: selectedDate) ?? selectedDate))
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .frame(width: labelWidth - 8, alignment: .trailing)
                     .position(x: (labelWidth - 8) / 2, y: y)
                 Path { path in
                     path.move(to: CGPoint(x: labelWidth, y: y))
                     path.addLine(to: CGPoint(x: width, y: y))
                 }
-                .stroke(HomeyDashboardTheme.softBorder.opacity(0.65), lineWidth: 0.7)
+                .stroke(HomeyTheme.borderSubtle.opacity(0.65), lineWidth: 0.7)
             }
         }
     }
@@ -976,7 +976,7 @@ private struct HomeHubTimeline: View {
             if allDaySectionHeight > 0 {
                 Text("ALL DAY")
                     .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .frame(width: labelWidth - 8, alignment: .trailing)
                     .position(
                         x: (labelWidth - 8) / 2,
@@ -1011,10 +1011,10 @@ private struct HomeHubTimeline: View {
                         } label: {
                             Text(isExpanded ? "Show Less" : "+\(dayActivities.count - 1) more")
                                 .font((days.count > 1 ? Font.caption2 : Font.caption).weight(.bold))
-                                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                                .foregroundStyle(HomeyTheme.primary)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .background(
-                                    HomeyDashboardTheme.selectedSidebarBackground.opacity(0.72),
+                                    HomeyTheme.primarySoft.opacity(0.72),
                                     in: RoundedRectangle(cornerRadius: 9, style: .continuous)
                                 )
                         }
@@ -1035,7 +1035,7 @@ private struct HomeHubTimeline: View {
                     path.move(to: CGPoint(x: labelWidth, y: timelineOrigin))
                     path.addLine(to: CGPoint(x: width, y: timelineOrigin))
                 }
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
             }
         }
     }
@@ -1128,14 +1128,14 @@ private struct HomeHubActivityCard: View {
             if !compact {
                 Text(activity.isAllDay ? "All Day" : "\(HomeHubFormatters.time.string(from: activity.start))–\(HomeHubFormatters.time.string(from: activity.end))")
                     .font(.caption)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
         }
-        .foregroundStyle(HomeyDashboardTheme.primaryText)
+        .foregroundStyle(HomeyTheme.textPrimary)
         .padding(.horizontal, compact ? 6 : 10)
         .padding(.vertical, compact ? 5 : 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(activity.color.opacity(0.20), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(activity.color.opacity(0.20), in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
         .overlay(alignment: .leading) {
             Capsule().fill(activity.color).frame(width: 3).padding(.vertical, 7)
         }
@@ -1161,7 +1161,7 @@ private struct HomeHubMonthGrid: View {
                 ForEach(weekdaySymbols, id: \.self) { symbol in
                     Text(symbol)
                         .font(.caption2.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .frame(maxWidth: .infinity)
                 }
 
@@ -1200,19 +1200,19 @@ private struct HomeHubMonthGrid: View {
                         .foregroundStyle(
                             isSelected
                                 ? Color.white
-                                : HomeyDashboardTheme.primaryText.opacity(isCurrentMonth ? 1 : 0.42)
+                                : HomeyTheme.textPrimary.opacity(isCurrentMonth ? 1 : 0.42)
                         )
                         .padding(9)
                         .frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
-                        .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .contentShape(RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                         .background {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
                                 .fill(monthCellBackground(isSelected: isSelected, isCurrentMonth: isCurrentMonth))
                         }
                         .overlay {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
                                 .stroke(
-                                    isToday && !isSelected ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.softBorder.opacity(0.55),
+                                    isToday && !isSelected ? HomeyTheme.primary : HomeyTheme.borderSubtle.opacity(0.55),
                                     lineWidth: isToday && !isSelected ? 1.5 : 0.7
                                 )
                         }
@@ -1224,7 +1224,7 @@ private struct HomeHubMonthGrid: View {
             }
         }
         .padding(16)
-        .dashboardCard(cornerRadius: 26)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var weekdaySymbols: [String] {
@@ -1237,12 +1237,12 @@ private struct HomeHubMonthGrid: View {
 
     private func monthCellBackground(isSelected: Bool, isCurrentMonth: Bool) -> Color {
         if isSelected {
-            return HomeyDashboardTheme.warmBrown
+            return HomeyTheme.primary
         }
         if isCurrentMonth {
-            return HomeyDashboardTheme.cardBackground.opacity(0.62)
+            return HomeyTheme.surfacePrimary.opacity(0.62)
         }
-        return HomeyDashboardTheme.cardBackground.opacity(0.24)
+        return HomeyTheme.surfacePrimary.opacity(0.24)
     }
 
     private func accessibilityLabel(for date: Date, activityCount: Int) -> String {
@@ -1288,25 +1288,25 @@ private struct MiniMonthCard: View {
                 Spacer()
                 Text(HomeHubFormatters.monthYear.string(from: selectedDate))
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 Spacer()
                 Button { changeMonth(1) } label: { Image(systemName: "chevron.right") }
             }
             .buttonStyle(.plain)
-            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+            .foregroundStyle(HomeyTheme.primary)
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 7), spacing: 4) {
                 ForEach(weekdaySymbols, id: \.self) { symbol in
-                    Text(symbol).font(.caption2.weight(.bold)).foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    Text(symbol).font(.caption2.weight(.bold)).foregroundStyle(HomeyTheme.textSecondary)
                 }
                 ForEach(days, id: \.self) { day in
                     Button { selectedDate = day } label: {
                         Text(day.formatted(.dateTime.day()))
                             .font(.caption2.weight(.semibold))
-                            .foregroundStyle(calendar.isDate(day, inSameDayAs: selectedDate) ? .white : HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(calendar.isDate(day, inSameDayAs: selectedDate) ? .white : HomeyTheme.textPrimary)
                             .frame(width: 27, height: 27)
                             .background(
-                                calendar.isDate(day, inSameDayAs: selectedDate) ? HomeyDashboardTheme.warmBrown : Color.clear,
+                                calendar.isDate(day, inSameDayAs: selectedDate) ? HomeyTheme.primary : Color.clear,
                                 in: Circle()
                             )
                     }
@@ -1315,7 +1315,7 @@ private struct MiniMonthCard: View {
             }
         }
         .padding(16)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
     }
 
     private func changeMonth(_ value: Int) {
@@ -1336,20 +1336,20 @@ private struct SelectedDayAgendaCard: View {
         VStack(alignment: .leading, spacing: 14) {
             Text(HomeHubFormatters.agendaDay.string(from: date))
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Divider()
-                .overlay(HomeyDashboardTheme.softBorder)
+                .overlay(HomeyTheme.borderSubtle)
 
             if sortedActivities.isEmpty {
                 VStack(spacing: 9) {
                     Image(systemName: "calendar.badge.checkmark")
                         .font(.title3.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
 
                     Text("Nothing scheduled")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -1358,7 +1358,7 @@ private struct SelectedDayAgendaCard: View {
                         if !allDayActivities.isEmpty {
                             Text("ALL DAY")
                                 .font(.caption2.weight(.bold))
-                                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                .foregroundStyle(HomeyTheme.textSecondary)
                                 .padding(.bottom, 1)
 
                             ForEach(allDayActivities) { activity in
@@ -1368,7 +1368,7 @@ private struct SelectedDayAgendaCard: View {
 
                         if !allDayActivities.isEmpty && !timedActivities.isEmpty {
                             Divider()
-                                .overlay(HomeyDashboardTheme.softBorder.opacity(0.75))
+                                .overlay(HomeyTheme.borderSubtle.opacity(0.75))
                                 .padding(.vertical, 3)
                         }
 
@@ -1383,7 +1383,7 @@ private struct SelectedDayAgendaCard: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
     }
 
     private var sortedActivities: [HomeHubActivity] {
@@ -1431,17 +1431,17 @@ private struct SelectedDayAgendaRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(activity.title)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
 
                 Text(activity.isAllDay ? "All Day" : HomeHubFormatters.time.string(from: activity.start))
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
 
                 if let location = activity.location?.trimmingCharacters(in: .whitespacesAndNewlines), !location.isEmpty {
                     Text(location)
                         .font(.caption2)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(1)
                 }
             }
@@ -1457,9 +1457,9 @@ private extension View {
     func homeHubNavigationButton() -> some View {
         self
             .font(.caption.weight(.bold))
-            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+            .foregroundStyle(HomeyTheme.primary)
             .frame(width: 36, height: 36)
-            .background(HomeyDashboardTheme.cardBackground, in: Circle())
+            .background(HomeyTheme.surfacePrimary, in: Circle())
             .buttonStyle(.plain)
     }
 }

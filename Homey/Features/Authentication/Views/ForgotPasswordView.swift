@@ -109,7 +109,7 @@ struct ForgotPasswordView: View {
                     Text("Reset Password")
                 }
             }
-            .buttonStyle(AuthenticationPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .disabled(authenticationService.isLoading)
 
             if successMessage != nil {

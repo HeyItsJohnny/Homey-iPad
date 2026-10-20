@@ -54,12 +54,12 @@ struct QuickMealEditor: View {
                 }
                 if didInitialize && homeID != capturedHomeID {
                     Text("The selected Home changed. Close this sheet and reopen Quick Add for the current Home.")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(HomeyTheme.danger)
                 }
-                if let error { Text(error).foregroundStyle(.red) }
+                if let error { Text(error).foregroundStyle(HomeyTheme.danger) }
             }
             .scrollContentBackground(.hidden)
-            .background(HomeyDashboardTheme.appBackground)
+            .background(HomeyTheme.backgroundPrimary)
             .navigationTitle(entry == nil ? "Quick Add" : "Edit Quick Add")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -77,7 +77,7 @@ struct QuickMealEditor: View {
         }
         .environment(\.timeZone, viewModel.quickMealCalendar.timeZone)
         .environment(\.calendar, viewModel.quickMealCalendar)
-        .tint(HomeyDashboardTheme.warmBrown)
+        .tint(HomeyTheme.primary)
         .interactiveDismissDisabled(isSubmitting)
         .presentationDetents([.medium, .large])
         .onAppear {
@@ -122,10 +122,10 @@ struct QuickMealRows: View {
                     Text("\(entry.mealType.displayName) · Quick Add").font(.caption2)
                     Text(entry.plannedDate).font(.caption2)
                 }
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(10)
-                .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 14))
+                .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.button))
             }
             .disabled(viewModel.isSaving)
         }

@@ -48,7 +48,7 @@ struct HomeMembersView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground
+            HomeyTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             ScrollView {
@@ -126,22 +126,22 @@ struct HomeMembersView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 14) {
                     Text("Members")
                         .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .accessibilityAddTraits(.isHeader)
 
                     if selectedHome != nil && hasLoadedMembers && !homeService.isLoadingMembers {
                         Text(memberCountText)
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
-                            .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                            .background(HomeyTheme.primarySoft, in: Capsule())
                     }
                 }
 
                 Text("Everyone currently connected to this home.")
                     .font(.title3)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer()
@@ -156,7 +156,7 @@ struct HomeMembersView: View {
                         Text("Invite Member")
                     }
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .frame(width: 190)
                 .disabled(homeService.isCreatingInvitation)
                 .accessibilityLabel("Invite Member")
@@ -170,13 +170,13 @@ struct HomeMembersView: View {
                     Text("Back")
                 }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(minHeight: 44)
                 .padding(.horizontal, 16)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
                 .overlay {
                     Capsule()
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -203,7 +203,7 @@ struct HomeMembersView: View {
 
                         if index < members.count - 1 {
                             Divider()
-                                .background(HomeyDashboardTheme.softBorder)
+                                .background(HomeyTheme.borderSubtle)
                                 .padding(.leading, 76)
                         }
                     }
@@ -211,7 +211,7 @@ struct HomeMembersView: View {
             }
         }
         .padding(24)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Members list")
     }
@@ -243,7 +243,7 @@ struct HomeMembersView: View {
 
                         if index < pendingInvitations.count - 1 {
                             Divider()
-                                .background(HomeyDashboardTheme.softBorder)
+                                .background(HomeyTheme.borderSubtle)
                                 .padding(.leading, 58)
                         }
                     }
@@ -251,7 +251,7 @@ struct HomeMembersView: View {
             }
         }
         .padding(24)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Pending invitations")
     }
@@ -260,23 +260,23 @@ struct HomeMembersView: View {
         VStack(alignment: .leading, spacing: 5) {
             Text(title)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text(subtitle)
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
     private func loadingState(title: String, accessibilityLabel: String) -> some View {
         VStack(spacing: 12) {
             ProgressView()
-                .tint(HomeyDashboardTheme.warmBrown)
+                .tint(HomeyTheme.primary)
                 .accessibilityLabel(accessibilityLabel)
 
             Text(title)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .frame(maxWidth: .infinity, minHeight: 160)
     }
@@ -285,15 +285,15 @@ struct HomeMembersView: View {
         VStack(spacing: 10) {
             Image(systemName: "person.2")
                 .font(.system(size: 30, weight: .semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
 
             Text("No Members Found")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text("This home does not have any visible members yet.")
                 .font(.body)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, minHeight: 220)
@@ -303,7 +303,7 @@ struct HomeMembersView: View {
     private var subtleEmptyInvitationState: some View {
         Text("No pending invitations.")
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
             .frame(maxWidth: .infinity, minHeight: 92, alignment: .center)
             .accessibilityLabel("No pending invitations")
     }
@@ -330,15 +330,15 @@ struct HomeMembersView: View {
         VStack(spacing: 14) {
             Image(systemName: "exclamationmark.circle.fill")
                 .font(.system(size: 30, weight: .semibold))
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
 
             Text(title)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text(message)
                 .font(.body)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .multilineTextAlignment(.center)
 
             Button {
@@ -353,7 +353,7 @@ struct HomeMembersView: View {
                     Text("Try Again")
                 }
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .disabled(isLoading)
             .accessibilityLabel("Try Again")
             .frame(maxWidth: 260)
@@ -366,15 +366,15 @@ struct HomeMembersView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Unable to Load Members")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text("Please choose a Home and try again.")
                 .font(.body)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .padding(28)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     // MARK: - Loading
@@ -431,23 +431,23 @@ struct HomeMemberRow: View {
                 HStack(spacing: 8) {
                     Text(member.displayName)
                         .font(.headline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(1)
 
                     if member.isCurrentUser {
                         Text("You")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                             .padding(.horizontal, 9)
                             .padding(.vertical, 4)
-                            .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                            .background(HomeyTheme.primarySoft, in: Capsule())
                             .accessibilityLabel("You")
                     }
                 }
 
                 Text(member.email ?? "Email unavailable")
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .lineLimit(1)
             }
 
@@ -484,11 +484,11 @@ struct MemberAvatarView: View {
     private var avatarColor: Color {
         switch member.role {
         case .owner:
-            return HomeyDashboardTheme.warmBrown
+            return HomeyTheme.primary
         case .admin:
-            return HomeyDashboardTheme.sageAccent
+            return HomeyTheme.success
         case .member:
-            return HomeyDashboardTheme.orangeAccent
+            return HomeyTheme.peach
         }
     }
 }
@@ -514,12 +514,12 @@ struct DashboardMemberAvatarStack: View {
             if remainingCount > 0 {
                 Text("+\(remainingCount)")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .frame(width: avatarSize, height: avatarSize)
-                    .background(HomeyDashboardTheme.selectedSidebarBackground, in: Circle())
+                    .background(HomeyTheme.primarySoft, in: Circle())
                     .overlay {
                         Circle()
-                            .stroke(HomeyDashboardTheme.cardBackground, lineWidth: 3)
+                            .stroke(HomeyTheme.surfacePrimary, lineWidth: 3)
                     }
                     .accessibilityLabel("\(remainingCount) more members")
             }
@@ -538,11 +538,11 @@ private struct PendingInvitationRow: View {
         HStack(alignment: .center, spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(HomeyDashboardTheme.selectedSidebarBackground)
+                    .fill(HomeyTheme.primarySoft)
 
                 Image(systemName: "envelope.badge")
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
             }
             .frame(width: 44, height: 44)
             .accessibilityHidden(true)
@@ -550,12 +550,12 @@ private struct PendingInvitationRow: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text(invitation.email)
                     .font(.headline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(1)
 
                 Text("\(invitation.formattedRole) · \(invitation.invitedDateText)")
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .lineLimit(1)
             }
 
@@ -563,10 +563,10 @@ private struct PendingInvitationRow: View {
 
             Text(invitation.formattedStatus)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                .background(HomeyTheme.primarySoft, in: Capsule())
                 .accessibilityLabel("Status: \(invitation.formattedStatus)")
 
             if canCancel {
@@ -574,13 +574,13 @@ private struct PendingInvitationRow: View {
                     if isCancelling {
                         ProgressView()
                             .controlSize(.small)
-                            .tint(HomeyDashboardTheme.destructiveRed)
+                            .tint(HomeyTheme.danger)
                     } else {
                         Text("Cancel")
                     }
                 }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
                 .frame(minWidth: 70, minHeight: 44)
                 .disabled(isCancelling)
                 .buttonStyle(.plain)
@@ -620,7 +620,7 @@ private struct InviteMemberSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground
+                HomeyTheme.backgroundPrimary
                     .ignoresSafeArea()
 
                 ScrollView {
@@ -628,11 +628,11 @@ private struct InviteMemberSheet: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Invite Member")
                                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                                .foregroundStyle(HomeyTheme.textPrimary)
 
                             Text("Invite someone to join this home.")
                                 .font(.title3)
-                                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                .foregroundStyle(HomeyTheme.textSecondary)
                         }
 
                         VStack(alignment: .leading, spacing: 20) {
@@ -641,7 +641,7 @@ private struct InviteMemberSheet: View {
 
                                 HStack(spacing: 12) {
                                     Image(systemName: "envelope")
-                                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                                        .foregroundStyle(HomeyTheme.textSecondary)
 
                                     TextField("Email Address", text: $email)
                                         .textInputAutocapitalization(.never)
@@ -649,17 +649,17 @@ private struct InviteMemberSheet: View {
                                         .keyboardType(.emailAddress)
                                         .textContentType(.emailAddress)
                                         .font(.body.weight(.medium))
-                                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                                        .foregroundStyle(HomeyTheme.textPrimary)
                                         .onChange(of: email) { _, newValue in
                                             validationMessage = validationMessage(for: newValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())
                                         }
                                 }
                                 .padding(.horizontal, 16)
                                 .frame(minHeight: 56)
-                                .background(HomeyDashboardTheme.appBackground.opacity(0.62), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                .background(HomeyTheme.backgroundPrimary.opacity(0.62), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                                 .overlay {
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                                 }
                                 .accessibilityLabel("Email Address")
                             }
@@ -697,12 +697,12 @@ private struct InviteMemberSheet: View {
                                     Text("Create Invitation")
                                 }
                             }
-                            .buttonStyle(DashboardPrimaryButtonStyle())
+                            .buttonStyle(HomeyPrimaryButtonStyle())
                             .disabled(!canCreate)
                             .accessibilityLabel("Create Invitation")
                         }
                         .padding(28)
-                        .dashboardCard(cornerRadius: 30)
+                        .dashboardCard(cornerRadius: HomeyRadius.page)
                     }
                     .padding(34)
                     .frame(maxWidth: 620, alignment: .leading)
@@ -805,11 +805,11 @@ private struct RoleBadge: View {
     }
 
     private var foregroundColor: Color {
-        role == .owner ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.secondaryText
+        role == .owner ? HomeyTheme.primary : HomeyTheme.textSecondary
     }
 
     private var backgroundColor: Color {
-        role == .owner ? HomeyDashboardTheme.selectedSidebarBackground : HomeyDashboardTheme.appBackground.opacity(0.72)
+        role == .owner ? HomeyTheme.primarySoft : HomeyTheme.backgroundPrimary.opacity(0.72)
     }
 }
 
@@ -819,17 +819,17 @@ private struct MembersStatusBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                .foregroundStyle(HomeyTheme.success)
                 .accessibilityHidden(true)
 
             Text(message)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.sageAccent.opacity(0.14), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.success.opacity(0.14), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .accessibilityLabel(message)
     }
 }
@@ -840,17 +840,17 @@ private struct MembersErrorBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "exclamationmark.circle.fill")
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
                 .accessibilityHidden(true)
 
             Text(message)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(HomeyDashboardTheme.destructiveRed.opacity(0.10), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.danger.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .accessibilityLabel(message)
     }
 }
@@ -859,18 +859,18 @@ private func settingsLabel(_ title: String, supportingText: String) -> some View
     VStack(alignment: .leading, spacing: 4) {
         Text(title)
             .font(.headline.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.primaryText)
+            .foregroundStyle(HomeyTheme.textPrimary)
 
         Text(supportingText)
             .font(.subheadline)
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
     }
 }
 
 #Preview("Home Members Row") {
     HomeMemberRow(member: HomeMembersPreviewData.members[0])
         .padding()
-        .background(HomeyDashboardTheme.appBackground)
+        .background(HomeyTheme.backgroundPrimary)
 }
 
 #Preview("Pending Invitation Row") {
@@ -881,7 +881,7 @@ private func settingsLabel(_ title: String, supportingText: String) -> some View
         onCancel: {}
     )
     .padding()
-    .background(HomeyDashboardTheme.appBackground)
+    .background(HomeyTheme.backgroundPrimary)
 }
 
 #Preview("Home Members List") {
@@ -895,7 +895,7 @@ private func settingsLabel(_ title: String, supportingText: String) -> some View
                 }
             }
             .padding(24)
-            .dashboardCard(cornerRadius: 30)
+            .dashboardCard(cornerRadius: HomeyRadius.page)
 
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(HomeMembersPreviewData.invitations) { invitation in
@@ -910,17 +910,17 @@ private func settingsLabel(_ title: String, supportingText: String) -> some View
                 }
             }
             .padding(24)
-            .dashboardCard(cornerRadius: 30)
+            .dashboardCard(cornerRadius: HomeyRadius.page)
         }
         .padding(34)
     }
-    .background(HomeyDashboardTheme.appBackground)
+    .background(HomeyTheme.backgroundPrimary)
 }
 
 #Preview("Dashboard Member Avatars") {
     DashboardMemberAvatarStack(members: HomeMembersPreviewData.members, avatarSize: 44)
         .padding()
-        .background(HomeyDashboardTheme.cardBackground)
+        .background(HomeyTheme.surfacePrimary)
 }
 
 private enum HomeMembersPreviewData {

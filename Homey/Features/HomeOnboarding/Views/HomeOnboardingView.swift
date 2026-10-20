@@ -79,7 +79,7 @@ struct HomeOnboardingView: View {
             } label: {
                 Text("Create Home")
             }
-            .buttonStyle(AuthenticationPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
         }
     }
 }

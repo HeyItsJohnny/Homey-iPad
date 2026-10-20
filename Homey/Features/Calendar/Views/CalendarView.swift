@@ -28,7 +28,7 @@ struct CalendarView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground
+            HomeyTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             ScrollView {
@@ -262,7 +262,7 @@ struct CalendarView: View {
 
             Text(visibleRangeTitle)
                 .font(.system(size: 34, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.82)
                 .accessibilityAddTraits(.isHeader)
@@ -289,13 +289,13 @@ struct CalendarView: View {
             } label: {
                 Text("Today")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .frame(minHeight: 44)
                     .padding(.horizontal, 16)
-                    .background(HomeyDashboardTheme.cardBackground, in: Capsule())
+                    .background(HomeyTheme.surfacePrimary, in: Capsule())
                     .overlay {
                         Capsule()
-                            .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                            .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                     }
             }
             .buttonStyle(.plain)
@@ -312,7 +312,7 @@ struct CalendarView: View {
                 Text("Add Event")
             }
         }
-        .buttonStyle(DashboardPrimaryButtonStyle())
+        .buttonStyle(HomeyPrimaryButtonStyle())
         .frame(width: 150)
         .disabled(selectedHome == nil)
         .accessibilityLabel("Add Event")
@@ -392,10 +392,10 @@ struct CalendarView: View {
         .overlay(alignment: .top) {
             if viewModel.isLoading || resolvingChoreCalendarEventId != nil {
                 ProgressView()
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
                     .padding(12)
-                    .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-                    .shadow(color: HomeyDashboardTheme.primaryText.opacity(0.10), radius: 10, x: 0, y: 6)
+                    .background(HomeyTheme.surfacePrimary, in: Capsule())
+                    .shadow(color: HomeyTheme.textPrimary.opacity(0.10), radius: 10, x: 0, y: 6)
                     .accessibilityLabel(resolvingChoreCalendarEventId == nil ? "Loading calendar events" : "Opening chore")
             }
         }
@@ -425,16 +425,16 @@ struct CalendarView: View {
                 } label: {
                     Text(filter.title)
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(viewModel.eventFilter == filter ? Color.white : HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(viewModel.eventFilter == filter ? Color.white : HomeyTheme.textPrimary)
                         .padding(.horizontal, 16)
                         .frame(minHeight: 38)
                         .background(
-                            viewModel.eventFilter == filter ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.cardBackground,
+                            viewModel.eventFilter == filter ? HomeyTheme.primary : HomeyTheme.surfacePrimary,
                             in: Capsule()
                         )
                         .overlay {
                             Capsule()
-                                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                         }
                 }
                 .buttonStyle(.plain)
@@ -500,48 +500,48 @@ struct CalendarView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Choose a Home")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text("Select a Home before viewing its shared calendar.")
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .padding(24)
         .frame(maxWidth: .infinity, minHeight: 180, alignment: .leading)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private func errorCard(message: String) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Unable to Load Calendar")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text(message)
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
 
             Button("Try Again") {
                 Task { await viewModel.reload() }
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .frame(width: 140)
         }
         .padding(24)
         .frame(maxWidth: .infinity, minHeight: 200, alignment: .leading)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private func iconButton(systemImage: String, label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemImage)
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 44, height: 44)
-                .background(HomeyDashboardTheme.cardBackground, in: Circle())
+                .background(HomeyTheme.surfacePrimary, in: Circle())
                 .overlay {
                     Circle()
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
         }
         .buttonStyle(.plain)
@@ -776,7 +776,7 @@ private struct CalendarMonthGrid: View {
                 ForEach(weekdaySymbols, id: \.self) { symbol in
                     Text(symbol.uppercased())
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .frame(maxWidth: .infinity)
                         .accessibilityHidden(true)
                 }
@@ -800,7 +800,7 @@ private struct CalendarMonthGrid: View {
             CalendarLegendView()
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 26)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -853,7 +853,7 @@ private struct CalendarMonthDayCell: View {
                     Button(action: onShowMore) {
                         Text("+\(events.count - visibleEventLimit) more")
                             .font(.caption2.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                             .lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
@@ -866,12 +866,12 @@ private struct CalendarMonthDayCell: View {
         }
         .padding(9)
         .frame(maxWidth: .infinity, minHeight: 132, maxHeight: 132, alignment: .topLeading)
-        .background(cellBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(cellBackground, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
                 .stroke(cellBorder, lineWidth: isSelected ? 1.5 : 1)
         }
-        .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .onTapGesture(perform: onSelectDay)
         .accessibilityLabel(accessibilityLabel)
     }
@@ -886,19 +886,19 @@ private struct CalendarMonthDayCell: View {
         }
 
         if isToday {
-            return HomeyDashboardTheme.warmBrown
+            return HomeyTheme.primary
         }
 
-        return isCurrentMonth ? HomeyDashboardTheme.primaryText : HomeyDashboardTheme.secondaryText.opacity(0.55)
+        return isCurrentMonth ? HomeyTheme.textPrimary : HomeyTheme.textSecondary.opacity(0.55)
     }
 
     private var dayNumberBackground: Color {
         if isSelected {
-            return HomeyDashboardTheme.warmBrown
+            return HomeyTheme.primary
         }
 
         if isToday {
-            return HomeyDashboardTheme.selectedSidebarBackground
+            return HomeyTheme.primarySoft
         }
 
         return .clear
@@ -906,14 +906,14 @@ private struct CalendarMonthDayCell: View {
 
     private var cellBackground: Color {
         if isSelected {
-            return HomeyDashboardTheme.selectedSidebarBackground.opacity(0.9)
+            return HomeyTheme.primarySoft.opacity(0.9)
         }
 
-        return HomeyDashboardTheme.cardBackground.opacity(isCurrentMonth ? 0.72 : 0.36)
+        return HomeyTheme.surfacePrimary.opacity(isCurrentMonth ? 0.72 : 0.36)
     }
 
     private var cellBorder: Color {
-        isSelected ? HomeyDashboardTheme.warmBrown.opacity(0.45) : HomeyDashboardTheme.softBorder
+        isSelected ? HomeyTheme.primary.opacity(0.45) : HomeyTheme.borderSubtle
     }
 
     private var accessibilityLabel: String {
@@ -954,7 +954,7 @@ private struct CalendarWeekGrid: View {
             }
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 26)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
         .accessibilityLabel("Weekly calendar")
     }
 }
@@ -984,23 +984,23 @@ private struct CalendarWeekDayColumn: View {
                                 .font(.caption2.weight(.bold))
                                 .padding(.horizontal, 5)
                                 .padding(.vertical, 2)
-                                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-                                .overlay { Capsule().stroke(HomeyDashboardTheme.warmBrown.opacity(0.35), lineWidth: 1) }
+                                .background(HomeyTheme.surfacePrimary, in: Capsule())
+                                .overlay { Capsule().stroke(HomeyTheme.primary.opacity(0.35), lineWidth: 1) }
                         }
                     }
 
                     Text(dayNumber)
                         .font(.headline.weight(.bold))
                 }
-                .foregroundStyle(isSelected || isToday ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.primaryText)
+                .foregroundStyle(isSelected || isToday ? HomeyTheme.primary : HomeyTheme.textPrimary)
                 .frame(maxWidth: .infinity, minHeight: 48)
                 .background(
-                    isSelected || isToday ? HomeyDashboardTheme.selectedSidebarBackground : HomeyDashboardTheme.appBackground.opacity(0.48),
-                    in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    isSelected || isToday ? HomeyTheme.primarySoft : HomeyTheme.backgroundPrimary.opacity(0.48),
+                    in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
                 )
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(isSelected || isToday ? HomeyDashboardTheme.warmBrown.opacity(0.42) : Color.clear, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                        .stroke(isSelected || isToday ? HomeyTheme.primary.opacity(0.42) : Color.clear, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -1010,7 +1010,7 @@ private struct CalendarWeekDayColumn: View {
                 if events.isEmpty {
                     Text("No Events")
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText.opacity(0.72))
+                        .foregroundStyle(HomeyTheme.textSecondary.opacity(0.72))
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, minHeight: 32, alignment: .leading)
                         .accessibilityLabel("No Events")
@@ -1035,14 +1035,14 @@ private struct CalendarWeekDayColumn: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 7)
             .frame(maxWidth: .infinity, minHeight: 190, alignment: .topLeading)
-            .background(HomeyDashboardTheme.appBackground.opacity(0.42), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(HomeyTheme.backgroundPrimary.opacity(0.42), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         }
         .padding(10)
         .frame(maxHeight: .infinity, alignment: .top)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay { RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(HomeyDashboardTheme.softBorder.opacity(0.82), lineWidth: 1) }
-        .shadow(color: HomeyDashboardTheme.shadow.opacity(0.08), radius: 7, x: 0, y: 4)
-        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous).stroke(HomeyTheme.borderSubtle.opacity(0.82), lineWidth: 1) }
+        .shadow(color: HomeyTheme.shadow.opacity(0.08), radius: 7, x: 0, y: 4)
+        .contentShape(RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .onTapGesture(perform: onSelect)
     }
 
@@ -1081,14 +1081,14 @@ private struct CalendarEventPill: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(style == .month ? .caption2.weight(.bold) : .caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(style == .month ? 1 : 2)
                         .fixedSize(horizontal: false, vertical: true)
 
                     if style == .week {
                         Text(subtitle)
                             .font(.caption2.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                             .lineLimit(1)
                     }
                 }
@@ -1103,7 +1103,7 @@ private struct CalendarEventPill: View {
                             imageURL: member.avatarURL,
                             initials: member.initials,
                             size: 22,
-                            accentColor: HomeyDashboardTheme.warmBrown,
+                            accentColor: HomeyTheme.primary,
                             borderWidth: 1.5,
                             showsShadow: false,
                             accessibilityLabel: "Assigned to \(member.displayName)"
@@ -1190,11 +1190,11 @@ private struct CalendarDayDetailsView: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(title)
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
 
                     Text(countText)
                         .font(.subheadline)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
 
                 Spacer()
@@ -1219,7 +1219,7 @@ private struct CalendarDayDetailsView: View {
 
                         if index < events.count - 1 {
                             Divider()
-                                .background(HomeyDashboardTheme.softBorder)
+                                .background(HomeyTheme.borderSubtle)
                                 .padding(.leading, 18)
                         }
                     }
@@ -1227,30 +1227,30 @@ private struct CalendarDayDetailsView: View {
             }
         }
         .padding(24)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 14) {
             ZStack {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(HomeyDashboardTheme.selectedSidebarBackground)
+                RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                    .fill(HomeyTheme.primarySoft)
                     .frame(width: 56, height: 56)
 
                 Image(systemName: "calendar.badge.plus")
                     .font(.title3.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
             }
             .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 5) {
                 Text("No Events")
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
 
                 Text("Nothing is scheduled for this day.")
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Button {
@@ -1261,7 +1261,7 @@ private struct CalendarDayDetailsView: View {
                     Text("Add Event")
                 }
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .frame(width: 150)
         }
         .frame(maxWidth: .infinity, minHeight: 180, alignment: .leading)
@@ -1272,9 +1272,9 @@ private struct CalendarDayDetailsView: View {
 private struct CalendarLegendView: View {
     var body: some View {
         HStack(spacing: 14) {
-            legendItem(title: "Meals", color: HomeyDashboardTheme.sageAccent)
-            legendItem(title: "Chores", color: HomeyDashboardTheme.softRed)
-            legendItem(title: "Events", color: HomeyDashboardTheme.lavenderAccent)
+            legendItem(title: "Meals", color: HomeyTheme.success)
+            legendItem(title: "Chores", color: HomeyTheme.danger)
+            legendItem(title: "Events", color: HomeyTheme.lavender)
 
             Spacer(minLength: 0)
         }
@@ -1292,7 +1292,7 @@ private struct CalendarLegendView: View {
 
             Text(title)
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 }
@@ -1313,27 +1313,27 @@ private struct AgendaEventRow: View {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(event.title)
                         .font(.headline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .lineLimit(2)
 
                     if event.isAllDay {
                         Text("All Day")
                             .font(.caption.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                            .background(HomeyTheme.primarySoft, in: Capsule())
                     }
                 }
 
                 Text(timeText)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
 
                 if let location = event.location?.trimmingCharacters(in: .whitespacesAndNewlines), !location.isEmpty {
                     Label(location, systemImage: "mappin.and.ellipse")
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(1)
                 }
 
@@ -1344,7 +1344,7 @@ private struct AgendaEventRow: View {
                                 imageURL: member.avatarURL,
                                 initials: member.initials,
                                 size: 30,
-                                accentColor: HomeyDashboardTheme.warmBrown,
+                                accentColor: HomeyTheme.primary,
                                 borderWidth: 2,
                                 showsShadow: false,
                                 accessibilityLabel: "Assigned to \(member.displayName)"
@@ -1377,21 +1377,21 @@ private struct CalendarStatusBanner: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                .foregroundStyle(HomeyTheme.success)
                 .accessibilityHidden(true)
 
             Text(message)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(HomeyDashboardTheme.sageAccent.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(HomeyTheme.success.opacity(0.12), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(HomeyDashboardTheme.sageAccent.opacity(0.20), lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous)
+                .stroke(HomeyTheme.success.opacity(0.20), lineWidth: 1)
         }
         .accessibilityLabel(message)
     }

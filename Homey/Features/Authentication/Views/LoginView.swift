@@ -109,7 +109,7 @@ struct LoginView: View {
 
             Button("Forgot Password", action: onForgotPassword)
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(AuthenticationTheme.primaryBlue)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(maxWidth: .infinity, alignment: .trailing)
 
             if let errorMessage = authenticationService.errorMessage {
@@ -128,7 +128,7 @@ struct LoginView: View {
                     Text("Sign In")
                 }
             }
-            .buttonStyle(AuthenticationPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .disabled(authenticationService.isLoading)
 
             AuthenticationDividerWithText(text: "or")

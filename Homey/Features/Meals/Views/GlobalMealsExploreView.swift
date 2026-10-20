@@ -87,7 +87,7 @@ struct GlobalMealsExploreView: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var trendingSection: some View {
@@ -189,7 +189,7 @@ struct GlobalMealsExploreView: View {
                     HStack {
                         Spacer()
                         ProgressView()
-                            .tint(HomeyDashboardTheme.warmBrown)
+                            .tint(HomeyTheme.primary)
                         Spacer()
                     }
                     .padding(.vertical, 8)
@@ -200,7 +200,7 @@ struct GlobalMealsExploreView: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var browseHeader: some View {
@@ -222,10 +222,10 @@ struct GlobalMealsExploreView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Browse All Recipes")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             Text("Community recipes you can save to this Home.")
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
@@ -251,11 +251,11 @@ struct GlobalMealsExploreView: View {
                         .font(.caption.weight(.bold))
                 }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(.horizontal, 12)
                 .frame(minHeight: 38)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-                .overlay { Capsule().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
+                .overlay { Capsule().stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
             }
             .buttonStyle(.plain)
 
@@ -282,10 +282,10 @@ struct GlobalMealsExploreView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 Text(subtitle)
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer()
@@ -293,7 +293,7 @@ struct GlobalMealsExploreView: View {
             if let actionTitle {
                 Button(actionTitle, action: action)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .buttonStyle(.plain)
             }
         }
@@ -326,7 +326,7 @@ struct GlobalRecipesLibraryView: View {
 
     var body: some View {
         ZStack {
-            HomeyDashboardTheme.appBackground
+            HomeyTheme.backgroundPrimary
                 .ignoresSafeArea()
 
             ScrollView {
@@ -372,12 +372,12 @@ struct GlobalRecipesLibraryView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Community Recipes")
                 .font(.system(size: 34, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .accessibilityAddTraits(.isHeader)
 
             Text("Discover recipes shared across Homey.")
                 .font(.title3)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
@@ -402,7 +402,7 @@ struct GlobalRecipesLibraryView: View {
     private var searchField: some View {
         HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .accessibilityHidden(true)
 
             TextField("Search community recipes...", text: $viewModel.searchText)
@@ -415,20 +415,20 @@ struct GlobalRecipesLibraryView: View {
                     viewModel.searchText = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear search")
             }
         }
         .font(.body.weight(.medium))
-        .foregroundStyle(HomeyDashboardTheme.primaryText)
+        .foregroundStyle(HomeyTheme.textPrimary)
         .padding(.horizontal, 18)
         .frame(minHeight: 56)
-        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
     }
 
@@ -462,11 +462,11 @@ struct GlobalRecipesLibraryView: View {
         } label: {
             Label("Filters", systemImage: "line.3.horizontal.decrease.circle")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
                 .padding(.horizontal, 14)
                 .frame(minHeight: 42)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-                .overlay { Capsule().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
+                .overlay { Capsule().stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Filter community recipes")
@@ -493,11 +493,11 @@ struct GlobalRecipesLibraryView: View {
                     .font(.caption.weight(.bold))
             }
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.primaryText)
+            .foregroundStyle(HomeyTheme.textPrimary)
             .padding(.horizontal, 14)
             .frame(minHeight: 42)
-            .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-            .overlay { Capsule().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+            .background(HomeyTheme.surfacePrimary, in: Capsule())
+            .overlay { Capsule().stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Sort community recipes")
@@ -568,7 +568,7 @@ struct GlobalRecipesLibraryView: View {
                 HStack {
                     Spacer()
                     ProgressView()
-                        .tint(HomeyDashboardTheme.warmBrown)
+                        .tint(HomeyTheme.primary)
                     Spacer()
                 }
                 .padding(.vertical, 8)
@@ -664,17 +664,17 @@ private struct GlobalMealsBrowseLayoutToggle: View {
                 } label: {
                     Image(systemName: layout.systemImage)
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(selection == layout ? HomeyDashboardTheme.warmBrown : HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(selection == layout ? HomeyTheme.primary : HomeyTheme.textSecondary)
                         .frame(width: 36, height: 34)
-                        .background(selection == layout ? HomeyDashboardTheme.selectedSidebarBackground : .clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .background(selection == layout ? HomeyTheme.primarySoft : .clear, in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(layout.accessibilityLabel)
             }
         }
         .padding(3)
-        .background(HomeyDashboardTheme.cardBackground, in: Capsule())
-        .overlay { Capsule().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1) }
+        .background(HomeyTheme.surfacePrimary, in: Capsule())
+        .overlay { Capsule().stroke(HomeyTheme.borderSubtle, lineWidth: 1) }
     }
 }
 
@@ -696,7 +696,7 @@ private struct GlobalMealCard: View {
             ZStack(alignment: .topLeading) {
                 GlobalMealPhotoView(path: meal.primaryPhotoPath)
                     .frame(height: style == .compact ? 126 : 150)
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
 
                 if meal.isRecentlyPublished {
                     Text("New")
@@ -704,7 +704,7 @@ private struct GlobalMealCard: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 9)
                         .padding(.vertical, 5)
-                        .background(HomeyDashboardTheme.sageAccent, in: Capsule())
+                        .background(HomeyTheme.success, in: Capsule())
                         .padding(10)
                 }
             }
@@ -712,19 +712,19 @@ private struct GlobalMealCard: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text(meal.name)
                     .font(style == .compact ? .subheadline.weight(.bold) : .headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 10) {
                     if style == .standard, meal.saveCount > 0 {
                         Label("\(meal.saveCount) saves", systemImage: "bookmark.fill")
-                            .foregroundStyle(HomeyDashboardTheme.orangeAccent)
+                            .foregroundStyle(HomeyTheme.peach)
                     }
 
                     if let timeText = primaryTimeText {
                         Label(timeText, systemImage: "clock")
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                     }
                 }
                 .font(.caption.weight(.semibold))
@@ -732,7 +732,7 @@ private struct GlobalMealCard: View {
                 if let cuisine = meal.cuisine, !cuisine.isEmpty {
                     Text(cuisine)
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .lineLimit(1)
                 }
 
@@ -740,10 +740,10 @@ private struct GlobalMealCard: View {
                     ForEach(Array(meal.mealTypeValues.prefix(style == .compact ? 1 : 2)), id: \.self) { type in
                         Text(type.displayName)
                             .font(.caption2.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 5)
-                            .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                            .background(HomeyTheme.primarySoft, in: Capsule())
                     }
                 }
             }
@@ -751,8 +751,8 @@ private struct GlobalMealCard: View {
             addButton
         }
         .padding(14)
-        .dashboardCard(cornerRadius: 26)
-        .contentShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .dashboardCard(cornerRadius: HomeyRadius.page)
+        .contentShape(RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous))
         .onTapGesture(perform: onSelect)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
@@ -769,7 +769,7 @@ private struct GlobalMealCard: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
-            .tint(HomeyDashboardTheme.warmBrown)
+            .tint(HomeyTheme.primary)
             .accessibilityLabel("Add \(meal.name) to Home")
         case .adding:
             Button {} label: {
@@ -781,7 +781,7 @@ private struct GlobalMealCard: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(DashboardPrimaryButtonStyle())
+            .buttonStyle(HomeyPrimaryButtonStyle())
             .controlSize(.small)
             .disabled(true)
         case .added(let homeMealId):
@@ -793,7 +793,7 @@ private struct GlobalMealCard: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
-            .tint(HomeyDashboardTheme.sageAccent)
+            .tint(HomeyTheme.success)
             .accessibilityLabel("Open \(meal.name) in Your Recipes")
         }
     }
@@ -828,43 +828,43 @@ private struct GlobalMealListRow: View {
         HStack(alignment: .center, spacing: 14) {
             GlobalMealPhotoView(path: meal.primaryPhotoPath)
                 .frame(width: 96, height: 78)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
 
             VStack(alignment: .leading, spacing: 7) {
                 Text(meal.name)
                     .font(.headline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
 
                 HStack(spacing: 8) {
                     ForEach(Array(meal.mealTypeValues.prefix(2)), id: \.self) { type in
                         Text(type.displayName)
                             .font(.caption2.weight(.bold))
-                            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                            .foregroundStyle(HomeyTheme.primary)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(HomeyDashboardTheme.selectedSidebarBackground, in: Capsule())
+                            .background(HomeyTheme.primarySoft, in: Capsule())
                     }
                     if let cuisine = meal.cuisine, !cuisine.isEmpty {
                         Text(cuisine)
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                     }
                     if let totalTime = meal.resolvedTotalTimeMinutes {
                         Label("\(totalTime) min", systemImage: "clock")
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                     }
                 }
 
                 HStack(spacing: 10) {
                     if meal.saveCount > 0 {
                         Label("\(meal.saveCount) saves", systemImage: "bookmark.fill")
-                            .foregroundStyle(HomeyDashboardTheme.orangeAccent)
+                            .foregroundStyle(HomeyTheme.peach)
                     }
                     if let sourceName = meal.sourceName, !sourceName.isEmpty {
                         Text(sourceName)
-                            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(HomeyTheme.textSecondary)
                     }
                 }
                 .font(.caption.weight(.semibold))
@@ -876,8 +876,8 @@ private struct GlobalMealListRow: View {
                 .frame(width: 150)
         }
         .padding(12)
-        .dashboardCard(cornerRadius: 22)
-        .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .dashboardCard(cornerRadius: HomeyRadius.card)
+        .contentShape(RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .onTapGesture(perform: onSelect)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(meal.name)
@@ -894,7 +894,7 @@ private struct GlobalMealListRow: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
-            .tint(HomeyDashboardTheme.warmBrown)
+            .tint(HomeyTheme.primary)
         case .adding:
             Button {} label: {
                 ProgressView()
@@ -913,7 +913,7 @@ private struct GlobalMealListRow: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
-            .tint(HomeyDashboardTheme.sageAccent)
+            .tint(HomeyTheme.success)
         }
     }
 }
@@ -931,7 +931,7 @@ private struct GlobalMealDetailView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                HomeyDashboardTheme.appBackground.ignoresSafeArea()
+                HomeyTheme.backgroundPrimary.ignoresSafeArea()
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
@@ -1007,18 +1007,18 @@ private struct GlobalMealDetailView: View {
         return VStack(alignment: .leading, spacing: 14) {
             GlobalMealPhotoView(path: displayedMeal.primaryPhotoPath)
                 .frame(height: 280)
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: HomeyRadius.page, style: .continuous))
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(displayedMeal.name)
                     .font(.system(size: 30, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
 
                 if let description = displayedMeal.description, !description.isEmpty {
                     Text(description)
                         .font(.body)
-                        .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        .foregroundStyle(HomeyTheme.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
@@ -1027,7 +1027,7 @@ private struct GlobalMealDetailView: View {
             }
             .padding(20)
         }
-        .dashboardCard(cornerRadius: 28)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private func detailContent(_ detail: GlobalMealDetail) -> some View {
@@ -1037,7 +1037,7 @@ private struct GlobalMealDetailView: View {
                     ForEach(detail.ingredients) { ingredient in
                         Text(ingredient.displayText)
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(HomeyDashboardTheme.primaryText)
+                            .foregroundStyle(HomeyTheme.textPrimary)
                     }
                 }
             }
@@ -1050,11 +1050,11 @@ private struct GlobalMealDetailView: View {
                                 .font(.caption.weight(.bold))
                                 .foregroundStyle(.white)
                                 .frame(width: 26, height: 26)
-                                .background(HomeyDashboardTheme.warmBrown, in: Circle())
+                                .background(HomeyTheme.primary, in: Circle())
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(step.stepText)
                                     .font(.subheadline)
-                                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                                    .foregroundStyle(HomeyTheme.textPrimary)
                             }
                         }
                     }
@@ -1065,11 +1065,11 @@ private struct GlobalMealDetailView: View {
                 if let sourceURL = meal.sourceURL, let url = URL(string: sourceURL) {
                     Link(meal.sourceName ?? sourceURL, destination: url)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                 } else if let sourceName = meal.sourceName {
                     Text(sourceName)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                 }
 
                 detailRow("Saved", value: "\(meal.saveCount) \(meal.saveCount == 1 ? "Home" : "Homes")", systemImage: "house")
@@ -1108,7 +1108,7 @@ private struct GlobalMealDetailView: View {
                     Label("Add to Home", systemImage: "plus")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
             case .adding:
                 Button {} label: {
                     HStack(spacing: 8) {
@@ -1119,7 +1119,7 @@ private struct GlobalMealDetailView: View {
                     }
                     .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .disabled(true)
             case .added(let homeMealId):
                 Button {
@@ -1129,7 +1129,7 @@ private struct GlobalMealDetailView: View {
                     Label("Open Recipe", systemImage: "checkmark")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
             }
         }
     }
@@ -1161,11 +1161,11 @@ private struct GlobalMealDetailView: View {
     private func detailPill(_ text: String, systemImage: String) -> some View {
         Label(text, systemImage: systemImage)
             .font(.caption.weight(.bold))
-            .foregroundStyle(HomeyDashboardTheme.primaryText)
+            .foregroundStyle(HomeyTheme.textPrimary)
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.control, style: .continuous))
     }
 
     private func detailRow(_ title: String, value: String, systemImage: String) -> some View {
@@ -1173,14 +1173,14 @@ private struct GlobalMealDetailView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                 Text(value)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
             }
         } icon: {
             Image(systemName: systemImage)
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
         }
     }
 }
@@ -1199,7 +1199,7 @@ private struct GlobalMealPhotoView: View {
                     case .failure:
                         fallback.onAppear { didFail = true }
                     case .empty:
-                        ProgressView().tint(HomeyDashboardTheme.warmBrown)
+                        ProgressView().tint(HomeyTheme.primary)
                     @unknown default:
                         fallback
                     }
@@ -1227,13 +1227,13 @@ private struct GlobalMealPhotoView: View {
     private var fallback: some View {
         ZStack {
             LinearGradient(
-                colors: [HomeyDashboardTheme.warmBeige.opacity(0.82), HomeyDashboardTheme.selectedSidebarBackground],
+                colors: [HomeyTheme.borderSubtle.opacity(0.82), HomeyTheme.primarySoft],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             Image(systemName: "fork.knife")
                 .font(.system(size: 32, weight: .semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
         }
         .accessibilityHidden(true)
     }
@@ -1300,17 +1300,17 @@ private struct CommunityRecipesIntroCard: View {
         VStack(alignment: .leading, spacing: 14) {
             Image(systemName: "sparkles")
                 .font(.title2.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 48, height: 48)
-                .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
 
             Text("Community Recipes")
                 .font(.title2.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
 
             Text("Discover recipes shared by Homey families around the world.")
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(alignment: .leading, spacing: 8) {
@@ -1319,10 +1319,10 @@ private struct CommunityRecipesIntroCard: View {
                 Label("One tap to add to your Home", systemImage: "plus.circle")
             }
             .font(.caption.weight(.semibold))
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
         }
         .padding(18)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -1335,22 +1335,22 @@ private struct GlobalMealInfoCard: View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: systemImage)
                 .font(.headline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 38, height: 38)
-                .background(HomeyDashboardTheme.selectedSidebarBackground, in: Circle())
+                .background(HomeyTheme.primarySoft, in: Circle())
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 Text(message)
                     .font(.caption)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(16)
-        .dashboardCard(cornerRadius: 22)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
     }
 }
 
@@ -1363,23 +1363,23 @@ private struct GlobalMealMessageCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(HomeyDashboardTheme.selectedSidebarBackground)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .fill(HomeyTheme.primarySoft)
                 .frame(width: 58, height: 58)
                 .overlay {
                     Image(systemName: systemImage)
                         .font(.title2.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                        .foregroundStyle(HomeyTheme.primary)
                 }
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                 Text(message)
                     .font(.subheadline)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -1387,13 +1387,13 @@ private struct GlobalMealMessageCard: View {
                 Button(buttonTitle) {
                     action?()
                 }
-                .buttonStyle(DashboardPrimaryButtonStyle())
+                .buttonStyle(HomeyPrimaryButtonStyle())
                 .frame(width: 190)
             }
         }
         .padding(24)
         .frame(maxWidth: .infinity, minHeight: 210, alignment: .leading)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -1405,22 +1405,22 @@ private struct GlobalMealStatusBanner: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                .foregroundStyle(HomeyTheme.success)
             Text(message)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             Spacer()
             if let homeMealId {
                 Button("View Recipe") {
                     onOpenHomeMeal(homeMealId)
                 }
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .buttonStyle(.plain)
             }
         }
         .padding(14)
-        .dashboardCard(cornerRadius: 18)
+        .dashboardCard(cornerRadius: HomeyRadius.card)
     }
 }
 
@@ -1432,14 +1432,14 @@ private struct GlobalMealDetailSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 14) {
             Text(title)
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             VStack(alignment: .leading, spacing: 10) {
                 content
             }
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .dashboardCard(cornerRadius: 24)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 }
 
@@ -1449,22 +1449,22 @@ private struct GlobalMealSkeletonCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(HomeyDashboardTheme.warmBeige.opacity(0.35))
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .fill(HomeyTheme.borderSubtle.opacity(0.35))
                 .frame(height: imageHeight)
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(HomeyDashboardTheme.warmBeige.opacity(0.35))
+                .fill(HomeyTheme.borderSubtle.opacity(0.35))
                 .frame(height: 18)
             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(HomeyDashboardTheme.warmBeige.opacity(0.24))
+                .fill(HomeyTheme.borderSubtle.opacity(0.24))
                 .frame(width: 120, height: 14)
             RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .fill(HomeyDashboardTheme.warmBeige.opacity(0.28))
+                .fill(HomeyTheme.borderSubtle.opacity(0.28))
                 .frame(height: 36)
         }
         .padding(14)
         .frame(width: width)
-        .dashboardCard(cornerRadius: 26)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
         .redacted(reason: .placeholder)
     }
 }

@@ -500,11 +500,11 @@ struct ChoresHomeHubView: View {
             VStack(alignment: .leading, spacing: 7) {
                 Text("Chores")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                 Text("Today's tasks and chores by family member.")
                     .font(.title3)
-                    .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(HomeyTheme.textSecondary)
             }
 
             Spacer()
@@ -523,13 +523,13 @@ struct ChoresHomeHubView: View {
         } label: {
             Text("Today")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(minHeight: 44)
                 .padding(.horizontal, 16)
-                .background(HomeyDashboardTheme.cardBackground, in: Capsule())
+                .background(HomeyTheme.surfacePrimary, in: Capsule())
                 .overlay {
                     Capsule()
-                        .stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+                        .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                 }
         }
         .buttonStyle(.plain)
@@ -549,7 +549,7 @@ struct ChoresHomeHubView: View {
                     .font(.subheadline.weight(.bold))
                     .lineLimit(1)
             }
-            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+            .foregroundStyle(HomeyTheme.primary)
             .padding(.horizontal, 13)
             .frame(minHeight: 38)
             .accessibilityElement(children: .combine)
@@ -560,11 +560,11 @@ struct ChoresHomeHubView: View {
             }
         }
         .padding(5)
-        .background(HomeyDashboardTheme.cardBackground, in: Capsule())
+        .background(HomeyTheme.surfacePrimary, in: Capsule())
         .overlay {
-            Capsule().stroke(HomeyDashboardTheme.softBorder, lineWidth: 1)
+            Capsule().stroke(HomeyTheme.borderSubtle, lineWidth: 1)
         }
-        .shadow(color: HomeyDashboardTheme.shadow, radius: 10, x: 0, y: 5)
+        .shadow(color: HomeyTheme.shadow, radius: 10, x: 0, y: 5)
     }
 
     private func dateArrow(
@@ -577,9 +577,9 @@ struct ChoresHomeHubView: View {
         } label: {
             Image(systemName: systemImage)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
                 .frame(width: 36, height: 36)
-                .background(HomeyDashboardTheme.warmBrown.opacity(0.09), in: Circle())
+                .background(HomeyTheme.primary.opacity(0.09), in: Circle())
         }
         .buttonStyle(.plain)
         .disabled(viewModel.isLoading)
@@ -601,14 +601,14 @@ struct ChoresHomeHubView: View {
                     Spacer()
                 }
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.destructiveRed)
+                .foregroundStyle(HomeyTheme.danger)
                 .padding(12)
-                .background(HomeyDashboardTheme.destructiveRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(HomeyTheme.danger.opacity(0.08), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
             }
 
             if viewModel.isLoading && members.isEmpty {
                 ProgressView("Loading household work…")
-                    .tint(HomeyDashboardTheme.warmBrown)
+                    .tint(HomeyTheme.primary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if members.isEmpty {
                 emptyHousehold
@@ -628,15 +628,15 @@ struct ChoresHomeHubView: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .dashboardCard(cornerRadius: 30)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
     }
 
     private var summaryBar: some View {
         HStack(spacing: 10) {
-            summaryMetric("Tasks", value: viewModel.allTasks.count, icon: "checklist", color: HomeyDashboardTheme.lavenderAccent)
-            summaryMetric("Chores", value: viewModel.allChores.count, icon: "house.fill", color: HomeyDashboardTheme.orangeAccent)
-            summaryMetric("Completed", value: viewModel.completedCount, icon: "checkmark.circle.fill", color: HomeyDashboardTheme.sageAccent)
-            summaryMetric("Remaining", value: viewModel.remainingCount, icon: "circle.dotted", color: HomeyDashboardTheme.warmBrown)
+            summaryMetric("Tasks", value: viewModel.allTasks.count, icon: "checklist", color: HomeyTheme.lavender)
+            summaryMetric("Chores", value: viewModel.allChores.count, icon: "house.fill", color: HomeyTheme.peach)
+            summaryMetric("Completed", value: viewModel.completedCount, icon: "checkmark.circle.fill", color: HomeyTheme.success)
+            summaryMetric("Remaining", value: viewModel.remainingCount, icon: "circle.dotted", color: HomeyTheme.primary)
         }
     }
 
@@ -646,14 +646,14 @@ struct ChoresHomeHubView: View {
                 .foregroundStyle(color)
             Text("\(value)")
                 .font(.headline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             Text(title)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .padding(.horizontal, 14)
         .frame(maxWidth: .infinity, minHeight: 44)
-        .background(color.opacity(0.10), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+        .background(color.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
     }
 
     @ViewBuilder
@@ -703,7 +703,7 @@ struct ChoresHomeHubView: View {
                         }
                     }
 
-                    Divider().overlay(HomeyDashboardTheme.softBorder)
+                    Divider().overlay(HomeyTheme.borderSubtle)
 
                     itemSectionHeader("Chores", count: "\(choreCompleted)/\(chores.count)")
                     if chores.isEmpty {
@@ -721,10 +721,10 @@ struct ChoresHomeHubView: View {
                             Text("All done for today.")
                                 .font(.caption)
                         }
-                        .foregroundStyle(HomeyDashboardTheme.sageAccent)
+                        .foregroundStyle(HomeyTheme.success)
                         .padding(13)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(HomeyDashboardTheme.sageAccent.opacity(0.10), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .background(HomeyTheme.success.opacity(0.10), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                     }
                 }
                 .padding(14)
@@ -732,11 +732,11 @@ struct ChoresHomeHubView: View {
             .scrollIndicators(.visible)
         }
         .frame(maxHeight: .infinity, alignment: .top)
-        .background(.white.opacity(0.28), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(HomeyDashboardTheme.softBorder.opacity(0.75), lineWidth: 1)
+            RoundedRectangle(cornerRadius: HomeyRadius.card, style: .continuous)
+                .stroke(HomeyTheme.borderSubtle.opacity(0.75), lineWidth: 1)
         }
     }
 
@@ -763,20 +763,20 @@ struct ChoresHomeHubView: View {
                 )
                 Text(member.displayName)
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(HomeyDashboardTheme.primaryText)
+                    .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(2)
                 Spacer(minLength: 4)
                 if canReorderMembers {
                     Image(systemName: "line.3.horizontal")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.warmBrown.opacity(0.62))
+                        .foregroundStyle(HomeyTheme.primary.opacity(0.62))
                         .accessibilityHidden(true)
                 }
             }
 
             Text("\(taskCompleted) of \(taskCount) tasks • \(choreCompleted) of \(choreCount) chores")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
                 .lineLimit(2)
         }
         .padding(16)
@@ -789,9 +789,9 @@ struct ChoresHomeHubView: View {
                 .draggable(member.membershipId.uuidString) {
                     Label(member.displayName, systemImage: "line.3.horizontal")
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .padding(14)
-                        .background(HomeyDashboardTheme.cardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
                 }
                 .accessibilityHint("Long press and drag to reorder this member column")
                 .accessibilityAction(named: Text("Move Left")) {
@@ -809,11 +809,11 @@ struct ChoresHomeHubView: View {
         HStack {
             Text(title)
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             Spacer()
             Text(count)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
     }
 
@@ -827,22 +827,22 @@ struct ChoresHomeHubView: View {
                         ProgressView().controlSize(.small)
                     } else {
                         Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(task.isCompleted ? HomeyDashboardTheme.sageAccent : HomeyDashboardTheme.secondaryText)
+                            .foregroundStyle(task.isCompleted ? HomeyTheme.success : HomeyTheme.textSecondary)
                     }
                 }
                 .frame(width: 20, height: 20)
 
                 Text(task.name)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(task.isCompleted ? HomeyDashboardTheme.secondaryText : HomeyDashboardTheme.primaryText)
-                    .strikethrough(task.isCompleted, color: HomeyDashboardTheme.secondaryText)
+                    .foregroundStyle(task.isCompleted ? HomeyTheme.textSecondary : HomeyTheme.textPrimary)
+                    .strikethrough(task.isCompleted, color: HomeyTheme.textSecondary)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 if task.points > 0 { pointsPill(task.points) }
             }
             .padding(11)
-            .background(task.isCompleted ? HomeyDashboardTheme.sageAccent.opacity(0.08) : .white.opacity(0.42), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+            .background(task.isCompleted ? HomeyTheme.success.opacity(0.08) : .white.opacity(0.42), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
         }
         .buttonStyle(.plain)
         .disabled(!viewModel.canToggle(task) || viewModel.isProcessing(task))
@@ -876,7 +876,7 @@ struct ChoresHomeHubView: View {
                 HStack(alignment: .top, spacing: 7) {
                     Text(chore.occurrence.titleSnapshot)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     if chore.occurrence.pointsValueSnapshot > 0 {
@@ -896,7 +896,7 @@ struct ChoresHomeHubView: View {
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(chore.occurrence.titleSnapshot), \(chore.roomName), \(statusPresentation(chore.status).title)")
         }
-        .background(choreRowBackground(chore.status), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+        .background(choreRowBackground(chore.status), in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
     }
 
     private func choreBubbleIsChecked(_ status: ChoreOccurrenceStatus) -> Bool {
@@ -906,22 +906,30 @@ struct ChoresHomeHubView: View {
     private func choreBubbleColor(_ status: ChoreOccurrenceStatus) -> Color {
         switch status {
         case .awaitingApproval:
-            return HomeyDashboardTheme.orangeAccent
+            return HomeyTheme.warning
         case .completed:
-            return HomeyDashboardTheme.sageAccent
-        case .notStarted, .inProgress, .needsRedo, .skipped, .cancelled:
-            return HomeyDashboardTheme.secondaryText
+            return HomeyTheme.success
+        case .inProgress:
+            return HomeyTheme.primary
+        case .needsRedo, .cancelled:
+            return HomeyTheme.danger
+        case .notStarted, .skipped:
+            return HomeyTheme.textSecondary
         }
     }
 
     private func choreRowBackground(_ status: ChoreOccurrenceStatus) -> Color {
         switch status {
         case .awaitingApproval:
-            return HomeyDashboardTheme.orangeAccent.opacity(0.08)
+            return HomeyTheme.warningSoft
         case .completed:
-            return HomeyDashboardTheme.sageAccent.opacity(0.08)
-        case .notStarted, .inProgress, .needsRedo, .skipped, .cancelled:
-            return .white.opacity(0.42)
+            return HomeyTheme.successSoft
+        case .inProgress:
+            return HomeyTheme.primarySoft
+        case .needsRedo, .cancelled:
+            return HomeyTheme.dangerSoft
+        case .notStarted, .skipped:
+            return HomeyTheme.surfacePrimary
         }
     }
 
@@ -943,19 +951,19 @@ struct ChoresHomeHubView: View {
     private func pointsPill(_ points: Int) -> some View {
         Text("\(points) pts")
             .font(.caption2.weight(.bold))
-            .foregroundStyle(HomeyDashboardTheme.warmBrown)
+            .foregroundStyle(HomeyTheme.primary)
             .padding(.horizontal, 7)
             .padding(.vertical, 4)
-            .background(HomeyDashboardTheme.warmBeige.opacity(0.48), in: Capsule())
+            .background(HomeyTheme.borderSubtle.opacity(0.48), in: Capsule())
     }
 
     private func choreRoomPill(_ roomName: String) -> some View {
         Label(roomName, systemImage: "house.fill")
             .font(.caption2.weight(.bold))
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
             .padding(.horizontal, 7)
             .padding(.vertical, 4)
-            .background(HomeyDashboardTheme.secondaryText.opacity(0.11), in: Capsule())
+            .background(HomeyTheme.textSecondary.opacity(0.11), in: Capsule())
     }
 
     private func choreStatusPill(_ status: ChoreOccurrenceStatus) -> some View {
@@ -970,36 +978,36 @@ struct ChoresHomeHubView: View {
 
     private func statusPresentation(_ status: ChoreOccurrenceStatus) -> (title: String, icon: String, color: Color) {
         switch status {
-        case .notStarted: return ("To Do", "circle", HomeyDashboardTheme.secondaryText)
-        case .inProgress: return ("In Progress", "play.circle.fill", HomeyDashboardTheme.lavenderAccent)
-        case .awaitingApproval: return ("Awaiting Approval", "clock.fill", HomeyDashboardTheme.orangeAccent)
-        case .completed: return ("Done", "checkmark.circle.fill", HomeyDashboardTheme.sageAccent)
-        case .needsRedo: return ("Needs Redo", "arrow.counterclockwise.circle.fill", HomeyDashboardTheme.softRed)
-        case .skipped: return ("Skipped", "forward.end.fill", HomeyDashboardTheme.secondaryText)
-        case .cancelled: return ("Cancelled", "xmark.circle.fill", HomeyDashboardTheme.secondaryText)
+        case .notStarted: return ("To Do", "circle", HomeyTheme.textSecondary)
+        case .inProgress: return ("In Progress", "play.circle.fill", HomeyTheme.primary)
+        case .awaitingApproval: return ("Awaiting Approval", "clock.fill", HomeyTheme.warning)
+        case .completed: return ("Done", "checkmark.circle.fill", HomeyTheme.success)
+        case .needsRedo: return ("Needs Redo", "arrow.counterclockwise.circle.fill", HomeyTheme.danger)
+        case .skipped: return ("Skipped", "forward.end.fill", HomeyTheme.textSecondary)
+        case .cancelled: return ("Cancelled", "xmark.circle.fill", HomeyTheme.danger)
         }
     }
 
     private func emptySection(_ text: String, icon: String) -> some View {
         Label(text, systemImage: icon)
             .font(.caption)
-            .foregroundStyle(HomeyDashboardTheme.secondaryText)
+            .foregroundStyle(HomeyTheme.textSecondary)
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white.opacity(0.24), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(HomeyTheme.surfacePrimary, in: RoundedRectangle(cornerRadius: HomeyRadius.button, style: .continuous))
     }
 
     private var emptyHousehold: some View {
         VStack(spacing: 10) {
             Image(systemName: "person.3.fill")
                 .font(.largeTitle)
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
             Text("No household members available")
                 .font(.headline)
-                .foregroundStyle(HomeyDashboardTheme.primaryText)
+                .foregroundStyle(HomeyTheme.textPrimary)
             Text("Member columns will appear after this Home's members load.")
                 .font(.subheadline)
-                .foregroundStyle(HomeyDashboardTheme.secondaryText)
+                .foregroundStyle(HomeyTheme.textSecondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -1103,11 +1111,11 @@ struct ChoresHomeHubView: View {
 
     private func memberColor(_ index: Int) -> Color {
         let colors = [
-            HomeyDashboardTheme.lavenderAccent,
-            HomeyDashboardTheme.sageAccent,
-            HomeyDashboardTheme.orangeAccent,
-            HomeyDashboardTheme.coralAccent,
-            HomeyDashboardTheme.warmBrown
+            HomeyTheme.lavender,
+            HomeyTheme.success,
+            HomeyTheme.peach,
+            HomeyTheme.coral,
+            HomeyTheme.primary
         ]
         return colors[index % colors.count]
     }

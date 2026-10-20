@@ -143,29 +143,29 @@ struct AdminTripReviewCard: View {
         VStack(alignment: .leading, spacing: 18) {
             Label("TRIP REVIEW", systemImage: "map.fill")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                .foregroundStyle(HomeyTheme.primary)
             HStack(alignment: .top, spacing: 18) {
                 artwork
                 VStack(alignment: .leading, spacing: 6) {
                     Text(trip.title)
                         .font(.title2.bold())
-                        .foregroundStyle(HomeyDashboardTheme.primaryText)
+                        .foregroundStyle(HomeyTheme.textPrimary)
                     if let destination = trip.destinationName, !destination.isEmpty {
-                        Text(destination).font(.headline).foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        Text(destination).font(.headline).foregroundStyle(HomeyTheme.textSecondary)
                     }
                     if let completedText {
-                        Text(completedText).font(.subheadline.weight(.semibold)).foregroundStyle(HomeyDashboardTheme.secondaryText)
+                        Text(completedText).font(.subheadline.weight(.semibold)).foregroundStyle(HomeyTheme.textSecondary)
                     }
                 }
                 Spacer()
             }
-            Text("How was this trip?").font(.headline).foregroundStyle(HomeyDashboardTheme.primaryText)
+            Text("How was this trip?").font(.headline).foregroundStyle(HomeyTheme.textPrimary)
             HStack(spacing: 12) {
                 ForEach(1...5, id: \.self) { rating in
                     Button { draft.rating = rating } label: {
                         Image(systemName: rating <= (draft.rating ?? 0) ? "star.fill" : "star")
                             .font(.system(size: 34, weight: .medium))
-                            .foregroundStyle(HomeyDashboardTheme.orangeAccent)
+                            .foregroundStyle(HomeyTheme.peach)
                             .frame(width: 56, height: 56)
                     }
                     .buttonStyle(.plain)
@@ -175,11 +175,11 @@ struct AdminTripReviewCard: View {
             }
             Toggle("Would Do Again", isOn: $draft.wouldDoAgain)
                 .font(.headline)
-                .tint(HomeyDashboardTheme.sageAccent)
+                .tint(HomeyTheme.success)
             TextField("Notes for next time (optional)", text: $draft.notes, axis: .vertical)
                 .lineLimit(3...6)
                 .padding(14)
-                .background(HomeyDashboardTheme.selectedSidebarBackground, in: RoundedRectangle(cornerRadius: 14))
+                .background(HomeyTheme.primarySoft, in: RoundedRectangle(cornerRadius: HomeyRadius.button))
             Button { onSubmit(draft) } label: {
                 HStack(spacing: 10) {
                     if isProcessing { ProgressView().tint(.white) }
@@ -188,14 +188,14 @@ struct AdminTripReviewCard: View {
                 .font(.headline)
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, minHeight: 54)
-                .background(HomeyDashboardTheme.warmBrown, in: RoundedRectangle(cornerRadius: 17))
+                .background(HomeyTheme.primary, in: RoundedRectangle(cornerRadius: HomeyRadius.button))
             }
             .buttonStyle(.plain)
             .disabled(!draft.isValid || isProcessing)
             .opacity(draft.isValid ? 1 : 0.5)
         }
         .padding(24)
-        .dashboardCard(cornerRadius: 28)
+        .dashboardCard(cornerRadius: HomeyRadius.page)
         .disabled(isProcessing)
     }
 
@@ -205,13 +205,13 @@ struct AdminTripReviewCard: View {
             else {
                 Image(systemName: "map.fill")
                     .font(.system(size: 30))
-                    .foregroundStyle(HomeyDashboardTheme.warmBrown)
+                    .foregroundStyle(HomeyTheme.primary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(HomeyDashboardTheme.selectedSidebarBackground)
+                    .background(HomeyTheme.primarySoft)
             }
         }
         .frame(width: 90, height: 90)
-        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .clipShape(RoundedRectangle(cornerRadius: HomeyRadius.card))
         .accessibilityHidden(true)
     }
 

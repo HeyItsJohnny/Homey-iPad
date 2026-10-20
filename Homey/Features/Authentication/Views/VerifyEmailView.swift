@@ -12,7 +12,7 @@ struct VerifyEmailView: View {
 
             if let errorMessage = authenticationService.errorMessage {
                 Text(errorMessage)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(HomeyTheme.danger)
                     .multilineTextAlignment(.center)
             }
 
