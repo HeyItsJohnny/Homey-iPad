@@ -10,8 +10,15 @@ import SwiftData
 
 @main
 struct HomeyApp: App {
-    @StateObject private var authenticationService = AuthenticationService()
+    @StateObject private var deviceUnlock: DeviceUnlockService
+    @StateObject private var authenticationService: AuthenticationService
     @StateObject private var homeService = HomeService()
+
+    init() {
+        let deviceUnlock = DeviceUnlockService()
+        _deviceUnlock = StateObject(wrappedValue: deviceUnlock)
+        _authenticationService = StateObject(wrappedValue: AuthenticationService(deviceUnlock: deviceUnlock))
+    }
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -33,6 +40,7 @@ struct HomeyApp: App {
                 .foregroundStyle(HomeyTheme.textPrimary)
                 .preferredColorScheme(.light)
                 .environmentObject(authenticationService)
+                .environmentObject(deviceUnlock)
                 .environmentObject(homeService)
         }
         .modelContainer(sharedModelContainer)

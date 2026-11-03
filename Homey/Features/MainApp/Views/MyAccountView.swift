@@ -67,6 +67,8 @@ struct MyAccountView: View {
                         loadingCard
                     } else {
                         profileCard
+                        AccountPasskeySettingsView()
+                        DeviceUnlockSettingsView()
                         invitationsCard
                     }
                 }
@@ -775,5 +777,6 @@ private extension CGRect {
 #Preview("My Account") {
     MyAccountView()
         .environmentObject(AuthenticationService())
+        .environmentObject(DeviceUnlockService())
         .environmentObject(HomeService())
 }

@@ -7,6 +7,7 @@ struct LoginView: View {
     let onCreateAccount: () -> Void
     let onForgotPassword: () -> Void
 
+    @StateObject private var passkeyAnchor = PasskeyWindowAnchor()
     @State private var email = ""
     @State private var password = ""
     @State private var isPasswordVisible = false
@@ -26,6 +27,7 @@ struct LoginView: View {
                 compactLayout
             }
         }
+        .background(PasskeyPresentationAnchor(anchor: passkeyAnchor).frame(width: 0, height: 0))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
@@ -108,6 +110,7 @@ struct LoginView: View {
             }
 
             Button("Forgot Password", action: onForgotPassword)
+                .disabled(authenticationService.isLoading)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(HomeyTheme.primary)
                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -133,10 +136,23 @@ struct LoginView: View {
 
             AuthenticationDividerWithText(text: "or")
 
+            Button("Sign in with Passkey") {
+                focusedField = nil
+                Task { await authenticationService.signInWithPasskey(presentationAnchor: passkeyAnchor.window) }
+            }
+            .buttonStyle(AuthenticationSecondaryButtonStyle())
+            .disabled(authenticationService.isLoading)
+
+            Text("Passkeys sign in to their linked Homey account. Device verification does not identify a household member.")
+                .font(.footnote)
+                .foregroundStyle(HomeyTheme.textSecondary)
+                .multilineTextAlignment(.center)
+
             Button(action: onCreateAccount) {
                 Text("Create Account")
             }
             .buttonStyle(AuthenticationSecondaryButtonStyle())
+            .disabled(authenticationService.isLoading)
         }
     }
 }

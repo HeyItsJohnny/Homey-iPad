@@ -2,7 +2,9 @@ import Auth
 import Combine
 import Foundation
 import PostgREST
-import Supabase
+@_spi(Experimental) import Supabase
+import AuthenticationServices
+import UIKit
 
 @MainActor
 final class AuthenticationService: ObservableObject {
@@ -15,14 +17,22 @@ final class AuthenticationService: ObservableObject {
     @Published private(set) var isUploadingAvatar = false
     @Published var errorMessage: String?
 
+    @Published private(set) var isPasskeyOperationInProgress = false
+    @Published private(set) var accountPasskeys: [AccountPasskey] = []
+    @Published private(set) var hasLoadedPasskeys = false
+    @Published private(set) var passkeyMessage: String?
+    @Published private(set) var shouldOfferPasskeySetup = false
+
     // MARK: - Private Properties
 
     private let client = SupabaseManager.shared.client
+    private let deviceUnlock: DeviceUnlockService
     private var authStateChangesTask: Task<Void, Never>?
 
     // MARK: - Lifecycle
 
-    init() {
+    init(deviceUnlock: DeviceUnlockService? = nil) {
+        self.deviceUnlock = deviceUnlock ?? DeviceUnlockService()
         subscribeToAuthStateChanges()
     }
 
@@ -33,6 +43,7 @@ final class AuthenticationService: ObservableObject {
     // MARK: - Session
 
     func restoreSession() async {
+        guard !isPasskeyOperationInProgress else { return }
         authenticationState = .loading
         isLoading = true
         clearError()
@@ -49,13 +60,51 @@ final class AuthenticationService: ObservableObject {
         isLoading = false
     }
 
+    /// A local unlock never creates a Supabase session. Confirm the existing user
+    /// with Auth before exposing protected content; keep locked on network errors.
+    func validateSessionForDeviceUnlock() async -> Bool {
+        guard authenticationState == .authenticated, let expectedID = session?.user.id else { return false }
+        do {
+            let restored = try await client.auth.session
+            let verifiedUser = try await client.auth.user(jwt: restored.accessToken)
+            guard authenticationState == .authenticated, session?.user.id == expectedID,
+                  restored.user.id == expectedID, verifiedUser.id == expectedID else { return false }
+            applySession(restored)
+            return authenticationState == .authenticated
+        } catch {
+            guard session?.user.id == expectedID else { return false }
+            if let authError = error as? AuthError {
+                let invalidSession: Bool
+                switch authError {
+                case .sessionMissing, .jwtVerificationFailed:
+                    invalidSession = true
+                case .api(_, let code, _, let response):
+                    invalidSession = [401, 403].contains(response.statusCode)
+                        || [.badJWT, .userNotFound, .sessionNotFound, .sessionExpired,
+                            .refreshTokenNotFound, .refreshTokenAlreadyUsed, .userBanned].contains(code)
+                default:
+                    invalidSession = false
+                }
+                if invalidSession {
+                    clearSession(state: .unauthenticated)
+                    // Supabase removes the Keychain session before its logout request,
+                    // including when that request fails. Do not revive rejected credentials.
+                    try? await client.auth.signOut(scope: .local)
+                }
+            }
+            return false
+        }
+    }
+
     func refreshSession() async {
+        guard !isPasskeyOperationInProgress else { return }
         isLoading = true
         clearError()
 
         do {
             let refreshedSession = try await client.auth.refreshSession()
             applySession(refreshedSession)
+            offerPasskeySetupIfNeeded()
         } catch {
             logCompleteError(error, context: "REFRESH SESSION FAILED")
             errorMessage = authErrorMessage(for: error)
@@ -68,6 +117,7 @@ final class AuthenticationService: ObservableObject {
     // MARK: - Authentication
 
     func signIn(email: String, password: String) async {
+        guard !isLoading, !isPasskeyOperationInProgress else { return }
         guard validate(email: email, password: password) else {
             return
         }
@@ -81,6 +131,7 @@ final class AuthenticationService: ObservableObject {
                 password: password
             )
             applySession(signedInSession)
+            offerPasskeySetupIfNeeded()
             await refreshCurrentUserProfile()
         } catch {
             logCompleteError(error, context: "SIGN IN FAILED")
@@ -92,6 +143,7 @@ final class AuthenticationService: ObservableObject {
     }
 
     func signUp(email: String, password: String, firstName: String, lastName: String, displayName: String) async {
+        guard !isLoading, !isPasskeyOperationInProgress else { return }
         guard validate(email: email, password: password) else {
             return
         }
@@ -156,6 +208,7 @@ final class AuthenticationService: ObservableObject {
 
             if let signUpSession = response.session {
                 applySession(signUpSession)
+                offerPasskeySetupIfNeeded()
                 await refreshCurrentUserProfile()
             } else {
                 session = nil
@@ -179,6 +232,7 @@ final class AuthenticationService: ObservableObject {
     }
 
     func signOut() async {
+        guard !isPasskeyOperationInProgress else { return }
         isLoading = true
         clearError()
 
@@ -189,11 +243,12 @@ final class AuthenticationService: ObservableObject {
             errorMessage = authErrorMessage(for: error)
         }
 
-        clearSession(state: .unauthenticated)
+        clearSession(state: .unauthenticated, resetDeviceProtection: true)
         isLoading = false
     }
 
     func sendPasswordReset(email: String) async -> Bool {
+        guard !isPasskeyOperationInProgress else { return false }
         guard !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             errorMessage = "Enter your email address."
             return false
@@ -385,6 +440,158 @@ final class AuthenticationService: ObservableObject {
         }
     }
 
+    // MARK: - Optional account passkeys
+
+    private func passkeyOfferKey(for id: UUID) -> String {
+        "homey.passkeySetupOfferDismissed.\(id.uuidString)"
+    }
+
+    private func offerPasskeySetupIfNeeded() {
+        guard authenticationState == .authenticated, let session, !session.user.isAnonymous else { return }
+        shouldOfferPasskeySetup = !UserDefaults.standard.bool(forKey: passkeyOfferKey(for: session.user.id))
+    }
+
+    func dismissPasskeySetupOffer() {
+        guard let id = session?.user.id else { return }
+        // Presentation preference only; never treated as proof of enrollment.
+        UserDefaults.standard.set(true, forKey: passkeyOfferKey(for: id))
+        shouldOfferPasskeySetup = false
+    }
+
+    private func clearPasskeyPresentationState() {
+        accountPasskeys = []
+        hasLoadedPasskeys = false
+        passkeyMessage = nil
+        shouldOfferPasskeySetup = false
+    }
+
+    private func beginPasskeyOperation(anchor: UIWindow? = nil, requiresAnchor: Bool = false) -> Bool {
+        guard !isPasskeyOperationInProgress, !isLoading else { return false }
+        if requiresAnchor {
+            guard let anchor, !anchor.isHidden,
+                  anchor.windowScene?.activationState == .foregroundActive else {
+                passkeyMessage = "Return to this Homey window and try again."
+                return false
+            }
+        }
+        if requiresAnchor {
+            guard deviceUnlock.beginAccountAuthentication() else { return false }
+        } else {
+            guard !deviceUnlock.isAuthenticating, !deviceUnlock.isAccountAuthenticationInProgress else { return false }
+        }
+        isPasskeyOperationInProgress = true
+        isLoading = true
+        passkeyMessage = nil
+        clearError()
+        return true
+    }
+
+    private func endPasskeyOperation() {
+        isPasskeyOperationInProgress = false
+        isLoading = false
+        deviceUnlock.endAccountAuthentication()
+    }
+
+    func signInWithPasskey(presentationAnchor: UIWindow?) async {
+        guard let presentationAnchor else {
+            errorMessage = "Return to this Homey window and try again."
+            return
+        }
+        guard authenticationState == .unauthenticated else { return }
+        guard beginPasskeyOperation(anchor: presentationAnchor, requiresAnchor: true) else {
+            if let passkeyMessage { errorMessage = passkeyMessage }
+            return
+        }
+        defer { endPasskeyOperation() }
+        do {
+            let response = try await client.auth.signInWithPasskey(presentationAnchor: presentationAnchor)
+            guard let signedInSession = response.session else {
+                errorMessage = "No Homey session was returned. Please use email and password or try again."
+                return
+            }
+            applySession(signedInSession)
+            if authenticationState == .authenticated { dismissPasskeySetupOffer() }
+            await refreshCurrentUserProfile()
+        } catch {
+            if !isPasskeyCancellation(error) {
+                errorMessage = "Passkey sign-in could not be completed. Try again or use email and password."
+            }
+        }
+    }
+
+    func registerPasskey(presentationAnchor: UIWindow?) async {
+        guard let presentationAnchor else {
+            passkeyMessage = "Return to this Homey window and try again."
+            return
+        }
+        guard authenticationState == .authenticated, let expectedID = session?.user.id,
+              beginPasskeyOperation(anchor: presentationAnchor, requiresAnchor: true) else { return }
+        defer { endPasskeyOperation() }
+        do {
+            // Confirm the server's current account before starting native registration.
+            let user = try await client.auth.user()
+            guard session?.user.id == expectedID, user.id == expectedID,
+                  isVerified(user: user), !user.isAnonymous,
+                  authenticationState == .authenticated else {
+                passkeyMessage = "Sign in with a confirmed Homey account before setting up a passkey."
+                return
+            }
+            _ = try await client.auth.registerPasskey(presentationAnchor: presentationAnchor)
+            guard session?.user.id == expectedID, authenticationState == .authenticated else { return }
+            dismissPasskeySetupOffer()
+            passkeyMessage = "Passkey added to this Homey account."
+            await fetchAccountPasskeys(expectedID: expectedID)
+        } catch {
+            guard session?.user.id == expectedID else { return }
+            if !isPasskeyCancellation(error) {
+                passkeyMessage = "Passkey setup could not be completed. Your existing sign-in method is still available."
+            }
+        }
+    }
+
+    func loadAccountPasskeys() async {
+        guard authenticationState == .authenticated, let expectedID = session?.user.id,
+              beginPasskeyOperation() else { return }
+        defer { endPasskeyOperation() }
+        await fetchAccountPasskeys(expectedID: expectedID)
+    }
+
+    private func fetchAccountPasskeys(expectedID: UUID) async {
+        do {
+            let passkeys = try await client.auth.listPasskeys()
+            guard session?.user.id == expectedID, authenticationState == .authenticated else { return }
+            accountPasskeys = passkeys.map {
+                AccountPasskey(id: $0.id, name: $0.friendlyName ?? "Passkey", createdAt: $0.createdAt)
+            }
+            hasLoadedPasskeys = true
+        } catch {
+            guard session?.user.id == expectedID else { return }
+            hasLoadedPasskeys = false
+            passkeyMessage = "Could not load account passkeys. Refresh to try again."
+        }
+    }
+
+    func deleteAccountPasskey(id: String) async {
+        guard authenticationState == .authenticated, let expectedID = session?.user.id,
+              accountPasskeys.contains(where: { $0.id == id }), beginPasskeyOperation() else { return }
+        defer { endPasskeyOperation() }
+        do {
+            try await client.auth.deletePasskey(id: id)
+            guard session?.user.id == expectedID else { return }
+            accountPasskeys.removeAll { $0.id == id }
+            passkeyMessage = "Passkey removed from this Homey account."
+        } catch {
+            guard session?.user.id == expectedID else { return }
+            passkeyMessage = "Could not remove this passkey. Try again."
+        }
+    }
+
+    private func isPasskeyCancellation(_ error: Error) -> Bool {
+        let error = error as NSError
+        return error.domain == ASAuthorizationError.errorDomain
+            && error.code == ASAuthorizationError.canceled.rawValue
+    }
+
     // MARK: - Auth State Changes
 
     private func subscribeToAuthStateChanges() {
@@ -409,7 +616,7 @@ final class AuthenticationService: ObservableObject {
                 clearSession(state: .unauthenticated)
             }
         case .signedOut, .userDeleted:
-            clearSession(state: .unauthenticated)
+            clearSession(state: .unauthenticated, resetDeviceProtection: true)
         case .passwordRecovery:
             if let session {
                 applySession(session)
@@ -420,12 +627,22 @@ final class AuthenticationService: ObservableObject {
     // MARK: - State Helpers
 
     private func applySession(_ session: Session) {
+        if self.session?.user.id != session.user.id {
+            clearPasskeyPresentationState()
+        }
+        deviceUnlock.bindAccount(session.user.id)
         self.session = session
         currentUser = UserProfile(user: session.user)
         authenticationState = isVerified(user: session.user) ? .authenticated : .emailVerificationRequired
     }
 
-    private func clearSession(state: AuthenticationState) {
+    private func clearSession(state: AuthenticationState, resetDeviceProtection: Bool = false) {
+        if resetDeviceProtection {
+            deviceUnlock.reset()
+        } else {
+            deviceUnlock.sessionBecameUnavailable()
+        }
+        clearPasskeyPresentationState()
         session = nil
         currentUser = nil
         authenticationState = state
@@ -655,4 +872,10 @@ private struct UpdateAvatarURLPayload: Encodable {
             try container.encodeNil(forKey: .avatarURL)
         }
     }
+}
+
+struct AccountPasskey: Identifiable {
+    let id: String
+    let name: String
+    let createdAt: Date
 }

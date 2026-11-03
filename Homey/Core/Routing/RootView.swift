@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject private var authenticationService: AuthenticationService
+    @EnvironmentObject private var deviceUnlock: DeviceUnlockService
     @EnvironmentObject private var homeService: HomeService
     @AppStorage("selectedHomeID") private var storedSelectedHomeID = ""
 
@@ -19,8 +20,16 @@ struct RootView: View {
                     VerifyEmailView(onBackToLogin: {})
                 }
             case .authenticated:
-                authenticatedContent
+                if deviceUnlock.isEnabled && deviceUnlock.isLocked {
+                    DeviceUnlockView()
+                } else {
+                    authenticatedContent
+                }
             }
+        }
+        .background {
+            PrivacySnapshotShield(deviceUnlock: deviceUnlock)
+                .frame(width: 0, height: 0)
         }
         .task {
             await authenticationService.restoreSession()
@@ -47,6 +56,17 @@ struct RootView: View {
                 HomeOnboardingView()
             } else {
                 HomeyMainView()
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            // Keep household onboarding/invitations uninterrupted. This offer is
+            // separate from the dashboard and never starts native UI automatically.
+            if authenticationService.shouldOfferPasskeySetup,
+               !homeService.isLoading,
+               loadedHomeUserID == authenticationService.currentUser?.id,
+               homeService.selectedHomeID != nil,
+               !homeService.homes.isEmpty {
+                PasskeySetupOfferView()
             }
         }
         .task(id: authenticationService.currentUser?.id) {
