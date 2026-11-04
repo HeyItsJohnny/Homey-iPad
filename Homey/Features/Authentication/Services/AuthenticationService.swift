@@ -20,6 +20,18 @@ final class AuthenticationService: ObservableObject {
     @Published private(set) var isPasskeyOperationInProgress = false
     @Published private(set) var accountPasskeys: [AccountPasskey] = []
     @Published private(set) var hasLoadedPasskeys = false
+    @Published private(set) var isRefreshingPasskeys = false
+    @Published private(set) var passkeyStatusRevision = 0
+    private var pendingPasskeyStatusRefresh = false
+
+    var hasRegisteredAccountPasskey: Bool {
+        authenticationState == .authenticated && !accountPasskeys.isEmpty
+    }
+
+    var canSetUpAccountPasskey: Bool {
+        authenticationState == .authenticated && hasLoadedPasskeys && accountPasskeys.isEmpty
+            && !isLoading && !isPasskeyOperationInProgress && !isRefreshingPasskeys
+    }
     @Published private(set) var passkeyMessage: String?
     @Published private(set) var shouldOfferPasskeySetup = false
 
@@ -463,6 +475,8 @@ final class AuthenticationService: ObservableObject {
         hasLoadedPasskeys = false
         passkeyMessage = nil
         shouldOfferPasskeySetup = false
+        pendingPasskeyStatusRefresh = false
+        passkeyStatusRevision += 1
     }
 
     private func beginPasskeyOperation(anchor: UIWindow? = nil, requiresAnchor: Bool = false) -> Bool {
@@ -490,6 +504,13 @@ final class AuthenticationService: ObservableObject {
         isPasskeyOperationInProgress = false
         isLoading = false
         deviceUnlock.endAccountAuthentication()
+        resumePendingPasskeyStatusRefresh()
+    }
+
+    private func resumePendingPasskeyStatusRefresh() {
+        guard pendingPasskeyStatusRefresh, !isRefreshingPasskeys, !isPasskeyOperationInProgress else { return }
+        pendingPasskeyStatusRefresh = false
+        Task { await loadAccountPasskeys() }
     }
 
     func signInWithPasskey(presentationAnchor: UIWindow?) async {
@@ -525,6 +546,7 @@ final class AuthenticationService: ObservableObject {
             return
         }
         guard authenticationState == .authenticated, let expectedID = session?.user.id,
+              !isRefreshingPasskeys,
               beginPasskeyOperation(anchor: presentationAnchor, requiresAnchor: true) else { return }
         defer { endPasskeyOperation() }
         do {
@@ -536,11 +558,16 @@ final class AuthenticationService: ObservableObject {
                 passkeyMessage = "Sign in with a confirmed Homey account before setting up a passkey."
                 return
             }
+            // Recheck the account on the server before opening Apple UI, including
+            // when setup was requested from the optional post-login offer.
+            guard await fetchAccountPasskeys(expectedID: expectedID) else { return }
+            guard accountPasskeys.isEmpty else { return }
             _ = try await client.auth.registerPasskey(presentationAnchor: presentationAnchor)
             guard session?.user.id == expectedID, authenticationState == .authenticated else { return }
             dismissPasskeySetupOffer()
             passkeyMessage = "Passkey added to this Homey account."
-            await fetchAccountPasskeys(expectedID: expectedID)
+            hasLoadedPasskeys = false
+            _ = await fetchAccountPasskeys(expectedID: expectedID)
         } catch {
             guard session?.user.id == expectedID else { return }
             if !isPasskeyCancellation(error) {
@@ -551,37 +578,58 @@ final class AuthenticationService: ObservableObject {
 
     func loadAccountPasskeys() async {
         guard authenticationState == .authenticated, let expectedID = session?.user.id,
-              beginPasskeyOperation() else { return }
-        defer { endPasskeyOperation() }
-        await fetchAccountPasskeys(expectedID: expectedID)
+              !Task.isCancelled else { return }
+        guard !isPasskeyOperationInProgress, !isRefreshingPasskeys else {
+            pendingPasskeyStatusRefresh = true
+            return
+        }
+        pendingPasskeyStatusRefresh = false
+        passkeyMessage = nil
+        isRefreshingPasskeys = true
+        defer {
+            isRefreshingPasskeys = false
+            resumePendingPasskeyStatusRefresh()
+        }
+        _ = await fetchAccountPasskeys(expectedID: expectedID)
     }
 
-    private func fetchAccountPasskeys(expectedID: UUID) async {
+    /// Publish only server-confirmed data for the same account/authentication revision.
+    /// Keep the last confirmed list on failure, but disable setup until refreshed.
+    private func fetchAccountPasskeys(expectedID: UUID) async -> Bool {
+        let revision = passkeyStatusRevision
         do {
             let passkeys = try await client.auth.listPasskeys()
-            guard session?.user.id == expectedID, authenticationState == .authenticated else { return }
+            guard session?.user.id == expectedID, authenticationState == .authenticated,
+                  passkeyStatusRevision == revision, !Task.isCancelled else { return false }
             accountPasskeys = passkeys.map {
                 AccountPasskey(id: $0.id, name: $0.friendlyName ?? "Passkey", createdAt: $0.createdAt)
             }
             hasLoadedPasskeys = true
+            return true
         } catch {
-            guard session?.user.id == expectedID else { return }
+            guard session?.user.id == expectedID, passkeyStatusRevision == revision,
+                  !Task.isCancelled else { return false }
             hasLoadedPasskeys = false
-            passkeyMessage = "Could not load account passkeys. Refresh to try again."
+            passkeyMessage = "Could not refresh account passkeys. Refresh before setting up another passkey."
+            return false
         }
     }
 
-    func deleteAccountPasskey(id: String) async {
-        guard authenticationState == .authenticated, let expectedID = session?.user.id,
+    func deleteAccountPasskey(id: String, accountID: UUID) async {
+        guard authenticationState == .authenticated, session?.user.id == accountID,
+              !isRefreshingPasskeys,
               accountPasskeys.contains(where: { $0.id == id }), beginPasskeyOperation() else { return }
         defer { endPasskeyOperation() }
         do {
             try await client.auth.deletePasskey(id: id)
-            guard session?.user.id == expectedID else { return }
-            accountPasskeys.removeAll { $0.id == id }
+            guard session?.user.id == accountID, authenticationState == .authenticated else { return }
+            // Do not remove a cached row optimistically. A fresh server list decides
+            // whether zero or more credentials remain, including synced credentials.
+            hasLoadedPasskeys = false
             passkeyMessage = "Passkey removed from this Homey account."
+            _ = await fetchAccountPasskeys(expectedID: accountID)
         } catch {
-            guard session?.user.id == expectedID else { return }
+            guard session?.user.id == accountID else { return }
             passkeyMessage = "Could not remove this passkey. Try again."
         }
     }
@@ -634,6 +682,8 @@ final class AuthenticationService: ObservableObject {
         self.session = session
         currentUser = UserProfile(user: session.user)
         authenticationState = isVerified(user: session.user) ? .authenticated : .emailVerificationRequired
+        hasLoadedPasskeys = false
+        passkeyStatusRevision += 1
     }
 
     private func clearSession(state: AuthenticationState, resetDeviceProtection: Bool = false) {

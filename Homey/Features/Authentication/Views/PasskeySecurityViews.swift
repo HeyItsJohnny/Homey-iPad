@@ -1,3 +1,4 @@
+import Auth
 import SwiftUI
 
 /// A nonmodal offer. Native registration starts only after Set Up Passkey is tapped.
@@ -43,30 +44,35 @@ struct AccountPasskeySettingsView: View {
     @EnvironmentObject private var authentication: AuthenticationService
     @StateObject private var anchor = PasskeyWindowAnchor()
     @State private var passkeyToRemove: AccountPasskey?
+    @State private var removalAccountID: UUID?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("SIGN-IN & SECURITY")
                 .font(.caption.weight(.bold))
                 .foregroundStyle(HomeyTheme.textSecondary)
-            Text("Set Up Face ID / Touch ID Sign-In")
-                .font(.title3.weight(.bold))
             Text("Create a passkey for the signed-in Homey account. Apple handles device verification and stores the private key. This does not change household members or their permissions.")
                 .font(.subheadline)
                 .foregroundStyle(HomeyTheme.textSecondary)
-            if let email = authentication.currentUser?.email {
+            if let email = authentication.session?.user.email {
                 Text("Homey account: \(email)")
                     .font(.subheadline.weight(.semibold))
             }
-            Button("Set Up Passkey") {
+            if authentication.hasRegisteredAccountPasskey {
+                Label("Passkey is already setup", systemImage: "checkmark.circle.fill")
+                    .font(.subheadline)
+                    .foregroundStyle(HomeyTheme.success)
+            }
+            Button("Setup Face ID/Touch ID") {
                 Task { await authentication.registerPasskey(presentationAnchor: anchor.window) }
             }
-            .buttonStyle(AuthenticationSecondaryButtonStyle())
-            if authentication.isPasskeyOperationInProgress { ProgressView("Updating account passkeys…") }
+            .buttonStyle(HomeyPrimaryButtonStyle())
+            .disabled(!authentication.canSetUpAccountPasskey)
+            if authentication.isPasskeyOperationInProgress || authentication.isRefreshingPasskeys { ProgressView("Updating account passkeys…") }
             if let message = authentication.passkeyMessage {
                 Text(message).font(.subheadline)
             }
-            if authentication.hasLoadedPasskeys {
+            if authentication.hasLoadedPasskeys || authentication.hasRegisteredAccountPasskey {
                 Text(authentication.accountPasskeys.isEmpty ? "No passkeys registered for this account." : "Account passkeys")
                     .font(.subheadline.weight(.semibold))
                 ForEach(authentication.accountPasskeys) { passkey in
@@ -78,7 +84,10 @@ struct AccountPasskeySettingsView: View {
                                 .foregroundStyle(HomeyTheme.textSecondary)
                         }
                         Spacer()
-                        Button("Remove", role: .destructive) { passkeyToRemove = passkey }
+                        Button("Delete Passkey", role: .destructive) {
+                            removalAccountID = authentication.session?.user.id
+                            passkeyToRemove = passkey
+                        }
                             .frame(minHeight: 44)
                     }
                 }
@@ -91,18 +100,26 @@ struct AccountPasskeySettingsView: View {
             }
             .frame(minHeight: 44)
         }
-        .disabled(authentication.isLoading)
+        .disabled(authentication.isLoading || authentication.isRefreshingPasskeys)
         .padding(28)
         .dashboardCard(cornerRadius: HomeyRadius.page)
         .background(PasskeyPresentationAnchor(anchor: anchor).frame(width: 0, height: 0))
-        .task(id: authentication.currentUser?.id) { await authentication.loadAccountPasskeys() }
-        .confirmationDialog("Remove this account passkey?", isPresented: Binding(
+        .task(id: authentication.passkeyStatusRevision) { await authentication.loadAccountPasskeys() }
+        .onChange(of: authentication.session?.user.id) { _, _ in
+            passkeyToRemove = nil
+            removalAccountID = nil
+        }
+        .onChange(of: authentication.authenticationState) { _, _ in
+            passkeyToRemove = nil
+            removalAccountID = nil
+        }
+        .confirmationDialog("Delete this account passkey?", isPresented: Binding(
             get: { passkeyToRemove != nil },
             set: { if !$0 { passkeyToRemove = nil } }
         ), titleVisibility: .visible) {
-            if let passkey = passkeyToRemove {
-                Button("Remove Passkey", role: .destructive) {
-                    Task { await authentication.deleteAccountPasskey(id: passkey.id) }
+            if let passkey = passkeyToRemove, let accountID = removalAccountID {
+                Button("Delete Passkey", role: .destructive) {
+                    Task { await authentication.deleteAccountPasskey(id: passkey.id, accountID: accountID) }
                     passkeyToRemove = nil
                 }
             }

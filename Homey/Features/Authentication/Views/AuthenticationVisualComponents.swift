@@ -238,6 +238,9 @@ struct AuthenticationSecureField<Field: Hashable>: View {
     let field: Field
     var textContentType: UITextContentType = .password
     var submitLabel: SubmitLabel = .go
+    var passkeySymbol: String = "key.fill"
+    var isPasskeyActionDisabled = false
+    var passkeyAction: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -258,14 +261,34 @@ struct AuthenticationSecureField<Field: Hashable>: View {
             .focused(focusedField, equals: field)
             .submitLabel(submitLabel)
 
-            Button {
-                isPasswordVisible.toggle()
-            } label: {
-                Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
-                    .foregroundStyle(HomeyTheme.textSecondary)
+            HStack(spacing: 0) {
+                Button {
+                    isPasswordVisible.toggle()
+                } label: {
+                    Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                        .foregroundStyle(HomeyTheme.textSecondary)
+                        .frame(width: passkeyAction == nil ? nil : 44, height: passkeyAction == nil ? nil : 44)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(isPasswordVisible ? "Hide \(title.lowercased())" : "Show \(title.lowercased())")
+
+                if let passkeyAction {
+                    Button(action: passkeyAction) {
+                        Image(systemName: passkeySymbol)
+                            .font(.title3)
+                            .foregroundStyle(HomeyTheme.primary)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isPasskeyActionDisabled)
+                    .opacity(isPasskeyActionDisabled ? 0.5 : 1)
+                    .accessibilityLabel("Sign in with Passkey")
+                    .accessibilityHint("Use Face ID, Touch ID, or a saved passkey to sign in to Homey.")
+                }
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(isPasswordVisible ? "Hide \(title.lowercased())" : "Show \(title.lowercased())")
+            .fixedSize(horizontal: true, vertical: false)
         }
         .authenticationFieldBackground(isFocused: focusedField.wrappedValue == field)
     }

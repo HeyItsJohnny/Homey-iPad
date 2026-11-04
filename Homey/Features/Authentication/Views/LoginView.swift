@@ -1,3 +1,4 @@
+import LocalAuthentication
 import SwiftUI
 
 struct LoginView: View {
@@ -11,6 +12,7 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var isPasswordVisible = false
+    @State private var passkeySymbol = "key.fill"
     @FocusState private var focusedField: LoginField?
 
     private var isRegularWidth: Bool {
@@ -32,6 +34,13 @@ struct LoginView: View {
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             authenticationService.clearError()
+            let context = LAContext()
+            _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
+            switch context.biometryType {
+            case .faceID: passkeySymbol = "faceid"
+            case .touchID: passkeySymbol = "touchid"
+            default: passkeySymbol = "key.fill"
+            }
         }
     }
 
@@ -105,7 +114,13 @@ struct LoginView: View {
                     focusedField: $focusedField,
                     field: .password,
                     textContentType: .password,
-                    submitLabel: .go
+                    submitLabel: .go,
+                    passkeySymbol: passkeySymbol,
+                    isPasskeyActionDisabled: authenticationService.isLoading || authenticationService.isPasskeyOperationInProgress,
+                    passkeyAction: {
+                        focusedField = nil
+                        Task { await authenticationService.signInWithPasskey(presentationAnchor: passkeyAnchor.window) }
+                    }
                 )
             }
 
@@ -128,7 +143,7 @@ struct LoginView: View {
                     ProgressView()
                         .tint(.white)
                 } else {
-                    Text("Sign In")
+                    Text("Log In")
                 }
             }
             .buttonStyle(HomeyPrimaryButtonStyle())
@@ -136,22 +151,10 @@ struct LoginView: View {
 
             AuthenticationDividerWithText(text: "or")
 
-            Button("Sign in with Passkey") {
-                focusedField = nil
-                Task { await authenticationService.signInWithPasskey(presentationAnchor: passkeyAnchor.window) }
-            }
-            .buttonStyle(AuthenticationSecondaryButtonStyle())
-            .disabled(authenticationService.isLoading)
-
-            Text("Passkeys sign in to their linked Homey account. Device verification does not identify a household member.")
-                .font(.footnote)
-                .foregroundStyle(HomeyTheme.textSecondary)
-                .multilineTextAlignment(.center)
-
             Button(action: onCreateAccount) {
                 Text("Create Account")
             }
-            .buttonStyle(AuthenticationSecondaryButtonStyle())
+            .buttonStyle(HomeySecondaryButtonStyle())
             .disabled(authenticationService.isLoading)
         }
     }
