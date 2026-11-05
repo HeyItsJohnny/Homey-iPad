@@ -12,6 +12,7 @@ import SwiftData
 struct HomeyApp: App {
     @StateObject private var deviceUnlock: DeviceUnlockService
     @StateObject private var authenticationService: AuthenticationService
+    @StateObject private var passwordRecovery = PasswordRecoveryService(auth: SupabasePasswordRecoveryAuth())
     @StateObject private var homeService = HomeService()
 
     init() {
@@ -42,6 +43,10 @@ struct HomeyApp: App {
                 .environmentObject(authenticationService)
                 .environmentObject(deviceUnlock)
                 .environmentObject(homeService)
+                .environmentObject(passwordRecovery)
+                .onOpenURL { url in
+                    Task { await passwordRecovery.handle(url) }
+                }
         }
         .modelContainer(sharedModelContainer)
     }

@@ -2,6 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.homey.ipad.password-recovery</string>
+			<key>CFBundleURLSchemes</key>
+			<array><string>homeyipad</string></array>
+		</dict>
+	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Homey uses Face ID to unlock this shared iPad. Device unlock does not identify a household member.</string>
 	<key>SUPABASE_PUBLISHABLE_KEY</key>

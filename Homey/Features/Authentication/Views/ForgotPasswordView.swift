@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ForgotPasswordView: View {
-    @EnvironmentObject private var authenticationService: AuthenticationService
+    @EnvironmentObject private var recovery: PasswordRecoveryService
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     let onBackToLogin: () -> Void
@@ -26,9 +26,6 @@ struct ForgotPasswordView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .navigationBar)
-        .onAppear {
-            authenticationService.clearError()
-        }
     }
 
     // MARK: - Layouts
@@ -93,7 +90,7 @@ struct ForgotPasswordView: View {
                 submitLabel: .go
             )
 
-            if let errorMessage = authenticationService.errorMessage {
+            if let errorMessage = recovery.requestError {
                 AuthenticationErrorView(message: errorMessage)
             }
 
@@ -102,7 +99,7 @@ struct ForgotPasswordView: View {
                     await resetPassword()
                 }
             } label: {
-                if authenticationService.isLoading {
+                if recovery.isSending {
                     ProgressView()
                         .tint(.white)
                 } else {
@@ -110,12 +107,12 @@ struct ForgotPasswordView: View {
                 }
             }
             .buttonStyle(HomeyPrimaryButtonStyle())
-            .disabled(authenticationService.isLoading)
+            .disabled(recovery.isSending)
 
             if successMessage != nil {
                 AuthenticationSuccessView(
-                    title: "Password reset email sent.",
-                    message: "Check your inbox and follow the instructions to reset your password."
+                    title: "Check your email",
+                    message: "If an account exists for that email address, you’ll receive a password reset link. Open it on this iPad."
                 )
                 .transition(.opacity)
             }
@@ -124,6 +121,7 @@ struct ForgotPasswordView: View {
 
             Button("Back to Login", action: onBackToLogin)
                 .buttonStyle(AuthenticationSecondaryButtonStyle())
+                .disabled(recovery.isSending)
         }
     }
 
@@ -131,7 +129,7 @@ struct ForgotPasswordView: View {
 
     private func resetPassword() async {
         successMessage = nil
-        let didSend = await authenticationService.sendPasswordReset(email: email)
+        let didSend = await recovery.send(email: email)
 
         if didSend {
             withAnimation(.easeInOut(duration: 0.2)) {
@@ -148,13 +146,13 @@ private enum ForgotPasswordField: Hashable {
 #Preview("iPhone Forgot Password") {
     NavigationStack {
         ForgotPasswordView(onBackToLogin: {})
-            .environmentObject(AuthenticationService())
+            .environmentObject(PasswordRecoveryService(auth: SupabasePasswordRecoveryAuth()))
     }
 }
 
 #Preview("iPad Forgot Password") {
     NavigationStack {
         ForgotPasswordView(onBackToLogin: {})
-            .environmentObject(AuthenticationService())
+            .environmentObject(PasswordRecoveryService(auth: SupabasePasswordRecoveryAuth()))
     }
 }

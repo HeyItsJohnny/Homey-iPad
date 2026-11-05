@@ -243,13 +243,13 @@ final class AuthenticationService: ObservableObject {
         isLoading = false
     }
 
-    func signOut() async {
+    func signOut(scope: SignOutScope = .global) async {
         guard !isPasskeyOperationInProgress else { return }
         isLoading = true
         clearError()
 
         do {
-            try await client.auth.signOut()
+            try await client.auth.signOut(scope: scope)
         } catch {
             logCompleteError(error, context: "SIGN OUT FAILED")
             errorMessage = authErrorMessage(for: error)
@@ -257,30 +257,6 @@ final class AuthenticationService: ObservableObject {
 
         clearSession(state: .unauthenticated, resetDeviceProtection: true)
         isLoading = false
-    }
-
-    func sendPasswordReset(email: String) async -> Bool {
-        guard !isPasskeyOperationInProgress else { return false }
-        guard !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "Enter your email address."
-            return false
-        }
-
-        isLoading = true
-        clearError()
-
-        do {
-            try await client.auth.resetPasswordForEmail(
-                email.trimmingCharacters(in: .whitespacesAndNewlines)
-            )
-            isLoading = false
-            return true
-        } catch {
-            logCompleteError(error, context: "PASSWORD RESET FAILED")
-            errorMessage = authErrorMessage(for: error)
-            isLoading = false
-            return false
-        }
     }
 
     func clearError() {

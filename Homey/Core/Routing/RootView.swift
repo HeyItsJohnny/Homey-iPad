@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject private var authenticationService: AuthenticationService
+    @EnvironmentObject private var passwordRecovery: PasswordRecoveryService
     @EnvironmentObject private var deviceUnlock: DeviceUnlockService
     @EnvironmentObject private var homeService: HomeService
     @AppStorage("selectedHomeID") private var storedSelectedHomeID = ""
@@ -10,21 +11,10 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            switch authenticationService.authenticationState {
-            case .loading:
-                ProgressView()
-            case .unauthenticated:
-                AuthenticationView()
-            case .emailVerificationRequired:
-                NavigationStack {
-                    VerifyEmailView(onBackToLogin: {})
-                }
-            case .authenticated:
-                if deviceUnlock.isEnabled && deviceUnlock.isLocked {
-                    DeviceUnlockView()
-                } else {
-                    authenticatedContent
-                }
+            if passwordRecovery.state.isPresented {
+                ResetPasswordView()
+            } else {
+                normalContent
             }
         }
         .background {
@@ -42,6 +32,26 @@ struct RootView: View {
                 loadedHomeUserID = nil
                 storedSelectedHomeID = ""
                 homeService.clearAuthenticatedState()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var normalContent: some View {
+        switch authenticationService.authenticationState {
+        case .loading:
+            ProgressView()
+        case .unauthenticated:
+            AuthenticationView()
+        case .emailVerificationRequired:
+            NavigationStack {
+                VerifyEmailView(onBackToLogin: {})
+            }
+        case .authenticated:
+            if deviceUnlock.isEnabled && deviceUnlock.isLocked {
+                DeviceUnlockView()
+            } else {
+                authenticatedContent
             }
         }
     }
