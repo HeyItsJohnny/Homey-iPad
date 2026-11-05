@@ -7,7 +7,6 @@ struct ForgotPasswordView: View {
     let onBackToLogin: () -> Void
 
     @State private var email = ""
-    @State private var successMessage: String?
     @FocusState private var focusedField: ForgotPasswordField?
 
     private var isRegularWidth: Bool {
@@ -75,12 +74,12 @@ struct ForgotPasswordView: View {
     private var forgotPasswordForm: some View {
         VStack(spacing: 20) {
             AuthenticationFormHeader(
-                title: "Forgot Password",
-                subtitle: "Enter the email address associated with your Homey account and we'll send you a password reset email."
+                title: "Forgot Your Password?",
+                subtitle: "Enter your email address and we'll help you reset your password."
             )
 
             AuthenticationTextField(
-                title: "Email",
+                title: "Email Address",
                 systemImage: "envelope",
                 text: $email,
                 focusedField: $focusedField,
@@ -109,14 +108,6 @@ struct ForgotPasswordView: View {
             .buttonStyle(HomeyPrimaryButtonStyle())
             .disabled(recovery.isSending)
 
-            if successMessage != nil {
-                AuthenticationSuccessView(
-                    title: "Check your email",
-                    message: "If an account exists for that email address, you’ll receive a password reset link. Open it on this iPad."
-                )
-                .transition(.opacity)
-            }
-
             AuthenticationDividerWithText(text: "or")
 
             Button("Back to Login", action: onBackToLogin)
@@ -128,14 +119,9 @@ struct ForgotPasswordView: View {
     // MARK: - Actions
 
     private func resetPassword() async {
-        successMessage = nil
-        let didSend = await recovery.send(email: email)
-
-        if didSend {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                successMessage = "Password reset email sent."
-            }
-        }
+        focusedField = nil
+        // The root presents ResetPasswordView as soon as the request succeeds.
+        _ = await recovery.send(email: email)
     }
 }
 

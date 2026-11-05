@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 final class FakeRecoveryAuth: PasswordRecoveryAuth {
     var sends = 0
+    var sentEmails: [String] = []
     var exchanges = 0
     var validations = 0
     var updates = 0
@@ -12,10 +13,13 @@ final class FakeRecoveryAuth: PasswordRecoveryAuth {
     var identity = RecoveryIdentity(userID: UUID(), expiresAt: Date().addingTimeInterval(600))
     var sendGate: CheckedContinuation<Void, Never>?
     var exchangeGate: CheckedContinuation<Void, Never>?
+    var updateGate: CheckedContinuation<Void, Never>?
     var pauseSend = false
     var pauseExchange = false
+    var pauseUpdate = false
     func send(email: String) async throws {
         sends += 1
+        sentEmails.append(email)
         if pauseSend { await withCheckedContinuation { sendGate = $0 } }
         if let failure { throw failure }
     }
@@ -32,6 +36,7 @@ final class FakeRecoveryAuth: PasswordRecoveryAuth {
     }
     func update(password: String) async throws {
         updates += 1
+        if pauseUpdate { await withCheckedContinuation { updateGate = $0 } }
         if let updateFailure { throw updateFailure }
         if let failure { throw failure }
     }
@@ -58,12 +63,14 @@ struct PasswordRecoveryChecks {
             precondition(!PasswordRecovery.validEmail(email))
         }
         precondition(PasswordRecovery.passwordError("", confirmation: "") != nil)
+        precondition(PasswordRecovery.passwordError("abc", confirmation: "") == "Confirm your new password.")
         precondition(PasswordRecovery.passwordError("one", confirmation: "two") != nil)
         // Client defers the actual password policy to the configured server.
         precondition(PasswordRecovery.passwordError("abc", confirmation: "abc") == nil)
 
         let auth = FakeRecoveryAuth()
-        let service = PasswordRecoveryService(auth: auth)
+        var now = Date()
+        let service = PasswordRecoveryService(auth: auth, now: { now })
         let premature = await service.update(password: "abc", confirmation: "abc")
         precondition(!premature && auth.updates == 0)
         let badEmail = await service.send(email: "invalid")
@@ -75,12 +82,33 @@ struct PasswordRecoveryChecks {
         precondition(!duplicateSend && auth.sends == 1)
         auth.sendGate?.resume()
         let sent = await sendTask.value
-        precondition(sent)
-        let cooldownSend = await service.send(email: "test@example.com")
-        precondition(!cooldownSend && auth.sends == 1)
+        precondition(sent && service.state == .pendingVerification && service.state.isPresented)
+        precondition(service.requestedEmail == "test@example.com" && auth.sentEmails == ["test@example.com"])
+        let pendingUpdate = await service.update(password: "abc", confirmation: "abc")
+        precondition(!pendingUpdate && auth.updates == 0 && auth.validations == 0)
+        let cooldownSend = await service.resend()
+        precondition(!cooldownSend && auth.sends == 1 && service.requestError != nil)
+        now = now.addingTimeInterval(61)
+        auth.pauseSend = false
+        auth.failure = URLError(.notConnectedToInternet)
+        let failedResend = await service.resend()
+        precondition(!failedResend && service.state == .pendingVerification && !service.isSending)
+        precondition(service.requestedEmail == "test@example.com" && service.requestError != nil)
+        auth.failure = nil
+        auth.pauseSend = true
+        auth.sendGate = nil
+        let resendTask = Task { await service.resend() }
+        while auth.sendGate == nil { await Task.yield() }
+        let duplicateResend = await service.resend()
+        await service.dismiss()
+        precondition(!duplicateResend && service.state == .pendingVerification)
+        auth.sendGate?.resume()
+        let resent = await resendTask.value
+        precondition(resent && service.requestError == nil && auth.sentEmails.count == 3)
+        precondition(auth.sentEmails.allSatisfy { $0 == "test@example.com" })
 
         await service.handle(URL(string: "homey://auth/reset-password?code=x")!)
-        precondition(service.state == .idle && auth.exchanges == 0)
+        precondition(service.state == .pendingVerification && auth.exchanges == 0)
         auth.pauseExchange = true
         let exchangeTask = Task { await service.handle(callback) }
         while auth.exchangeGate == nil { await Task.yield() }
@@ -97,12 +125,45 @@ struct PasswordRecoveryChecks {
         let weak = await service.update(password: "abc", confirmation: "abc")
         precondition(!weak && service.state == .ready && service.errorMessage != nil)
         auth.updateFailure = nil
-        let success = await service.update(password: "abc", confirmation: "abc")
+        auth.pauseUpdate = true
+        let updateTask = Task { await service.update(password: "abc", confirmation: "abc") }
+        while auth.updateGate == nil { await Task.yield() }
+        let concurrentUpdate = await service.update(password: "abc", confirmation: "abc")
+        await service.dismiss()
+        precondition(!concurrentUpdate && service.state == .updating && auth.updates == 2)
+        auth.updateGate?.resume()
+        let success = await updateTask.value
         precondition(success && service.state == .success && auth.updates == 2 && auth.clears == 1)
         let duplicateUpdate = await service.update(password: "abc", confirmation: "abc")
         precondition(!duplicateUpdate && auth.updates == 2)
         await service.dismiss()
-        precondition(service.state == .idle)
+        precondition(service.state == .idle && service.requestedEmail == nil && service.requestError == nil)
+        let dismissedCooldown = await service.send(email: "other@example.com")
+        precondition(!dismissedCooldown && auth.sends == 3)
+
+        // An unknown account is indistinguishable from any accepted Auth request.
+        let unknownAuth = FakeRecoveryAuth()
+        let unknown = PasswordRecoveryService(auth: unknownAuth)
+        let unknownSent = await unknown.send(email: "unknown@example.com")
+        precondition(unknownSent && unknown.state == .pendingVerification && unknown.requestError == nil)
+        await unknown.dismiss()
+        precondition(unknown.state == .idle && unknown.requestedEmail == nil && unknownAuth.clears == 1)
+
+        let pendingInvalidAuth = FakeRecoveryAuth()
+        let pendingInvalid = PasswordRecoveryService(auth: pendingInvalidAuth)
+        _ = await pendingInvalid.send(email: "test@example.com")
+        pendingInvalidAuth.failure = RecoveryAuthFailure.invalidSession
+        await pendingInvalid.handle(callback)
+        precondition(pendingInvalid.state == .invalidLink && pendingInvalidAuth.clears == 1)
+
+        // Time passing after verification must prevent any password mutation.
+        let expiringAuth = FakeRecoveryAuth()
+        var expiryTime = Date()
+        let expiring = PasswordRecoveryService(auth: expiringAuth, now: { expiryTime })
+        await expiring.handle(callback)
+        expiryTime = expiryTime.addingTimeInterval(601)
+        let expiredUpdate = await expiring.update(password: "abc", confirmation: "abc")
+        precondition(!expiredUpdate && expiring.state == .invalidLink && expiringAuth.updates == 0)
 
         for failure in [RecoveryAuthFailure.invalidSession] {
             let expiredAuth = FakeRecoveryAuth()
@@ -146,6 +207,6 @@ struct PasswordRecoveryChecks {
         let malformed = PasswordRecoveryService(auth: malformedAuth)
         await malformed.handle(URL(string: "homeyipad://auth/reset-password?error=expired")!)
         precondition(malformed.state == .invalidLink && malformedAuth.exchanges == 0)
-        print("Password recovery checks passed: URL validation, email validation, PKCE routing, duplicate requests/callbacks, policy failures, expiration/revocation, cleanup and single-use update state.")
+        print("Password recovery checks passed: pending navigation, trimmed/neutral requests, resend cooldown/retry, validation, PKCE routing, duplicate sends/callbacks/updates, policy failures, expiration/revocation, cleanup and single-use update state.")
     }
 }

@@ -1,7 +1,7 @@
 import Foundation
 
 enum PasswordRecoveryState: Equatable {
-    case idle, exchanging, ready, updating, success, invalidLink
+    case idle, pendingVerification, exchanging, ready, updating, success, invalidLink
 
     var isPresented: Bool { self != .idle }
     var isBusy: Bool { self == .exchanging || self == .updating }
@@ -35,6 +35,7 @@ enum PasswordRecovery {
 
     static func passwordError(_ password: String, confirmation: String) -> String? {
         guard !password.isEmpty else { return "Enter your new password." }
+        guard !confirmation.isEmpty else { return "Confirm your new password." }
         guard password == confirmation else { return "Your passwords do not match." }
         // The project's policy is enforced by Supabase, including strength and
         // breached-password checks. Do not invent a weaker client-side policy.

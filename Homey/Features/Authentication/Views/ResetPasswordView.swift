@@ -42,16 +42,26 @@ struct ResetPasswordView: View {
 
     private var form: some View {
         VStack(spacing: 20) {
-            AuthenticationFormHeader(title: "Reset Your Password", subtitle: "Enter your new password below.")
+            AuthenticationFormHeader(title: recovery.state == .success ? "Password Updated!" : "Reset Your Password",
+                                     subtitle: subtitle)
             switch recovery.state {
+            case .pendingVerification:
+                pendingVerification
             case .idle, .exchanging:
                 ProgressView("Checking your reset link…")
             case .invalidLink:
                 AuthenticationErrorView(message: "This reset link is invalid, expired, or already used. Request a new link from Forgot Password and open it on the same iPad.")
-                Button("Continue") { Task { await recovery.dismiss() } }
+                Button("Back to Log In") { Task { await recovery.dismiss() } }
                     .buttonStyle(HomeyPrimaryButtonStyle())
             case .success:
-                AuthenticationSuccessView(title: "Password updated", message: "Your new password is ready. Sign in to Homey to continue.")
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(HomeyTheme.success)
+                    .accessibilityHidden(true)
+                Text("You can now log in using your new password.")
+                    .font(.subheadline)
+                    .foregroundStyle(HomeyTheme.textSecondary)
+                    .multilineTextAlignment(.center)
                 Button {
                     isFinishing = true
                     Task {
@@ -61,7 +71,7 @@ struct ResetPasswordView: View {
                     }
                 } label: {
                     if isFinishing { ProgressView().tint(.white) }
-                    else { Text("Back to Login") }
+                    else { Text("Back to Log In") }
                 }
                 .buttonStyle(HomeyPrimaryButtonStyle())
                 .disabled(isFinishing || authentication.isLoading || authentication.isPasskeyOperationInProgress)
@@ -88,6 +98,57 @@ struct ResetPasswordView: View {
                 .buttonStyle(AuthenticationSecondaryButtonStyle())
                 .disabled(recovery.state.isBusy)
             }
+        }
+    }
+
+    private var subtitle: String {
+        switch recovery.state {
+        case .pendingVerification: "Check your email to continue."
+        case .ready, .updating: "Enter your new password below."
+        case .success: "Your Homey password has been successfully changed."
+        case .idle, .exchanging: "Verifying your reset link."
+        case .invalidLink: "Request a new password reset link."
+        }
+    }
+
+    private var pendingVerification: some View {
+        VStack(spacing: 20) {
+            Text("If a Homey account exists for this email, we've sent a password reset link.")
+                .font(.subheadline)
+                .foregroundStyle(HomeyTheme.textSecondary)
+                .multilineTextAlignment(.center)
+
+            if let email = recovery.requestedEmail {
+                Text(email)
+                    .font(.headline)
+                    .foregroundStyle(HomeyTheme.textPrimary)
+                    .textSelection(.enabled)
+                    .multilineTextAlignment(.center)
+            }
+
+            Text("Open it on this iPad to verify your account.")
+                .font(.subheadline)
+                .foregroundStyle(HomeyTheme.textSecondary)
+                .multilineTextAlignment(.center)
+
+            if let message = recovery.requestError {
+                AuthenticationErrorView(message: message)
+            }
+
+            Button {
+                Task { _ = await recovery.resend() }
+            } label: {
+                if recovery.isSending { ProgressView().tint(.white) }
+                else { Text("Resend Email") }
+            }
+            .buttonStyle(HomeyPrimaryButtonStyle())
+            .disabled(recovery.isSending)
+
+            Button("Back to Log In") {
+                Task { await recovery.dismiss() }
+            }
+            .buttonStyle(AuthenticationSecondaryButtonStyle())
+            .disabled(recovery.isSending)
         }
     }
 

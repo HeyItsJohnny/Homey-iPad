@@ -124,7 +124,7 @@ struct LoginView: View {
                 )
             }
 
-            Button("Forgot Password", action: onForgotPassword)
+            Button("Forgot My Password", action: onForgotPassword)
                 .disabled(authenticationService.isLoading)
                 .font(.subheadline.weight(.medium))
                 .foregroundStyle(HomeyTheme.primary)
