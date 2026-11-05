@@ -33,6 +33,18 @@ final class HomeService: ObservableObject {
     private var loadedInvitationsHomeID: UUID?
     private var loadedInvitationUserID: UUID?
 
+    private func requireVerifiedAccount(expectedID: UUID? = nil) async throws {
+        let session = try await client.auth.session
+        let user = try await client.auth.user(jwt: session.accessToken)
+        guard EmailVerification.permitsHomeAccess(sessionID: session.user.id, userID: user.id,
+            email: user.email, emailConfirmed: user.emailConfirmedAt != nil,
+            anonymous: user.isAnonymous, expired: session.isExpired),
+            expectedID == nil || expectedID == user.id,
+            client.auth.currentSession?.user.id == user.id else {
+            throw HomeVerificationFailure.unverified
+        }
+    }
+
     // MARK: - Loading
 
     func loadHomes(for userID: UUID) async {
@@ -81,6 +93,7 @@ final class HomeService: ObservableObject {
         errorMessage = nil
 
         do {
+            try await requireVerifiedAccount(expectedID: userID)
             #if DEBUG
             print("Creating Home...")
             print("home_name: \(trimmedName)")
@@ -567,6 +580,7 @@ final class HomeService: ObservableObject {
         invitationsErrorMessage = nil
 
         do {
+            try await requireVerifiedAccount()
             if try await pendingInvitationExists(homeID: homeID, email: normalizedEmail) {
                 invitationsErrorMessage = "An invitation is already pending for this email."
                 isCreatingInvitation = false
@@ -639,6 +653,7 @@ final class HomeService: ObservableObject {
         myInvitationsErrorMessage = nil
 
         do {
+            try await requireVerifiedAccount(expectedID: currentUserID)
             let acceptedHomeID: UUID = try await client
                 .rpc(
                     "accept_home_invitation",
@@ -1113,3 +1128,5 @@ private struct MyHomeInvitationResponse: Decodable {
         case expiresAt = "expires_at"
     }
 }
+
+private enum HomeVerificationFailure: Error { case unverified }

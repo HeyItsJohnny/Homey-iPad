@@ -1,6 +1,8 @@
+import Auth
 import SwiftUI
 
 struct RootView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var authenticationService: AuthenticationService
     @EnvironmentObject private var passwordRecovery: PasswordRecoveryService
     @EnvironmentObject private var deviceUnlock: DeviceUnlockService
@@ -24,11 +26,17 @@ struct RootView: View {
         .task {
             await authenticationService.restoreSession()
         }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active, authenticationService.authenticationState == .emailVerificationRequired,
+               authenticationService.session != nil {
+                Task { await authenticationService.restoreSession() }
+            }
+        }
         .onChange(of: homeService.selectedHomeID) { _, selectedHomeID in
             storedSelectedHomeID = selectedHomeID?.uuidString ?? ""
         }
         .onChange(of: authenticationService.authenticationState) { _, state in
-            if state == .unauthenticated {
+            if state == .unauthenticated || state == .emailVerificationRequired || state == .profileInitializationRequired {
                 loadedHomeUserID = nil
                 storedSelectedHomeID = ""
                 homeService.clearAuthenticatedState()
@@ -46,6 +54,26 @@ struct RootView: View {
         case .emailVerificationRequired:
             NavigationStack {
                 VerifyEmailView(onBackToLogin: {})
+            }
+        case .profileInitializationRequired:
+            ZStack {
+                AuthenticationBackground()
+                VStack(spacing: 24) {
+                    Text("Finish Setting Up Your Account").font(.title.bold())
+                    Text(authenticationService.errorMessage ?? "We couldn't load your profile. Please try again.")
+                    Button("Try Again") {
+                        Task { await authenticationService.retryAccountInitialization() }
+                    }
+                    .buttonStyle(HomeyPrimaryButtonStyle())
+                    Button("Back to Log In") {
+                        Task { await authenticationService.signOut(scope: .local) }
+                    }
+                    .buttonStyle(AuthenticationSecondaryButtonStyle())
+                }
+                .disabled(authenticationService.isLoading)
+                .multilineTextAlignment(.center)
+                .padding(32)
+                .frame(maxWidth: 560)
             }
         case .authenticated:
             if deviceUnlock.isEnabled && deviceUnlock.isLocked {
@@ -85,7 +113,8 @@ struct RootView: View {
     }
 
     private func loadHomesForAuthenticatedUser() async {
-        guard let userID = authenticationService.currentUser?.id else {
+        guard authenticationService.authenticationState == .authenticated,
+              let userID = authenticationService.currentUser?.id else {
             return
         }
 
@@ -93,6 +122,8 @@ struct RootView: View {
         homeService.restoreSelectedHome(from: storedSelectedHomeID)
         await homeService.loadHomes(for: userID)
         await homeService.loadMyPendingInvitations(for: userID)
+        guard !Task.isCancelled, authenticationService.authenticationState == .authenticated,
+              authenticationService.currentUser?.id == userID else { return }
         storedSelectedHomeID = homeService.selectedHomeID?.uuidString ?? ""
         loadedHomeUserID = userID
     }

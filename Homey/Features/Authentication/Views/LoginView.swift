@@ -33,7 +33,9 @@ struct LoginView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
-            authenticationService.clearError()
+            if authenticationService.verification.errorMessage == nil {
+                authenticationService.clearError()
+            }
             let context = LAContext()
             _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
             switch context.biometryType {

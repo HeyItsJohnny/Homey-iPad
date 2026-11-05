@@ -1,0 +1,261 @@
+Homey-iPad — Signup and Email Verification Implementation
+Date: November 4, 2026 (America/Los_Angeles)
+
+IMPLEMENTATION
+
+Signup retains First Name, Last Name, Display Name, Email Address, Password,
+and Confirm Password. Shared validation checks trimmed required names, email
+format, both password fields and equality. Supabase remains responsible for its
+configured password-strength policy. Email is trimmed and lowercased. Duplicate
+submissions are blocked; password fields are cleared after the attempt. Passwords
+are never persisted by this flow.
+
+Signup supplies first_name, last_name, and display_name as trimmed Auth metadata
+and explicitly uses homeyipad://auth/verify-email. The existing database trigger
+creates the profile. Signup performs no profile insert/upsert, and a sessionless
+Auth response goes directly to Verify Your Email without manufacturing a local
+UserProfile. Duplicate-account responses are handled neutrally without exposing
+whether an account exists. Transport/rate errors show friendly recovery guidance.
+
+Verify Your Email uses the existing Sky and Sand background/card/buttons, a
+verification icon, the requested wording, the pending email, waiting status,
+Resend Verification Email and Back to Log In. There is no Continue action.
+The centered card is capped at 560 points and scrolls in portrait/landscape.
+Semantic fonts support Dynamic Type, readable labels support VoiceOver, and
+busy/disabled states protect requests. Visual and accessibility device QA is
+still required.
+
+Resend calls SDK 2.53.0 auth.resend(email:type:.signup:emailRedirectTo:) with the
+signup redirect. It never calls signup again or uses password recovery. Requests
+are serialized and use an absolute 60-second cooldown, including failed requests.
+A countdown is derived from the current time, so backgrounding does not freeze
+it. Pending context survives termination. A separate latest-email throttle record
+survives cancellation/navigation but cannot restore signup or grant authority.
+Success and network/rate-limit messages are shown. Supabase may enforce a longer
+limit than the local countdown. Every resend rotates the SDK PKCE verifier;
+users are told to use the latest email.
+
+HomeyApp routes exact recovery callbacks to the unchanged recovery service and
+exact signup callbacks to AuthenticationService. Signup validation requires the
+homeyipad scheme, auth host, exact /verify-email path, no credentials/port,
+no fragment, and a single bounded alphanumeric/hyphen/underscore code parameter.
+Mixed, duplicate or malformed parameters and unrelated routes are rejected.
+Error callbacks, expired/consumed links and exchange failures offer resend/login
+recovery. Authentication response bodies, tokens, passwords, and callback secrets
+are not logged.
+
+The normal Supabase client explicitly uses PKCE with its existing storage identity.
+The installed Swift SDK stores its verifier through default Keychain storage, so
+it survives termination. exchangeCodeForSession(authCode:) establishes a session;
+a subsequent Auth user(jwt:) request confirms identity, emailConfirmedAt,
+non-anonymous status and a non-expired session. The authoritative email must
+match the normalized pending signup address. Mismatched/exchange-failed sessions
+are discarded locally. The isolated password recovery client's storage key and
+callback validation are unchanged.
+
+Auth revision checks prevent a stale startup task or profile response from
+publishing over a newer callback/account transition. Callback delivery during
+another interactive Auth operation or resend is queued; duplicate in-flight and
+successful callback delivery does not establish additional authority. SDK Auth
+events emitted by explicit operations cannot publish intermediate authentication.
+Root-level onOpenURL works with launch, background and foreground URL delivery.
+An existing unverified session is rechecked when the scene becomes active.
+Sessionless cross-device confirmation still requires authentication.
+
+Pending state stores only email and resend availability. It is presentation context,
+never authentication. Verification success, cancellation and account switching
+clear pending context. A single latest-email cooldown record contains only email
+and a timestamp. No local flag, stored profile or Auth user object grants access.
+
+Password login, session restoration, Auth events, passkey login and device unlock
+use email-specific verification. The generic confirmedAt timestamp is no longer
+accepted. Profile loading/initialization must finish before .authenticated is
+published. A recoverable account-loading screen offers retry or return to Login
+when Auth/profile requests fail. Create Home, accept invitation and create
+invitation also fetch the authoritative user before invoking existing RPCs.
+Device-unlock account binding and the existing protection service are preserved.
+
+Profile initialization fetches the authenticated user's row, verifies its ID,
+and fills only missing/blank names from that user's metadata. Updates compare
+the previous column value (or null) and are scoped by user ID, preserving concurrent
+edits and all other columns. If the trigger row is absent, an authenticated
+conflict-ignoring insert repairs it without replacing a concurrent row. One retry
+handles transient failures; continued failure blocks Home onboarding and offers
+retry. Existing RLS permissions remain required; no anonymous grants, service-role
+key, trigger/table changes or backend migrations were introduced.
+
+After verification and profile loading, existing routing loads Homes and pending
+invitations: invitation onboarding for eligible invitations, the existing Create/
+Join experience for no Homes, and normal selection/dashboard for memberships.
+No Home, invitation acceptance, membership or starter meal is created automatically.
+The iPhone repository, URL schemes, backend RPCs, App Groups and entitlements
+were not modified.
+
+CROSS-DEVICE / MISSING-VERIFIER BEHAVIOR
+
+The email-confirmation endpoint may confirm the email before redirecting to the
+app. A code cannot be exchanged on another device without the originating
+Keychain verifier. It is also lost after reinstall/Keychain loss or superseded by
+a newer resend. This is never bypassed. Open the latest email on the originating
+iPad, request another verification email there, or choose Back to Log In and
+use email/password after confirmation. Login fetches the authoritative user and
+profile. A device with no pending signup context refuses callback exchange and
+shows guidance on Login. The verifier is not exported or copied between devices.
+
+Reference: https://supabase.com/docs/guides/auth/sessions/pkce-flow
+API signatures and storage behavior were checked against the locally installed
+supabase-swift 2.53.0 source rather than newer SDK features.
+
+FILES MODIFIED (paths relative to this repository)
+
+Homey/HomeyApp.swift — distinct callback routing.
+Homey/Core/Supabase/SupabaseManager.swift — explicit PKCE using existing storage.
+Homey/Core/Routing/RootView.swift — verification/profile gates and lifecycle routing.
+Homey/Features/Authentication/Models/AuthenticationState.swift — retryable account setup.
+Homey/Features/Authentication/Services/AuthenticationService.swift — metadata signup,
+  session adoption, authoritative gate, profile repair, callback coordination.
+Homey/Features/Authentication/Views/SignUpView.swift — shared validation and secure cleanup.
+Homey/Features/Authentication/Views/VerifyEmailView.swift — complete native verification UI.
+Homey/Features/Authentication/Views/LoginView.swift — preserve callback recovery guidance.
+Homey/Features/HomeOnboarding/Services/HomeService.swift — authoritative RPC preflight checks.
+
+FILES CREATED
+
+Homey/Features/Authentication/Models/EmailVerification.swift — policies, context, name repair.
+Homey/Features/Authentication/Services/EmailVerificationService.swift — durable flow state.
+Homey/Features/Authentication/Services/SupabaseEmailVerificationAuth.swift — SDK adapter.
+Tests/EmailVerificationChecks.swift — executable policy/state checks with a fake Auth adapter.
+Tests/check-email-verification-contracts.py — source integration contracts.
+Tests/run-email-verification-checks.sh — repeatable test entry point.
+Docs/SignupEmailVerificationImplementation.txt — this report and device test checklist.
+
+The pre-existing modified UserInterfaceState.xcuserstate was left intact.
+
+AUTOMATED VALIDATION
+
+Run: Tests/run-email-verification-checks.sh
+66 executable checks cover signup validation, exact metadata/redirect policies,
+strict callback parsing, verified session policy, profile name preservation and
+idempotency, pending-state restoration, safe persisted fields, absolute cooldown,
+resend concurrency/failure/success, callback concurrency/duplicates, identity
+mismatch, unconfirmed users, exchange failure recovery, account switching,
+cancellation/stale completions and password callback separation.
+
+Source integration contracts additionally check the actual signup call, no
+premature profile write or pending UserProfile, sessionless verification routing,
+authoritative Auth/profile ordering, stale revision guards, conditional profile
+repair, signup resend API, root routing, UI wording, Home operation gates,
+passkey adoption, device-unlock confirmation, and isolated recovery configuration.
+These contracts do not replace runtime SDK, UI or backend integration testing.
+
+Requested coverage map (executed unless marked source contract):
+1. Signup validation: executable shared validator.
+2. Name metadata: executable metadata builder + production call source contract.
+3. Signup redirect: executable constant + production call source contract.
+4. Sessionless signup: production branch source contract.
+5. No premature upsert: signup source contract.
+6. Automatic verification screen: signup/root routing source contracts.
+7. Pending persistence: executable round-trip and cancellation checks.
+8. Resend: executable fake adapter + real SDK adapter source contract.
+9. Cooldown: executable wall-clock, relaunch and navigation checks.
+10. Duplicate requests: executable resend/callback concurrency checks.
+11. Invalid callback rejection: executable strict parser and handler checks.
+12. Expired links: executable invalid redirect and fake exchange failure checks.
+13. Successful PKCE: executable fake identity exchange + SDK call source contract.
+14. Authoritative email gate: executable policy + Auth fetch source contracts.
+15. Profile initialization: executable repair policy + database-write source contracts.
+16. Unverified onboarding restriction: executable gate + root/RPC source contracts.
+17. Verified onboarding: executable gate + root routing source contracts.
+18. Account switching: executable context replacement and stale completion checks;
+    actual SDK session adoption ordering additionally checked through source contracts.
+19. Password recovery: existing executable regression suite and routing contracts.
+20. Passkeys/device unlock: integration source contracts; native runtime pending.
+
+Existing password recovery checks: passed.
+Existing Quick Meal / Auto Plan / meal-slot checks: passed.
+Existing Trips Hub / Trip Calendar checks: passed.
+Debug and Release simulator build results: recorded below after final validation.
+Builds use CODE_SIGNING_ALLOWED=NO; they are not signed physical-device builds.
+
+Live Supabase signup, SMTP delivery, RLS/RPC integration, native passkey/Face ID,
+and physical iPad tests were NOT performed. No controlled credentials were supplied.
+
+CONFIGURATION
+
+No new Supabase/URL-scheme/database configuration is required based on the supplied
+backend configuration. Before rollout, confirm the existing deployed configuration:
+Confirm Email enabled; Resend SMTP and sender active; both iPad redirect URLs
+allowed; confirmation email template follows the Supabase confirmation link and
+preserves redirect_to; existing authenticated self-profile policies permit the
+narrow repair operations. Keep both existing iPhone callbacks and the dedicated
+recovery client's Keychain namespace. Install a normally signed iPad build to
+exercise Keychain, associated entitlements and native authentication behavior.
+Do not weaken RLS to make a failing test pass; investigate existing policies.
+
+PHYSICAL IPAD CHECKLIST (controlled test accounts only; not yet executed)
+
+[ ] Use a fresh controlled address, a second controlled account, a Home owner,
+    and a disposable invitation. Record device/iPadOS/build, expected/actual
+    behavior, and sanitized error codes; never record passwords or callback tokens.
+[ ] Create account: test every required field, malformed email, empty confirmation,
+    mismatch, weak/backend-rejected password, and repeated taps. Verify six fields,
+    no duplicate request, trimmed names/normalized email and safe error messages.
+[ ] Confirm receipt from noreply@homeyfamilyapp.com. Inspect controlled Auth metadata
+    and the one trigger-created profile. Verify no Home/membership before confirmation.
+[ ] Open the newest link in Mail on the same iPad. Confirm native return, authoritative
+    email confirmation, names preserved/filled, and automatic onboarding without Continue.
+[ ] Repeat link delivery while running, backgrounded and fully terminated. Confirm
+    startup cannot return to Login or overwrite a completed verification.
+[ ] Force quit while signup response or callback/profile requests are pending, then
+    relaunch. Pending email/cooldown or authoritative authenticated recovery must restore.
+[ ] Request resend, verify 60-second countdown across navigation/background/relaunch,
+    repeated-tap blocking, clear success, latest-email use and no extra Auth account.
+[ ] Test offline resend/exchange, SMTP/server limits, expired link, consumed link,
+    wrong account, malformed link, and missing verifier. Confirm no Home access;
+    useful retry, resend, or Login recovery remains available.
+[ ] Reopen a successfully handled link after profile initialization failed; ensure
+    duplicate delivery does not remove the account-loading retry path.
+[ ] Open confirmation on another device; on the origin iPad use Login with the
+    controlled password after email confirmation, or request a fresh verification.
+    Verify a device without the verifier never exchanges/bypasses authentication.
+[ ] Cancel pending signup with Back to Log In; relaunch should show Login. Sign in
+    or sign up as another controlled account; pending context/profile/Homes must
+    not leak between accounts. Reusing the latest address retains its local throttle.
+[ ] Sign in unverified with email/password and, where available, passkey. Confirm
+    no dashboard, Create Home, Join/accept invitation or protected membership action.
+[ ] Verify a no-Home account, create a Home explicitly and confirm one membership.
+[ ] Verify an invited account, inspect eligible invitations, accept explicitly once,
+    and verify ordinary onboarding; no acceptance happens automatically.
+[ ] Sign in an existing verified account with multiple Homes; check selection,
+    switching, invitation creation/acceptance, profile edits, names/avatar/timezone.
+[ ] Simulate transient/continued profile failures. Verify bounded retry, protected
+    navigation blocked, Try Again recovery, and preservation of existing profile fields.
+[ ] Password reset regression: request reset, open homeyipad://auth/reset-password,
+    change password, test expired/used/malformed links, and verify isolation while a
+    signup is pending. Existing signed-in household session must remain protected.
+[ ] Face ID/device-unlock regression: existing enabled account stays locked across
+    background/relaunch; local unlock never creates a Supabase session; failure,
+    cancellation and account switching preserve existing behavior.
+[ ] Passkey regression: existing registration, listing/removal, login, cancellation,
+    and fallback to password work; verified email/profile remain required.
+[ ] Check Calendar, Meals, Groceries, Chores, Rewards, Trips, starter meal behavior,
+    household switching, invitation lists, and existing backend RPC behavior.
+[ ] Check portrait, landscape, largest Dynamic Type, VoiceOver reading/focus order,
+    enabled/disabled states, scrolling and long email/name values.
+
+FINAL BUILD RESULTS
+
+PASS — Debug, generic iOS Simulator, arm64 and x86_64, unsigned.
+PASS — Release, generic iOS Simulator, arm64 and x86_64, unsigned.
+PASS — 66 executable verification checks and source integration contracts.
+PASS — existing password recovery, Quick Meal and Trips regression scripts.
+PASS — git diff --check.
+
+Build logs from this execution:
+/tmp/homey-signup-debug-final.log
+/tmp/homey-signup-release-final.log
+
+Existing unrelated warnings remain (full-screen setting deprecation, onboarding
+trailing closure labeling, Trips actor isolation, AppIntents metadata extraction).
+No introduced compilation errors remain. Runtime/physical/backend checks above
+remain unchecked and must be completed before rollout.

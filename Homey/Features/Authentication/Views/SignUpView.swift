@@ -139,7 +139,7 @@ struct SignUpView: View {
                 )
 
                 AuthenticationTextField(
-                    title: "Email",
+                    title: "Email Address",
                     systemImage: "envelope",
                     text: $email,
                     focusedField: $focusedField,
@@ -197,6 +197,7 @@ struct SignUpView: View {
 
             Button("Back to Login", action: onBackToLogin)
                 .buttonStyle(AuthenticationSecondaryButtonStyle())
+                .disabled(authenticationService.isLoading)
         }
     }
 
@@ -209,33 +210,9 @@ struct SignUpView: View {
         let trimmedLastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedDisplayName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        guard !trimmedFirstName.isEmpty else {
-            validationMessage = "Enter your first name."
-            return
-        }
-
-        guard !trimmedLastName.isEmpty else {
-            validationMessage = "Enter your last name."
-            return
-        }
-
-        guard !trimmedDisplayName.isEmpty else {
-            validationMessage = "Enter a display name."
-            return
-        }
-
-        guard !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            validationMessage = "Enter your email address."
-            return
-        }
-
-        guard !password.isEmpty else {
-            validationMessage = "Enter a password."
-            return
-        }
-
-        guard password == confirmPassword else {
-            validationMessage = "Passwords do not match."
+        if let error = EmailVerification.signupError(firstName: firstName, lastName: lastName,
+            displayName: displayName, email: email, password: password, confirmation: confirmPassword) {
+            validationMessage = error
             return
         }
 
@@ -247,6 +224,8 @@ struct SignUpView: View {
             displayName: trimmedDisplayName
         )
 
+        password = ""
+        confirmPassword = ""
         if authenticationService.authenticationState == .emailVerificationRequired {
             onVerificationRequired()
         }

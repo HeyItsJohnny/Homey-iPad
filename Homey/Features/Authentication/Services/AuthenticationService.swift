@@ -37,6 +37,11 @@ final class AuthenticationService: ObservableObject {
 
     // MARK: - Private Properties
 
+    let verification = EmailVerificationService()
+    private var authRevision: UInt64 = 0
+    private var handlingVerification = false
+    private var restoringSession = false
+    private var queuedVerificationURL: URL?
     private let client = SupabaseManager.shared.client
     private let deviceUnlock: DeviceUnlockService
     private var authStateChangesTask: Task<Void, Never>?
@@ -55,21 +60,55 @@ final class AuthenticationService: ObservableObject {
     // MARK: - Session
 
     func restoreSession() async {
-        guard !isPasskeyOperationInProgress else { return }
-        authenticationState = .loading
+        guard !isPasskeyOperationInProgress, !handlingVerification, !isLoading,
+              authenticationState != .authenticated else { return }
+        authRevision &+= 1
+        let revision = authRevision
         isLoading = true
         clearError()
-
+        restoringSession = true
+        defer {
+            restoringSession = false
+            if revision == authRevision { finishAuthenticationOperation() }
+        }
         do {
             let restoredSession = try await client.auth.session
-            applySession(restoredSession)
-            await refreshCurrentUserProfile()
+            await applySession(restoredSession, revision: revision)
         } catch {
-            logCompleteError(error, context: "RESTORE SESSION FAILED")
-            clearSession(state: .unauthenticated)
+            guard revision == authRevision else { return }
+            clearSession(state: verification.pending == nil ? .unauthenticated : .emailVerificationRequired)
         }
+    }
 
-        isLoading = false
+    func handleEmailVerification(_ url: URL) async {
+        guard EmailVerification.isCallback(url), !handlingVerification else { return }
+        if (isLoading && !restoringSession) || isPasskeyOperationInProgress || verification.isBusy {
+            queuedVerificationURL = url
+            return
+        }
+        // A verification callback supersedes startup restoration. Auth events emitted
+        // by exchangeCodeForSession must not publish an intermediate session.
+        authRevision &+= 1
+        let revision = authRevision
+        handlingVerification = true
+        isLoading = true
+        defer { handlingVerification = false; finishAuthenticationOperation() }
+        if let identity = await verification.handle(url, using: SupabaseEmailVerificationAuth()),
+           revision == authRevision, let candidate = client.auth.currentSession,
+           candidate.user.id == identity.userID {
+            await applySession(candidate, revision: revision)
+        } else if revision == authRevision, verification.errorMessage != nil,
+                  authenticationState != .authenticated {
+            clearSession(state: verification.pending == nil ? .unauthenticated : .emailVerificationRequired)
+            errorMessage = verification.errorMessage
+        }
+    }
+
+    func resendVerificationEmail() async {
+        guard !isLoading, !isPasskeyOperationInProgress, !verification.isBusy else { return }
+        clearError()
+        await verification.resend(using: SupabaseEmailVerificationAuth())
+        drainVerificationCallback()
     }
 
     /// A local unlock never creates a Supabase session. Confirm the existing user
@@ -81,7 +120,12 @@ final class AuthenticationService: ObservableObject {
             let verifiedUser = try await client.auth.user(jwt: restored.accessToken)
             guard authenticationState == .authenticated, session?.user.id == expectedID,
                   restored.user.id == expectedID, verifiedUser.id == expectedID else { return false }
-            applySession(restored)
+            guard isVerified(user: verifiedUser), !restored.isExpired else {
+                clearSession(state: .emailVerificationRequired)
+                verification.begin(email: verifiedUser.email ?? "")
+                return false
+            }
+            self.session = restored
             return authenticationState == .authenticated
         } catch {
             guard session?.user.id == expectedID else { return false }
@@ -109,53 +153,64 @@ final class AuthenticationService: ObservableObject {
     }
 
     func refreshSession() async {
-        guard !isPasskeyOperationInProgress else { return }
+        guard !isPasskeyOperationInProgress, !isLoading, !handlingVerification, !verification.isBusy else { return }
+        authRevision &+= 1
+        let revision = authRevision
         isLoading = true
         clearError()
 
         do {
             let refreshedSession = try await client.auth.refreshSession()
-            applySession(refreshedSession)
+            await applySession(refreshedSession, revision: revision)
             offerPasskeySetupIfNeeded()
         } catch {
+            guard revision == authRevision else { return }
             logCompleteError(error, context: "REFRESH SESSION FAILED")
             errorMessage = authErrorMessage(for: error)
-            authenticationState = .emailVerificationRequired
+            authenticationState = .profileInitializationRequired
         }
 
-        isLoading = false
+        if revision == authRevision { finishAuthenticationOperation() }
     }
 
     // MARK: - Authentication
 
     func signIn(email: String, password: String) async {
-        guard !isLoading, !isPasskeyOperationInProgress else { return }
+        guard !isLoading, !isPasskeyOperationInProgress, !verification.isBusy else { return }
         guard validate(email: email, password: password) else {
             return
         }
 
+        authRevision &+= 1
+        let revision = authRevision
+        verification.clear()
         isLoading = true
         clearError()
 
         do {
             let signedInSession = try await client.auth.signIn(
-                email: email.trimmingCharacters(in: .whitespacesAndNewlines),
+                email: EmailVerification.normalize(email),
                 password: password
             )
-            applySession(signedInSession)
+            await applySession(signedInSession, revision: revision)
             offerPasskeySetupIfNeeded()
-            await refreshCurrentUserProfile()
         } catch {
+            guard revision == authRevision else { return }
             logCompleteError(error, context: "SIGN IN FAILED")
             clearSession(state: .unauthenticated)
-            errorMessage = authErrorMessage(for: error)
+            if let authError = error as? AuthError, authError.errorCode == .emailNotConfirmed {
+                verification.begin(email: email)
+                authenticationState = .emailVerificationRequired
+            } else {
+                errorMessage = authErrorMessage(for: error)
+            }
         }
 
-        isLoading = false
+        if revision == authRevision { finishAuthenticationOperation() }
     }
 
     func signUp(email: String, password: String, firstName: String, lastName: String, displayName: String) async {
-        guard !isLoading, !isPasskeyOperationInProgress else { return }
+        guard !isLoading, !isPasskeyOperationInProgress, !verification.isBusy else { return }
         guard validate(email: email, password: password) else {
             return
         }
@@ -184,67 +239,55 @@ final class AuthenticationService: ObservableObject {
         isLoading = true
         clearError()
 
-        if client.auth.currentSession != nil {
-            do {
-                try await client.auth.signOut()
-                clearSession(state: .unauthenticated)
-            } catch {
-                logCompleteError(error, context: "CLEAR CACHED SESSION BEFORE SIGNUP FAILED")
-            }
-        }
-
+        authRevision &+= 1
+        let revision = authRevision
+        let normalizedEmail = EmailVerification.normalize(email)
         do {
-            #if DEBUG
-            print("========== SIGNUP STARTED ==========")
-            print("email: \(email.trimmingCharacters(in: .whitespacesAndNewlines))")
-            print("===================================")
-            #endif
-
-            let response = try await client.auth.signUp(
-                email: email.trimmingCharacters(in: .whitespacesAndNewlines),
-                password: password
-            )
-
-            do {
-                try await upsertProfile(
-                    userID: response.user.id,
-                    email: response.user.email ?? email.trimmingCharacters(in: .whitespacesAndNewlines),
-                    profile: normalizedProfile
-                )
-            } catch {
-                logCompleteError(error, context: "SIGNUP PROFILE SAVE FAILED")
-                errorMessage = "Your account was created, but your profile information could not be saved. Please try again."
-                isLoading = false
-                return
+            if client.auth.currentSession != nil {
+                try await client.auth.signOut(scope: .local)
             }
-
-            if let signUpSession = response.session {
-                applySession(signUpSession)
-                offerPasskeySetupIfNeeded()
-                await refreshCurrentUserProfile()
+            clearSession(state: .unauthenticated, resetDeviceProtection: true)
+            // Save context before the request: termination or a lost response must
+            // still let the user resend without storing a password or fake profile.
+            verification.begin(email: normalizedEmail, sent: true)
+            let response = try await client.auth.signUp(
+                email: normalizedEmail,
+                password: password,
+                data: SignupNames(firstName: firstName, lastName: lastName, displayName: displayName)
+                    .metadata.mapValues { .string($0) },
+                redirectTo: EmailVerification.redirectURL
+            )
+            guard revision == authRevision else { return }
+            // The database trigger owns initial profile creation. A sessionless
+            // response (including an obfuscated duplicate signup) is not failure.
+            if let candidate = response.session {
+                await applySession(candidate, revision: revision)
             } else {
-                session = nil
-                currentUser = UserProfile(
-                    id: response.user.id,
-                    email: response.user.email ?? email.trimmingCharacters(in: .whitespacesAndNewlines),
-                    firstName: normalizedProfile.firstName,
-                    lastName: normalizedProfile.lastName,
-                    displayName: normalizedProfile.displayName,
-                    avatarURL: nil
-                )
-                authenticationState = .emailVerificationRequired
+                clearSession(state: .emailVerificationRequired)
             }
         } catch {
-            logCompleteError(error, context: "SIGNUP FAILED")
-            clearSession(state: .unauthenticated)
-            errorMessage = authErrorMessage(for: error)
+            guard revision == authRevision else { return }
+            if let authError = error as? AuthError, [.userAlreadyExists, .emailExists].contains(authError.errorCode) {
+                clearSession(state: .emailVerificationRequired)
+            } else {
+                clearSession(state: .unauthenticated)
+                if let authError = error as? AuthError,
+                   authError.errorCode == .weakPassword {
+                    errorMessage = authError.message
+                } else {
+                    errorMessage = "We couldn't complete signup. Check your connection and password, or wait a minute before trying again. If you've already signed up, check your email or return to Log In."
+                }
+            }
         }
 
-        isLoading = false
+        finishAuthenticationOperation()
     }
 
     func signOut(scope: SignOutScope = .global) async {
-        guard !isPasskeyOperationInProgress else { return }
+        guard !isPasskeyOperationInProgress, !handlingVerification, !verification.isBusy else { return }
+        authRevision &+= 1
+        verification.clear()
+        queuedVerificationURL = nil
         isLoading = true
         clearError()
 
@@ -256,7 +299,7 @@ final class AuthenticationService: ObservableObject {
         }
 
         clearSession(state: .unauthenticated, resetDeviceProtection: true)
-        isLoading = false
+        finishAuthenticationOperation()
     }
 
     func clearError() {
@@ -269,7 +312,9 @@ final class AuthenticationService: ObservableObject {
         }
 
         do {
-            self.currentUser = try await fetchProfile(userID: currentUser.id, email: currentUser.email)
+            let profile = try await fetchProfile(userID: currentUser.id, email: currentUser.email)
+            guard self.currentUser?.id == currentUser.id else { return }
+            self.currentUser = profile
         } catch {
             logCompleteError(error, context: "FETCH PROFILE FAILED")
         }
@@ -308,7 +353,7 @@ final class AuthenticationService: ObservableObject {
 
         isLoading = true
         clearError()
-        defer { isLoading = false }
+        defer { finishAuthenticationOperation() }
 
         do {
             try await upsertProfile(userID: currentUser.id, email: currentUser.email, profile: normalizedProfile)
@@ -456,7 +501,7 @@ final class AuthenticationService: ObservableObject {
     }
 
     private func beginPasskeyOperation(anchor: UIWindow? = nil, requiresAnchor: Bool = false) -> Bool {
-        guard !isPasskeyOperationInProgress, !isLoading else { return false }
+        guard !isPasskeyOperationInProgress, !isLoading, !verification.isBusy else { return false }
         if requiresAnchor {
             guard let anchor, !anchor.isHidden,
                   anchor.windowScene?.activationState == .foregroundActive else {
@@ -478,7 +523,7 @@ final class AuthenticationService: ObservableObject {
 
     private func endPasskeyOperation() {
         isPasskeyOperationInProgress = false
-        isLoading = false
+        finishAuthenticationOperation()
         deviceUnlock.endAccountAuthentication()
         resumePendingPasskeyStatusRefresh()
     }
@@ -506,9 +551,10 @@ final class AuthenticationService: ObservableObject {
                 errorMessage = "No Homey session was returned. Please use email and password or try again."
                 return
             }
-            applySession(signedInSession)
+            authRevision &+= 1
+            verification.clear()
+            await applySession(signedInSession, revision: authRevision)
             if authenticationState == .authenticated { dismissPasskeySetupOffer() }
-            await refreshCurrentUserProfile()
         } catch {
             if !isPasskeyCancellation(error) {
                 errorMessage = "Passkey sign-in could not be completed. Try again or use email and password."
@@ -629,37 +675,112 @@ final class AuthenticationService: ObservableObject {
     }
 
     private func handleAuthStateChange(event: AuthChangeEvent, session: Session?) {
+        guard !isLoading, !isPasskeyOperationInProgress, !handlingVerification else { return }
         switch event {
         case .initialSession, .signedIn, .tokenRefreshed, .userUpdated, .mfaChallengeVerified:
+            // RootView owns initial restoration; do not race it with the SDK snapshot.
+            if event == .initialSession { return }
+            authRevision &+= 1
+            let revision = authRevision
             if let session {
-                applySession(session)
-                Task {
-                    await refreshCurrentUserProfile()
-                }
+                Task { await applySession(session, revision: revision) }
             } else {
-                clearSession(state: .unauthenticated)
+                clearSession(state: verification.pending == nil ? .unauthenticated : .emailVerificationRequired)
             }
         case .signedOut, .userDeleted:
-            clearSession(state: .unauthenticated, resetDeviceProtection: true)
+            authRevision &+= 1
+            clearSession(state: verification.pending == nil ? .unauthenticated : .emailVerificationRequired,
+                         resetDeviceProtection: true)
         case .passwordRecovery:
-            if let session {
-                applySession(session)
-            }
+            // Only the isolated recovery client and PasswordRecoveryService handle this.
+            break
         }
     }
 
-    // MARK: - State Helpers
-
-    private func applySession(_ session: Session) {
-        if self.session?.user.id != session.user.id {
-            clearPasskeyPresentationState()
+    private func applySession(_ candidate: Session, revision: UInt64) async {
+        guard revision == authRevision else { return }
+        let alreadyReady = authenticationState == .authenticated && session?.user.id == candidate.user.id
+        if !alreadyReady { authenticationState = .loading }
+        do {
+            let user = try await client.auth.user(jwt: candidate.accessToken)
+            guard revision == authRevision, client.auth.currentSession?.user.id == candidate.user.id,
+                  user.id == candidate.user.id else { return }
+            guard EmailVerification.permitsHomeAccess(sessionID: candidate.user.id, userID: user.id,
+                email: user.email, emailConfirmed: user.emailConfirmedAt != nil,
+                anonymous: user.isAnonymous, expired: candidate.isExpired) else {
+                session = candidate
+                currentUser = nil
+                verification.begin(email: user.email ?? "")
+                authenticationState = .emailVerificationRequired
+                return
+            }
+            if self.session?.user.id != user.id { clearPasskeyPresentationState() }
+            session = candidate
+            // Profile failures are recoverable, but never expose Home onboarding.
+            let profile = try await initializeProfile(user: user, revision: revision)
+            guard revision == authRevision, client.auth.currentSession?.user.id == user.id else { return }
+            deviceUnlock.bindAccount(user.id)
+            currentUser = profile
+            verification.clear()
+            authenticationState = .authenticated
+            hasLoadedPasskeys = false
+            passkeyStatusRevision += 1
+            offerPasskeySetupIfNeeded()
+        } catch {
+            guard revision == authRevision else { return }
+            currentUser = nil
+            authenticationState = .profileInitializationRequired
+            errorMessage = "We couldn't finish loading your account. Check your connection and try again, or return to Log In."
         }
-        deviceUnlock.bindAccount(session.user.id)
-        self.session = session
-        currentUser = UserProfile(user: session.user)
-        authenticationState = isVerified(user: session.user) ? .authenticated : .emailVerificationRequired
-        hasLoadedPasskeys = false
-        passkeyStatusRevision += 1
+    }
+
+    func retryAccountInitialization() async {
+        guard !isLoading else { return }
+        await restoreSession()
+    }
+
+    private func initializeProfile(user: User, revision: UInt64) async throws -> UserProfile {
+        // Retry one transient failure. Conditional column updates preserve values
+        // written concurrently by another client and never touch unrelated columns.
+        for attempt in 0...1 {
+            do {
+                var profile: UserProfile
+                do {
+                    profile = try await fetchProfile(userID: user.id, email: user.email ?? "")
+                } catch ProfileInitializationFailure.missingProfile {
+                    guard revision == authRevision else { throw CancellationError() }
+                    // Repair a missing trigger row only with the verified user's session.
+                    // Ignore conflicts so a concurrent trigger/client insert is preserved.
+                    try await client.from("profiles").upsert(
+                        UpdateProfilePayload(id: user.id, firstName: nil, lastName: nil, displayName: nil),
+                        onConflict: "id", ignoreDuplicates: true
+                    ).execute()
+                    profile = try await fetchProfile(userID: user.id, email: user.email ?? "")
+                }
+                var existing: [String: String] = [:]
+                existing["first_name"] = profile.firstName
+                existing["last_name"] = profile.lastName
+                existing["display_name"] = profile.displayName
+                let metadata = user.userMetadata.compactMapValues { $0.stringValue }
+                for repair in MissingProfileName.repairs(existing: existing, metadata: metadata) {
+                    guard revision == authRevision else { throw CancellationError() }
+                    let query = try client.from("profiles").update([repair.column: repair.value])
+                        .eq("id", value: user.id.uuidString)
+                    if let previous = repair.previousValue {
+                        try await query.eq(repair.column, value: previous).execute()
+                    } else {
+                        try await query.is(repair.column, value: nil).execute()
+                    }
+                }
+                profile = try await fetchProfile(userID: user.id, email: user.email ?? "")
+                guard profile.id == user.id else { throw ProfileInitializationFailure.missingProfile }
+                return profile
+            } catch {
+                if attempt == 1 { throw error }
+                try await Task.sleep(for: .milliseconds(300))
+            }
+        }
+        throw ProfileInitializationFailure.missingProfile
     }
 
     private func clearSession(state: AuthenticationState, resetDeviceProtection: Bool = false) {
@@ -675,12 +796,24 @@ final class AuthenticationService: ObservableObject {
     }
 
     private func isVerified(user: User) -> Bool {
-        user.emailConfirmedAt != nil || user.confirmedAt != nil
+        user.emailConfirmedAt != nil && !user.isAnonymous && user.email != nil
+    }
+
+    private func finishAuthenticationOperation() {
+        isLoading = false
+        drainVerificationCallback()
+    }
+
+    private func drainVerificationCallback() {
+        guard !isLoading, !handlingVerification, !isPasskeyOperationInProgress, !verification.isBusy,
+              let url = queuedVerificationURL else { return }
+        queuedVerificationURL = nil
+        Task { await handleEmailVerification(url) }
     }
 
     private func validate(email: String, password: String) -> Bool {
-        guard !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "Enter your email address."
+        guard PasswordRecovery.validEmail(EmailVerification.normalize(email)) else {
+            errorMessage = "Enter a valid email address."
             return false
         }
 
@@ -701,8 +834,8 @@ final class AuthenticationService: ObservableObject {
             .execute()
             .value
 
-        guard let profile = profiles.first else {
-            return UserProfile(id: userID, email: email)
+        guard let profile = profiles.first, profile.id == userID else {
+            throw ProfileInitializationFailure.missingProfile
         }
 
         return UserProfile(
@@ -782,57 +915,10 @@ final class AuthenticationService: ObservableObject {
 
     private func logCompleteError(_ error: Error, context: String) {
         #if DEBUG
-        print("========== \(context) ==========")
-        print(String(reflecting: error))
-        print(error.localizedDescription)
-
-        if let authError = error as? AuthError {
-            print("AuthError.code: \(authError.errorCode)")
-            print("AuthError.message: \(authError.message)")
-            print("AuthError.details: <not exposed by Supabase AuthError>")
-            print("AuthError.hint: <not exposed by Supabase AuthError>")
-
-            switch authError {
-            case .api(let message, let errorCode, let underlyingData, let underlyingResponse):
-                print("AuthError.api.message: \(message)")
-                print("AuthError.api.code: \(errorCode)")
-                print("AuthError.api.statusCode: \(underlyingResponse.statusCode)")
-                print("AuthError.api.responseBody: \(String(data: underlyingData, encoding: .utf8) ?? "<non-UTF8 response body>")")
-            case .weakPassword(let message, let reasons):
-                print("AuthError.weakPassword.message: \(message)")
-                print("AuthError.weakPassword.reasons: \(reasons)")
-            case .pkceGrantCodeExchange(let message, let error, let code):
-                print("AuthError.pkceGrantCodeExchange.message: \(message)")
-                print("AuthError.pkceGrantCodeExchange.error: \(error ?? "")")
-                print("AuthError.pkceGrantCodeExchange.code: \(code ?? "")")
-            case .implicitGrantRedirect(let message):
-                print("AuthError.implicitGrantRedirect.message: \(message)")
-            case .jwtVerificationFailed(let message):
-                print("AuthError.jwtVerificationFailed.message: \(message)")
-            case .sessionMissing:
-                print("AuthError.sessionMissing")
-            default:
-                print("AuthError: \(authError)")
-            }
-        }
-
-        if let postgrestError = error as? PostgrestError {
-            print("PostgrestError.code: \(postgrestError.code ?? "")")
-            print("PostgrestError.message: \(postgrestError.message)")
-            print("PostgrestError.details: \(postgrestError.detail ?? "")")
-            print("PostgrestError.hint: \(postgrestError.hint ?? "")")
-            print("PostgrestError.statusCode: <not exposed by PostgrestError>")
-            print("PostgrestError.responseBody: <not exposed by PostgrestError>")
-        }
-
-        if let httpError = error as? HTTPError {
-            print("HTTPError.statusCode: \(httpError.response.statusCode)")
-            print("HTTPError.responseBody: \(String(data: httpError.data, encoding: .utf8) ?? "<non-UTF8 response body>")")
-        }
-
-        print("===================================")
+        print("Authentication operation failed: \(context)")
         #endif
     }
+
 }
 
 private struct NormalizedProfileInput {
@@ -905,3 +991,5 @@ struct AccountPasskey: Identifiable {
     let name: String
     let createdAt: Date
 }
+
+private enum ProfileInitializationFailure: Error { case missingProfile }

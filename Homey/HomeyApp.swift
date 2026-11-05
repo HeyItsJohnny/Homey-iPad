@@ -45,7 +45,11 @@ struct HomeyApp: App {
                 .environmentObject(homeService)
                 .environmentObject(passwordRecovery)
                 .onOpenURL { url in
-                    Task { await passwordRecovery.handle(url) }
+                    if PasswordRecovery.isCallback(url) {
+                        Task { await passwordRecovery.handle(url) }
+                    } else if EmailVerification.isCallback(url) {
+                        Task { await authenticationService.handleEmailVerification(url) }
+                    }
                 }
         }
         .modelContainer(sharedModelContainer)
