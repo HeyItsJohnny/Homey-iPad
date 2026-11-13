@@ -35,6 +35,13 @@ struct RootView: View {
         .onChange(of: homeService.selectedHomeID) { _, selectedHomeID in
             storedSelectedHomeID = selectedHomeID?.uuidString ?? ""
         }
+        .onChange(of: authenticationService.currentUser?.id) { previousID, currentID in
+            if previousID != nil, previousID != currentID {
+                loadedHomeUserID = nil
+                storedSelectedHomeID = ""
+                homeService.clearAuthenticatedState()
+            }
+        }
         .onChange(of: authenticationService.authenticationState) { _, state in
             if state == .unauthenticated || state == .emailVerificationRequired || state == .profileInitializationRequired {
                 loadedHomeUserID = nil

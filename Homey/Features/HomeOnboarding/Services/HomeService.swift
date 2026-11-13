@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import Functions
 import PostgREST
 import Supabase
 
@@ -27,11 +28,17 @@ final class HomeService: ObservableObject {
 
     // MARK: - Private Properties
 
+    @Published private(set) var isRedeemingInvitation = false
+    @Published var joinErrorMessage: String?
+    private let invitationFlow = HouseholdInvitationFlow()
+    private let codeRedemption = HouseholdCodeRedemption()
+    private var accountRevision = UUID()
     private let client = SupabaseManager.shared.client
     private var loadedMembersHomeID: UUID?
     private var loadingMembersHomeID: UUID?
     private var loadedInvitationsHomeID: UUID?
     private var loadedInvitationUserID: UUID?
+    private var invitationRefreshRequested = false
 
     private func requireVerifiedAccount(expectedID: UUID? = nil) async throws {
         let session = try await client.auth.session
@@ -52,13 +59,17 @@ final class HomeService: ObservableObject {
             return
         }
 
+        let revision = accountRevision
         isLoading = true
         errorMessage = nil
 
         do {
-            homes = try await fetchHomes(for: userID)
+            let fetched = try await fetchHomes(for: userID)
+            guard revision == accountRevision, client.auth.currentSession?.user.id == userID else { return }
+            homes = fetched
             restoreOrSelectHome()
         } catch {
+            guard revision == accountRevision else { return }
             homes = []
             setSelectedHomeID(nil)
             errorMessage = "Unable to load your Homes."
@@ -493,8 +504,10 @@ final class HomeService: ObservableObject {
 
     func loadPendingInvitations(for homeID: UUID, forceRefresh: Bool = false) async {
         guard !isLoadingInvitations else {
+            if forceRefresh || homeID == selectedHomeID { invitationRefreshRequested = true }
             return
         }
+        let revision = accountRevision
 
         if !forceRefresh && loadedInvitationsHomeID == homeID {
             return
@@ -508,17 +521,22 @@ final class HomeService: ObservableObject {
         }
 
         do {
-            pendingInvitations = HomeInvitationDisplay.sorted(try await fetchPendingInvitations(for: homeID))
-            loadedInvitationsHomeID = homeID
+            let fetched = try await fetchPendingInvitations(for: homeID)
+            guard revision == accountRevision else { return }
+            if selectedHomeID == homeID {
+                pendingInvitations = HomeInvitationDisplay.sorted(fetched)
+                loadedInvitationsHomeID = homeID
+            }
         } catch {
-            invitationsErrorMessage = invitationErrorMessage(for: error)
-
-            #if DEBUG
-            print("Failed to load Home invitations: \(error)")
-            #endif
+            guard revision == accountRevision else { return }
+            if selectedHomeID == homeID { invitationsErrorMessage = "Couldn't load pending invitations. Please try again." }
         }
 
         isLoadingInvitations = false
+        if invitationRefreshRequested, let currentHomeID = selectedHomeID {
+            invitationRefreshRequested = false
+            await loadPendingInvitations(for: currentHomeID, forceRefresh: true)
+        }
     }
 
     func refreshPendingInvitations(for homeID: UUID) async {
@@ -534,6 +552,7 @@ final class HomeService: ObservableObject {
             return
         }
 
+        let revision = accountRevision
         isLoadingMyInvitations = true
         myInvitationsErrorMessage = nil
 
@@ -542,14 +561,14 @@ final class HomeService: ObservableObject {
         }
 
         do {
-            myPendingInvitations = HomeInvitationDisplay.sorted(try await fetchMyPendingInvitations())
+            try await requireVerifiedAccount(expectedID: userID)
+            let fetched = try await fetchMyPendingInvitations()
+            guard revision == accountRevision, client.auth.currentSession?.user.id == userID else { return }
+            myPendingInvitations = HomeInvitationDisplay.sorted(fetched)
             loadedInvitationUserID = userID
         } catch {
-            myInvitationsErrorMessage = invitationErrorMessage(for: error)
-
-            #if DEBUG
-            print("Failed to load my Home invitations: \(error)")
-            #endif
+            guard revision == accountRevision else { return }
+            myInvitationsErrorMessage = "Couldn't load your invitations. Please try again."
         }
 
         isLoadingMyInvitations = false
@@ -560,55 +579,105 @@ final class HomeService: ObservableObject {
     }
 
     func createInvitation(homeID: UUID, email: String, role: HomeMemberRole) async -> Bool {
-        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-
-        guard !normalizedEmail.isEmpty else {
-            invitationsErrorMessage = "Enter a valid email address."
+        guard !isCreatingInvitation else { return false }
+        guard let userID = client.auth.currentSession?.user.id else {
+            invitationsErrorMessage = HouseholdInvitationFailure.backend("unauthorized").message
             return false
         }
-
-        guard role.canBeInvited else {
-            invitationsErrorMessage = "Choose a supported role."
+        guard homeID == selectedHomeID, selectedHome() != nil else {
+            invitationsErrorMessage = HouseholdInvitationFailure.backend("invalid_home_id").message
             return false
         }
-
-        guard !isCreatingInvitation else {
-            return false
-        }
-
+        let revision = accountRevision
         isCreatingInvitation = true
         invitationsErrorMessage = nil
-
+        defer { if revision == accountRevision { isCreatingInvitation = false } }
         do {
-            try await requireVerifiedAccount()
-            if try await pendingInvitationExists(homeID: homeID, email: normalizedEmail) {
-                invitationsErrorMessage = "An invitation is already pending for this email."
-                isCreatingInvitation = false
-                return false
-            }
-
-            try await client
-                .rpc(
-                    "create_home_invitation",
-                    params: CreateHomeInvitationRPCParameters(
-                        targetHomeID: homeID,
-                        inviteeEmail: normalizedEmail,
-                        invitationRole: role
-                    )
-                )
-                .execute()
-
-            await refreshPendingInvitations(for: homeID)
-            isCreatingInvitation = false
-            return true
+            try await requireVerifiedAccount(expectedID: userID)
+            guard revision == accountRevision, homeID == selectedHomeID else { return false }
+            return try await invitationFlow.send(userID: userID, homeID: homeID, email: email,
+                role: role, senderRole: selectedHomeRole(currentUserID: userID), verified: true,
+                invoke: { request in
+                    do {
+                        try await self.client.functions.invoke("homey-send-household-invitation",
+                            options: FunctionInvokeOptions(body: request)) { data, _ in
+                                try HouseholdInvitationFailure.validateResponse(data)
+                            }
+                    } catch let error as FunctionsError {
+                        if case .httpError(_, let data) = error {
+                            // This decoder only accepts explicit error codes; unknown bodies are uncertain.
+                            do { try HouseholdInvitationFailure.validateResponse(data) }
+                            catch { throw error }
+                        }
+                        throw HouseholdInvitationFailure.uncertain
+                    } catch let error as HouseholdInvitationFailure { throw error }
+                    catch { throw HouseholdInvitationFailure.uncertain }
+                }, refresh: {
+                    guard revision == self.accountRevision, self.client.auth.currentSession?.user.id == userID,
+                          self.selectedHomeID == homeID else { return }
+                    await self.refreshPendingInvitations(for: homeID)
+                }) && revision == accountRevision && client.auth.currentSession?.user.id == userID && selectedHomeID == homeID
         } catch {
-            invitationsErrorMessage = invitationErrorMessage(for: error)
+            guard revision == accountRevision else { return false }
+            invitationsErrorMessage = error is HomeVerificationFailure
+                ? HouseholdInvitationFailure.backend("unverified_email").message
+                : (error as? HouseholdInvitationFailure ?? .uncertain).message
+            return false
+        }
+    }
 
-            #if DEBUG
-            print("Failed to create Home invitation: \(error)")
-            #endif
+    func redeemInvitationCode(_ input: String, currentUserID: UUID) async -> Bool {
+        guard !isRedeemingInvitation, acceptingInvitationID == nil else { return false }
+        let code = HouseholdInvitationFlow.normalizedCode(input)
+        guard HouseholdInvitationFlow.validCode(code) else {
+            joinErrorMessage = code.isEmpty ? "Enter your invitation code." : "Enter the complete invitation code from your email."
+            return false
+        }
+        let revision = accountRevision
+        isRedeemingInvitation = true
+        joinErrorMessage = nil
+        defer { if revision == accountRevision { isRedeemingInvitation = false } }
+        do {
+            try await requireVerifiedAccount(expectedID: currentUserID)
+            guard revision == accountRevision else { return false }
+            let redeemed = try await codeRedemption.redeem(code, userID: currentUserID, verified: true,
+                isCurrent: { revision == self.accountRevision && self.client.auth.currentSession?.user.id == currentUserID },
+                invoke: { requestedCode in
+                    try await self.client.rpc("redeem_home_invitation_code",
+                        params: RedeemHomeInvitationParameters(requestedCode: requestedCode)).execute().value
+                })
+            if redeemed {
+                myPendingInvitations = []
+                loadedInvitationUserID = nil
+            }
+            return redeemed
+        } catch {
+            if revision == accountRevision { joinErrorMessage = HouseholdInvitationFailure.joinMessage(error) }
+            return false
+        }
+    }
 
-            isCreatingInvitation = false
+    func finishJoiningHome(currentUserID: UUID) async -> Bool {
+        guard !isRedeemingInvitation else { return false }
+        let revision = accountRevision
+        isRedeemingInvitation = true
+        defer { if revision == accountRevision { isRedeemingInvitation = false } }
+        do {
+            try await requireVerifiedAccount(expectedID: currentUserID)
+            var refreshed: [HomeSummary] = []
+            let finished = try await codeRedemption.finish(userID: currentUserID,
+                isCurrent: { revision == self.accountRevision && self.client.auth.currentSession?.user.id == currentUserID },
+                refresh: {
+                    refreshed = try await self.fetchHomes(for: currentUserID)
+                    return refreshed.map(\.id)
+                }, navigate: { homeID in
+                    self.homes = refreshed
+                    self.setSelectedHomeID(homeID)
+                })
+            if finished { await refreshMyPendingInvitations(for: currentUserID) }
+            return finished
+        } catch {
+            if revision == accountRevision { joinErrorMessage = "Couldn't refresh your Homes. Please try Continue again." }
             return false
         }
     }
@@ -635,20 +704,17 @@ final class HomeService: ObservableObject {
         } catch {
             invitationsErrorMessage = invitationErrorMessage(for: error)
 
-            #if DEBUG
-            print("Failed to cancel Home invitation: \(error)")
-            #endif
-
             cancellingInvitationID = nil
             return false
         }
     }
 
     func acceptInvitation(_ invitation: HomeInvitationDisplay, currentUserID: UUID) async -> AcceptedHomeInvitationResult? {
-        guard acceptingInvitationID == nil else {
+        guard acceptingInvitationID == nil, !isRedeemingInvitation else {
             return nil
         }
 
+        let revision = accountRevision
         acceptingInvitationID = invitation.id
         myInvitationsErrorMessage = nil
 
@@ -662,6 +728,7 @@ final class HomeService: ObservableObject {
                 .execute()
                 .value
 
+            guard revision == accountRevision, client.auth.currentSession?.user.id == currentUserID else { return nil }
             let result = AcceptedHomeInvitationResult(
                 homeID: acceptedHomeID,
                 homeName: invitation.homeName ?? "Home"
@@ -669,16 +736,14 @@ final class HomeService: ObservableObject {
 
             myPendingInvitations.removeAll { $0.id == invitation.id }
             await loadHomes(for: currentUserID)
+            guard revision == accountRevision else { return nil }
             loadedInvitationUserID = nil
             await refreshMyPendingInvitations(for: currentUserID)
             acceptingInvitationID = nil
             return result
         } catch {
+            guard revision == accountRevision else { return nil }
             myInvitationsErrorMessage = invitationErrorMessage(for: error)
-
-            #if DEBUG
-            print("Failed to accept Home invitation: \(error)")
-            #endif
 
             acceptingInvitationID = nil
             return nil
@@ -709,16 +774,17 @@ final class HomeService: ObservableObject {
         } catch {
             myInvitationsErrorMessage = invitationErrorMessage(for: error)
 
-            #if DEBUG
-            print("Failed to decline Home invitation: \(error)")
-            #endif
-
             decliningInvitationID = nil
             return false
         }
     }
 
     func clearAuthenticatedState() {
+        accountRevision = UUID()
+        invitationRefreshRequested = false
+        codeRedemption.reset()
+        isRedeemingInvitation = false
+        joinErrorMessage = nil
         homes = []
         members = []
         pendingInvitations = []
@@ -836,19 +902,6 @@ final class HomeService: ObservableObject {
         }
     }
 
-    private func pendingInvitationExists(homeID: UUID, email: String) async throws -> Bool {
-        let existingInvitations: [HomeInvitationIDResponse] = try await client
-            .from("home_invitations")
-            .select("id")
-            .eq("home_id", value: homeID.uuidString)
-            .eq("email", value: email)
-            .eq("status", value: HomeInvitationStatus.pending.rawValue)
-            .execute()
-            .value
-
-        return !existingInvitations.isEmpty
-    }
-
     private func fetchMyPendingInvitations() async throws -> [HomeInvitationDisplay] {
         let responses: [MyHomeInvitationResponse] = try await client
             .rpc("get_my_pending_home_invitations")
@@ -880,34 +933,7 @@ final class HomeService: ObservableObject {
     }
 
     private func invitationErrorMessage(for error: Error) -> String {
-        let message = homeErrorMessage(for: error)
-        let lowercasedMessage = message.lowercased()
-
-        if lowercasedMessage.contains("duplicate") || lowercasedMessage.contains("unique") {
-            return "An invitation is already pending for this email."
-        }
-
-        if lowercasedMessage.contains("permission") || lowercasedMessage.contains("policy") || lowercasedMessage.contains("rls") {
-            return "You do not have permission to manage invitations for this home."
-        }
-
-        if lowercasedMessage.contains("expired") {
-            return "This invitation has expired."
-        }
-
-        if lowercasedMessage.contains("cancelled") || lowercasedMessage.contains("canceled") || lowercasedMessage.contains("revoked") {
-            return "This invitation is no longer available."
-        }
-
-        if lowercasedMessage.contains("different email") || lowercasedMessage.contains("email") && lowercasedMessage.contains("match") {
-            return "This invitation was sent to a different email address."
-        }
-
-        if lowercasedMessage.contains("already") && lowercasedMessage.contains("member") {
-            return "You are already a member of this home."
-        }
-
-        return message.isEmpty ? "The invitation could not be updated. Please try again." : message
+        HouseholdInvitationFailure.joinMessage(error)
     }
 
     private func restoreOrSelectHome(preferredHomeName: String? = nil) {
@@ -975,16 +1001,9 @@ private struct GetHomeMembersParameters: Encodable {
     }
 }
 
-private struct CreateHomeInvitationRPCParameters: Encodable {
-    let targetHomeID: UUID
-    let inviteeEmail: String
-    let invitationRole: HomeMemberRole
-
-    enum CodingKeys: String, CodingKey {
-        case targetHomeID = "target_home_id"
-        case inviteeEmail = "invitee_email"
-        case invitationRole = "invitation_role"
-    }
+private struct RedeemHomeInvitationParameters: Encodable {
+    let requestedCode: String
+    enum CodingKeys: String, CodingKey { case requestedCode = "requested_code" }
 }
 
 struct AcceptedHomeInvitationResult: Hashable {
@@ -1097,10 +1116,6 @@ private struct HomeInvitationResponse: Decodable {
         case createdAt = "created_at"
         case expiresAt = "expires_at"
     }
-}
-
-private struct HomeInvitationIDResponse: Decodable {
-    let id: UUID
 }
 
 private struct MyHomeInvitationResponse: Decodable {

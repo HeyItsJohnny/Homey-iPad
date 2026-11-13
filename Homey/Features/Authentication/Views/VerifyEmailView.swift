@@ -25,10 +25,11 @@ private struct VerificationContent: View {
                             .font(.largeTitle)
                             .foregroundStyle(HomeyTheme.primary)
                             .accessibilityHidden(true)
-                        Text("Verify Your Email")
+                        Text("Please Verify Your Email")
                             .font(.largeTitle.bold())
                             .accessibilityAddTraits(.isHeader)
                         VStack(spacing: 10) {
+                            Text("Verify your email address before joining a Home.")
                             Text("We've sent a verification link to:")
                             Text(verification.pending?.email ?? authenticationService.session?.user.email ?? "your email address")
                                 .font(.headline)

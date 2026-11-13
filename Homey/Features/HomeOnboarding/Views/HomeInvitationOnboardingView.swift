@@ -31,9 +31,10 @@ struct HomeInvitationOnboardingView: View {
                 }
             }
             .navigationDestination(isPresented: $isShowingInvitations) {
-                HomeInvitationsView {
-                    isShowingInvitations = false
-                }
+                HomeInvitationsView(
+                    onClose: { isShowingInvitations = false },
+                    onSwitchHome: { isShowingInvitations = false }
+                )
             }
             .navigationDestination(isPresented: $isShowingCreateHome) {
                 CreateHomeView()
@@ -116,6 +117,9 @@ struct HomeInvitationOnboardingView: View {
                 Text(invitationCount == 1 ? "View Invitation" : "View Invitations")
             }
             .buttonStyle(HomeyPrimaryButtonStyle())
+
+            NavigationLink("Join a Home with a Code") { JoinHomeView() }
+                .buttonStyle(AuthenticationSecondaryButtonStyle())
 
             Button {
                 isShowingCreateHome = true

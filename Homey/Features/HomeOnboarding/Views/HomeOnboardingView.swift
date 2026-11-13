@@ -71,7 +71,7 @@ struct HomeOnboardingView: View {
         VStack(spacing: 20) {
             AuthenticationFormHeader(
                 title: "Welcome to Homey",
-                subtitle: "Let's create your first Home."
+                subtitle: "Create or join your Home."
             )
 
             NavigationLink {
@@ -80,6 +80,9 @@ struct HomeOnboardingView: View {
                 Text("Create Home")
             }
             .buttonStyle(HomeyPrimaryButtonStyle())
+
+            NavigationLink("Join a Home") { JoinHomeView() }
+                .buttonStyle(AuthenticationSecondaryButtonStyle())
         }
     }
 }

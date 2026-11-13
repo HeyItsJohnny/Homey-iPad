@@ -38,7 +38,9 @@ for text in ['Verify Your Email', "We've sent a verification link to:", 'Waiting
     assert text in view
 assert 'Continue' not in view and 'Refresh Session' not in view
 home = (root / 'Homey/Features/HomeOnboarding/Services/HomeService.swift').read_text()
-assert home.count('try await requireVerifiedAccount(') == 3
+for operation in ['createHome', 'createInvitation', 'acceptInvitation', 'redeemInvitationCode', 'finishJoiningHome', 'loadMyPendingInvitations']:
+    body = home.split('func ' + operation + '(')[1].split('\n    func ')[0]
+    assert 'try await requireVerifiedAccount(' in body, operation
 routing = (root / 'Homey/Core/Routing/RootView.swift').read_text()
 assert 'case .profileInitializationRequired:' in routing and 'case .emailVerificationRequired:' in routing
 assert 'HomeInvitationOnboardingView()' in routing and 'HomeOnboardingView()' in routing

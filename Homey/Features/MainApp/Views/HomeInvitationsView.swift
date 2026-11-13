@@ -26,6 +26,8 @@ struct HomeInvitationsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 26) {
                     header
+                    NavigationLink("Join a Home with a Code") { JoinHomeView(onJoined: onSwitchHome) }
+                        .buttonStyle(HomeyPrimaryButtonStyle())
 
                     if homeService.isLoadingMyInvitations && invitations.isEmpty {
                         loadingCard

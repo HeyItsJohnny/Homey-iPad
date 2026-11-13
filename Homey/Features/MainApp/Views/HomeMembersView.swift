@@ -84,8 +84,7 @@ struct HomeMembersView: View {
         .sheet(isPresented: $isShowingInviteSheet) {
             InviteMemberSheet(
                 selectedHome: selectedHome,
-                members: members,
-                pendingInvitations: pendingInvitations
+                members: members
             ) { message in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     successMessage = message
@@ -553,6 +552,9 @@ private struct PendingInvitationRow: View {
                     .foregroundStyle(HomeyTheme.textPrimary)
                     .lineLimit(1)
 
+                if let expirationText = invitation.expirationText {
+                    Text(expirationText).font(.caption).foregroundStyle(HomeyTheme.textSecondary)
+                }
                 Text("\(invitation.formattedRole) · \(invitation.invitedDateText)")
                     .font(.subheadline)
                     .foregroundStyle(HomeyTheme.textSecondary)
@@ -600,10 +602,10 @@ private struct InviteMemberSheet: View {
 
     let selectedHome: HomeSummary?
     let members: [HomeMemberDisplay]
-    let pendingInvitations: [HomeInvitationDisplay]
     let onSuccess: (String) -> Void
 
     @State private var email = ""
+    @State private var sentEmail: String?
     @State private var selectedRole = HomeMemberRole.member
     @State private var validationMessage: String?
     @State private var createErrorMessage: String?
@@ -623,6 +625,17 @@ private struct InviteMemberSheet: View {
                 HomeyTheme.backgroundPrimary
                     .ignoresSafeArea()
 
+                if let sentEmail {
+                    ScrollView {
+                    InvitationSuccessCard(title: "Invitation Sent!",
+                        message: "Your invitation has been emailed to \(sentEmail).\n\nThe recipient can join your Home using the invitation code included in their email.",
+                        buttonTitle: "Done") {
+                            onSuccess("Invitation Sent!")
+                            dismiss()
+                        }
+                    }
+                    .defaultScrollAnchor(.center)
+                } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
                         VStack(alignment: .leading, spacing: 6) {
@@ -662,6 +675,7 @@ private struct InviteMemberSheet: View {
                                         .stroke(HomeyTheme.borderSubtle, lineWidth: 1)
                                 }
                                 .accessibilityLabel("Email Address")
+                                .disabled(homeService.isCreatingInvitation)
                             }
 
                             VStack(alignment: .leading, spacing: 9) {
@@ -673,6 +687,7 @@ private struct InviteMemberSheet: View {
                                     }
                                 }
                                 .pickerStyle(.segmented)
+                                .disabled(homeService.isCreatingInvitation)
                                 .accessibilityLabel("Invitation Role")
                             }
 
@@ -680,9 +695,18 @@ private struct InviteMemberSheet: View {
                                 MembersErrorBanner(message: validationMessage)
                             }
 
-                            MembersStatusBanner(
-                                message: "Creating an invitation record only. Email delivery will be added later."
-                            )
+                            if let createErrorMessage {
+                                MembersErrorBanner(message: createErrorMessage)
+                                Button("Check Pending Invitations") {
+                                    Task {
+                                        if let selectedHome {
+                                            await homeService.refreshPendingInvitations(for: selectedHome.id)
+                                        }
+                                        dismiss()
+                                    }
+                                }
+                                .frame(minHeight: 44)
+                            }
 
                             Button {
                                 Task {
@@ -692,14 +716,14 @@ private struct InviteMemberSheet: View {
                                 if homeService.isCreatingInvitation {
                                     ProgressView()
                                         .tint(.white)
-                                        .accessibilityLabel("Creating invitation")
+                                        .accessibilityLabel("Sending invitation")
                                 } else {
-                                    Text("Create Invitation")
+                                    Text("Send Invitation")
                                 }
                             }
                             .buttonStyle(HomeyPrimaryButtonStyle())
                             .disabled(!canCreate)
-                            .accessibilityLabel("Create Invitation")
+                            .accessibilityLabel("Send Invitation")
                         }
                         .padding(28)
                         .dashboardCard(cornerRadius: HomeyRadius.page)
@@ -709,10 +733,12 @@ private struct InviteMemberSheet: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                 }
                 .scrollIndicators(.hidden)
+                }
             }
         }
         .presentationDetents([.large])
-        .alert("Unable to Create Invitation", isPresented: $isShowingCreateError) {
+        .interactiveDismissDisabled(homeService.isCreatingInvitation)
+        .alert("Unable to Send Invitation", isPresented: $isShowingCreateError) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(createErrorMessage ?? "Please try again.")
@@ -746,10 +772,7 @@ private struct InviteMemberSheet: View {
         )
 
         if didCreate {
-            email = ""
-            selectedRole = .member
-            onSuccess("Invitation Created\nThe invitation is ready for the recipient when they sign in to Homey.")
-            dismiss()
+            sentEmail = normalizedEmail
         } else {
             createErrorMessage = homeService.invitationsErrorMessage ?? "The invitation could not be created. Please try again."
             isShowingCreateError = true
@@ -776,7 +799,7 @@ private struct InviteMemberSheet: View {
             return "This person is already a member of this home."
         }
 
-        if pendingInvitations.contains(where: { invitation in
+        if homeService.invitationsForSelectedHome().contains(where: { invitation in
             invitation.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == email && invitation.status == .pending
         }) {
             return "An invitation is already pending for this email."
@@ -786,8 +809,7 @@ private struct InviteMemberSheet: View {
     }
 
     private func isValidEmail(_ email: String) -> Bool {
-        let pattern = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
-        return email.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil
+        HouseholdInvitationFlow.validEmail(email)
     }
 }
 

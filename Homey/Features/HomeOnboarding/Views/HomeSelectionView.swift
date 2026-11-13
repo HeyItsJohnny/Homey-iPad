@@ -185,6 +185,9 @@ struct HomeSelectionView: View {
                 subtitle: "Add another home when your family needs a separate space."
             )
 
+            NavigationLink("Join a Home") { JoinHomeView(onJoined: onHomeSelected) }
+                .buttonStyle(HomeyPrimaryButtonStyle())
+
             NavigationLink {
                 CreateHomeView()
             } label: {
