@@ -13,8 +13,6 @@ struct MyAccountView: View {
     @State private var lastName = ""
     @State private var displayName = ""
     @State private var originalValues: AccountProfileValues?
-    @State private var isDisplayNameCustomized = false
-    @State private var isUpdatingDisplayNameProgrammatically = false
     @State private var isLoadingProfile = true
     @State private var successMessage: String?
     @State private var errorMessage: String?
@@ -82,15 +80,6 @@ struct MyAccountView: View {
         }
         .task(id: authenticationService.currentUser?.id) {
             await loadAccountData()
-        }
-        .onChange(of: firstName) { _, _ in
-            updateGeneratedDisplayNameIfNeeded()
-        }
-        .onChange(of: lastName) { _, _ in
-            updateGeneratedDisplayNameIfNeeded()
-        }
-        .onChange(of: displayName) { _, newValue in
-            handleDisplayNameChange(newValue)
         }
         .confirmationDialog("Profile Photo", isPresented: $isShowingAvatarOptions, titleVisibility: .visible) {
             if UIImagePickerController.isSourceTypeAvailable(.camera) {
@@ -197,7 +186,7 @@ struct MyAccountView: View {
                 MyAccountTextField(
                     label: "First Name",
                     supportingText: "Your given name.",
-                    text: $firstName,
+                    text: firstNameInput,
                     textContentType: .givenName,
                     accessibilityLabel: "First Name field"
                 )
@@ -205,7 +194,7 @@ struct MyAccountView: View {
                 MyAccountTextField(
                     label: "Last Name",
                     supportingText: "Your family name.",
-                    text: $lastName,
+                    text: lastNameInput,
                     textContentType: .familyName,
                     accessibilityLabel: "Last Name field"
                 )
@@ -230,8 +219,9 @@ struct MyAccountView: View {
                 MyAccountErrorBanner(message: "Enter your first name.")
             } else if currentValues.lastName.isEmpty && hasUnsavedChanges {
                 MyAccountErrorBanner(message: "Enter your last name.")
-            } else if currentValues.displayName.isEmpty && hasUnsavedChanges {
-                MyAccountErrorBanner(message: "Enter a display name.")
+            }
+            if let message = ProfileNameFormatter.displayNameError(displayName) {
+                MyAccountErrorBanner(message: message)
             }
 
             Button {
@@ -418,6 +408,7 @@ struct MyAccountView: View {
 
         isLoadingProfile = true
         await authenticationService.refreshCurrentUserProfile()
+        guard !Task.isCancelled, authenticationService.currentUser?.id == userID else { return }
         populateProfileFields()
         await homeService.loadMyPendingInvitations(for: userID)
         isLoadingProfile = false
@@ -436,16 +427,15 @@ struct MyAccountView: View {
 
         firstName = loadedValues.firstName
         lastName = loadedValues.lastName
-        let generatedName = ProfileNameFormatter.generatedDisplayName(firstName: loadedValues.firstName, lastName: loadedValues.lastName)
-        isDisplayNameCustomized = !loadedValues.displayName.isEmpty && loadedValues.displayName != generatedName
-        setDisplayNameProgrammatically(loadedValues.displayName)
+        displayName = loadedValues.displayName
         originalValues = loadedValues
         successMessage = nil
         errorMessage = nil
     }
 
     private func saveAccount() async {
-        guard canSave else {
+        guard ProfileNameFormatter.displayNameError(displayName) == nil else { return }
+        guard canSave, let userID = authenticationService.currentUser?.id else {
             return
         }
 
@@ -455,12 +445,14 @@ struct MyAccountView: View {
         let didSave = await authenticationService.updateCurrentUserProfile(
             firstName: firstName,
             lastName: lastName,
-            displayName: displayName
+            displayName: currentValues.displayName
         )
 
+        guard !Task.isCancelled, authenticationService.currentUser?.id == userID else { return }
         if didSave {
             populateProfileFields()
             await refreshSelectedHomeMembers()
+            guard !Task.isCancelled, authenticationService.currentUser?.id == userID else { return }
             withAnimation(.easeInOut(duration: 0.2)) {
                 successMessage = "Account updated."
             }
@@ -547,36 +539,30 @@ struct MyAccountView: View {
         isShowingSaveError = true
     }
 
-    private func updateGeneratedDisplayNameIfNeeded() {
-        guard !isDisplayNameCustomized else {
-            return
-        }
+    // Field setters distinguish user edits from profile population. Assigning
+    // loaded values directly never invokes autofill.
+    private var firstNameInput: Binding<String> {
+        Binding(get: { firstName }, set: { value in
+            guard value != firstName else { return }
+            firstName = value
+            fillBlankDisplayNameAfterNameChange()
+        })
+    }
 
-        setDisplayNameProgrammatically(
-            ProfileNameFormatter.generatedDisplayName(firstName: firstName, lastName: lastName)
+    private var lastNameInput: Binding<String> {
+        Binding(get: { lastName }, set: { value in
+            guard value != lastName else { return }
+            lastName = value
+            fillBlankDisplayNameAfterNameChange()
+        })
+    }
+
+    private func fillBlankDisplayNameAfterNameChange() {
+        displayName = ProfileNameFormatter.displayNameAfterNameChange(
+            displayName: displayName, firstName: firstName, lastName: lastName
         )
     }
 
-    private func handleDisplayNameChange(_ newValue: String) {
-        guard !isUpdatingDisplayNameProgrammatically else {
-            return
-        }
-
-        if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            isDisplayNameCustomized = false
-            updateGeneratedDisplayNameIfNeeded()
-            return
-        }
-
-        let generatedValue = ProfileNameFormatter.generatedDisplayName(firstName: firstName, lastName: lastName)
-        isDisplayNameCustomized = newValue.trimmingCharacters(in: .whitespacesAndNewlines) != generatedValue
-    }
-
-    private func setDisplayNameProgrammatically(_ value: String) {
-        isUpdatingDisplayNameProgrammatically = true
-        displayName = value
-        isUpdatingDisplayNameProgrammatically = false
-    }
 }
 
 private struct AccountProfileValues: Equatable {

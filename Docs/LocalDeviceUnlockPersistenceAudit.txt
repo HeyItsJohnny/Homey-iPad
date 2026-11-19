@@ -1,0 +1,132 @@
+Homey-iPad — Local Face ID / Touch ID Preference Persistence Audit
+
+RESULT
+
+The audited iPad implementation does not have the iPhone's reported bug where a
+transient restoration error deletes the local device-unlock preference. No
+production application code was changed for this audit. Existing uncommitted
+passkey and display-name work was preserved.
+
+PERSISTENCE AND COLD LAUNCH
+
+DeviceUnlockService saves the protected account UUID in UserDefaults.standard
+under homey.deviceUnlock.accountID after successful device-owner authentication.
+Presence of this value enables protection. The preference contains neither a
+biometric credential nor a Supabase token.
+
+Its initializer reads that value before authentication restoration and sets both
+isEnabled and isLocked to true when protection is present. Lock state is never
+restored as unlocked. UserDefaults is persistent app storage, so the stored
+setting survives ordinary termination/relaunch and device restart; no extra
+storage or synchronization was added to production.
+
+HomeyApp passes the same DeviceUnlockService instance to AuthenticationService
+and the view environment. RootView shows loading, login, email-verification or
+profile-initialization content before any household content can be reached. Only
+a verified account with an initialized profile reaches the authenticated branch;
+that branch presents DeviceUnlockView whenever enabled protection remains locked.
+
+TRANSIENT FAILURE AND ACCOUNT IDENTITY
+
+AuthenticationService.clearSession defaults resetDeviceProtection to false.
+Its normal restoration-error path calls sessionBecameUnavailable(), which cancels
+an active challenge, clears the in-memory account binding and retains the saved
+protected-account UUID. It keeps an enabled gate locked. A temporary nil session
+is not a request to disable protection.
+
+Profile-loading failures route to profileInitializationRequired without deleting
+the preference. Explicit refresh failures similarly keep household routing closed.
+Successful cold-launch restoration binds the verified account only after profile
+initialization. The same saved account remains protected. A different verified
+account clears the old account's setting; protection is never inherited.
+
+The installed Supabase Swift SDK 2.53.0 was inspected as well as the app code.
+Ordinary transport errors and generic server failures do not emit signedOut or
+remove the session from its refresh path. APIClient does perform session cleanup
+and emit signedOut for authoritative sessionNotFound, sessionExpired,
+refreshTokenNotFound and refreshTokenAlreadyUsed errors. These terminal errors
+are distinct from a transient offline or generic Supabase failure.
+
+EXISTING RESET POLICY
+
+The setting can be removed by:
+- Explicitly disabling local unlock after an account has been bound.
+- Explicit sign-out, even if the server logout request fails.
+- Binding a confirmed different account.
+- The explicit new-account signup flow, which ends/replaces the previous account
+  context and clears its local device protection.
+- A handled signedOut/userDeleted event, including confirmed session termination.
+  Device-session validation also deliberately signs out locally after confirmed
+  invalid-session errors. Ordinary network errors do not take that path.
+
+These existing reset policies were audited, not changed. Temporary missing state
+and restoration/profile failures use the preserving paths instead.
+
+LOCAL AUTHENTICATION AND PASSKEY ISOLATION
+
+Unlock validates the Homey session before presenting local device authentication.
+Cancellation, failure and unavailable session validation retain protection.
+Late challenge results after backgrounding, session loss or account changes
+cannot unlock the gate. The deviceOwnerAuthentication policy allows device
+passcode fallback as well as Face ID / Touch ID.
+
+Backgrounding locks the gate. Foregrounding does not automatically unlock it.
+A new iPad window also locks it. The privacy shield covers root content and
+presented sheets during scene deactivation/backgrounding. Passkey system sheets
+have their existing separate ceremony guard; actual backgrounding still locks.
+Passkey setup/removal does not reset the saved local-unlock preference.
+
+AUTOMATED VALIDATION
+
+Passed:
+- 34 checks against the unchanged production DeviceUnlockService, using test-only
+  LocalAuthentication and authentication-service boundaries.
+- A real separate-process UserDefaults read: the persisted account preference
+  was retained and the new process started enabled and locked.
+- Restoration/default-reset, temporary nil/profile failure, account isolation,
+  lock-routing, snapshot-lifecycle and passkey-isolation source contracts.
+- Existing 66 email-verification checks and authentication/routing contracts.
+- Existing 25 passkey state/removal checks and passkey integration contracts.
+- Existing password-recovery regression checks.
+- Debug and Release iOS Simulator builds with CODE_SIGNING_ALLOWED=NO.
+- git diff --check.
+
+The test runner compiles production DeviceUnlockService unchanged against a
+mock LocalAuthentication module in a temporary directory. This mock never ships
+in the app. A fresh test-only UserDefaults suite is deleted afterward. The
+cross-process test needs normal access to macOS preferences; the restricted
+sandbox could not persist the suite, so the successful run used approved normal
+preferences access. No real Homey preferences or live Supabase sessions changed.
+
+FILES ADDED FOR THIS AUDIT
+
+Docs/LocalDeviceUnlockPersistenceAudit.txt
+Tests/DeviceUnlockChecks.swift
+Tests/Support/MockLocalAuthentication.swift
+Tests/Support/DeviceUnlockAuthenticationStub.swift
+Tests/check-device-unlock-contracts.py
+Tests/run-device-unlock-checks.sh
+
+No application source, iPhone repository, SQL or Supabase settings were modified
+for this audit.
+
+MANUAL IPAD CHECKLIST — NOT YET EXECUTED
+
+[ ] Enable local unlock, background/foreground and inspect app-switcher snapshots.
+[ ] Force-quit/relaunch and reboot the iPad: the saved same-account setting remains
+    enabled, and household content stays hidden until auth and local unlock pass.
+[ ] Start offline and simulate temporary Supabase/profile failures. Reconnect and
+    retry as the same account; the preference remains enabled and locked.
+[ ] Cancel/fail Face ID or Touch ID, then use device passcode fallback. Failure
+    leaves the app locked; successful authentication unlocks only a valid session.
+[ ] Sign out and switch accounts. Confirm the old preference is removed and the
+    new account does not inherit it. Confirm explicit disable persists on relaunch.
+[ ] Open a second iPad window and background during a challenge; check that no
+    previous or late authentication result exposes protected content.
+[ ] Smoke-test passkey registration/sign-in/removal, email/password login,
+    verification, password recovery and household selection.
+
+Hardware restart, native biometric/passcode UI, actual app force-quit, rendered
+lock-screen/snapshot behavior and live Supabase outages remain manual integration
+checks. Automated tests cover service behavior and persistence boundaries, not
+physical hardware or live server availability.

@@ -76,10 +76,12 @@ invitation also fetch the authoritative user before invoking existing RPCs.
 Device-unlock account binding and the existing protection service are preserved.
 
 Profile initialization fetches the authenticated user's row, verifies its ID,
-and fills only missing/blank names from that user's metadata. Updates compare
-the previous column value (or null) and are scoped by user ID, preserving concurrent
-edits and all other columns. If the trigger row is absent, an authenticated
-conflict-ignoring insert repairs it without replacing a concurrent row. One retry
+and fills only missing/blank First Name and Last Name from that user's metadata.
+Display Name is never repaired on an existing profile from signup metadata.
+Updates compare the previous column value (or null) and are scoped by user ID,
+preserving concurrent edits and all other columns. If the trigger row is absent, an authenticated
+conflict-ignoring insert repairs it using the original signup names, including
+Display Name, without replacing a concurrent row. One retry
 handles transient failures; continued failure blocks Home onboarding and offers
 retry. Existing RLS permissions remain required; no anonymous grants, service-role
 key, trigger/table changes or backend migrations were introduced.

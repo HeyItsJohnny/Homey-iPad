@@ -23,6 +23,7 @@ final class AuthenticationService: ObservableObject {
     @Published private(set) var isRefreshingPasskeys = false
     @Published private(set) var passkeyStatusRevision = 0
     private var pendingPasskeyStatusRefresh = false
+    private let passkeyRemoval = AccountPasskeyRemoval()
 
     var hasRegisteredAccountPasskey: Bool {
         authenticationState == .authenticated && !accountPasskeys.isEmpty
@@ -32,6 +33,15 @@ final class AuthenticationService: ObservableObject {
         authenticationState == .authenticated && hasLoadedPasskeys && accountPasskeys.isEmpty
             && !isLoading && !isPasskeyOperationInProgress && !isRefreshingPasskeys
     }
+    var accountPasskeyAction: AccountPasskeyAction {
+        .resolve(hasRegisteredPasskey: hasRegisteredAccountPasskey, hasLoaded: hasLoadedPasskeys)
+    }
+
+    var canManageAccountPasskeys: Bool {
+        authenticationState == .authenticated && !isLoading && !isPasskeyOperationInProgress
+            && !isRefreshingPasskeys
+    }
+
     @Published private(set) var passkeyMessage: String?
     @Published private(set) var shouldOfferPasskeySetup = false
 
@@ -232,7 +242,7 @@ final class AuthenticationService: ObservableObject {
         }
 
         guard normalizedProfile.displayName != nil else {
-            errorMessage = "Enter a display name."
+            errorMessage = ProfileNameFormatter.requiredDisplayNameMessage
             return
         }
 
@@ -311,9 +321,11 @@ final class AuthenticationService: ObservableObject {
             return
         }
 
+        let revision = authRevision
         do {
             let profile = try await fetchProfile(userID: currentUser.id, email: currentUser.email)
-            guard self.currentUser?.id == currentUser.id else { return }
+            guard self.currentUser?.id == currentUser.id, authRevision == revision,
+                  session?.user.id == currentUser.id else { return }
             self.currentUser = profile
         } catch {
             logCompleteError(error, context: "FETCH PROFILE FAILED")
@@ -343,7 +355,7 @@ final class AuthenticationService: ObservableObject {
         }
 
         guard normalizedProfile.displayName != nil else {
-            errorMessage = "Enter a display name."
+            errorMessage = ProfileNameFormatter.requiredDisplayNameMessage
             return false
         }
 
@@ -351,15 +363,20 @@ final class AuthenticationService: ObservableObject {
             return false
         }
 
+        let revision = authRevision
         isLoading = true
         clearError()
         defer { finishAuthenticationOperation() }
 
         do {
             try await upsertProfile(userID: currentUser.id, email: currentUser.email, profile: normalizedProfile)
-            self.currentUser = try await fetchProfile(userID: currentUser.id, email: currentUser.email)
+            let refreshed = try await fetchProfile(userID: currentUser.id, email: currentUser.email)
+            guard authRevision == revision, self.currentUser?.id == currentUser.id,
+                  session?.user.id == currentUser.id else { return false }
+            self.currentUser = refreshed
             return true
         } catch {
+            guard authRevision == revision, self.currentUser?.id == currentUser.id else { return false }
             logCompleteError(error, context: "UPDATE PROFILE FAILED")
             errorMessage = "We could not update your account. Please try again."
             return false
@@ -632,27 +649,42 @@ final class AuthenticationService: ObservableObject {
             guard session?.user.id == expectedID, passkeyStatusRevision == revision,
                   !Task.isCancelled else { return false }
             hasLoadedPasskeys = false
-            passkeyMessage = "Could not refresh account passkeys. Refresh before setting up another passkey."
+            passkeyMessage = "Could not check your passkey status. Please try again."
             return false
         }
     }
 
-    func deleteAccountPasskey(id: String, accountID: UUID) async {
+    func removeAccountPasskeys(confirmedIDs: Set<String>, accountID: UUID) async {
         guard authenticationState == .authenticated, session?.user.id == accountID,
-              !isRefreshingPasskeys,
-              accountPasskeys.contains(where: { $0.id == id }), beginPasskeyOperation() else { return }
+              !isRefreshingPasskeys, !confirmedIDs.isEmpty,
+              confirmedIDs.isSubset(of: Set(accountPasskeys.map(\.id))),
+              beginPasskeyOperation() else { return }
+        let revision = passkeyStatusRevision
+        let authenticationRevision = authRevision
+        let isCurrent = {
+            self.authenticationState == .authenticated && self.session?.user.id == accountID
+                && self.client.auth.currentSession?.user.id == accountID
+                && self.passkeyStatusRevision == revision && self.authRevision == authenticationRevision
+        }
         defer { endPasskeyOperation() }
         do {
-            try await client.auth.deletePasskey(id: id)
-            guard session?.user.id == accountID, authenticationState == .authenticated else { return }
-            // Do not remove a cached row optimistically. A fresh server list decides
-            // whether zero or more credentials remain, including synced credentials.
-            hasLoadedPasskeys = false
-            passkeyMessage = "Passkey removed from this Homey account."
-            _ = await fetchAccountPasskeys(expectedID: accountID)
+            let remaining = try await passkeyRemoval.remove(confirmedIDs: confirmedIDs, isCurrent: isCurrent,
+                list: {
+                    try await self.client.auth.listPasskeys().map {
+                        AccountPasskey(id: $0.id, name: $0.friendlyName ?? "Passkey", createdAt: $0.createdAt)
+                    }
+                }, delete: { id in try await self.client.auth.deletePasskey(id: id) })
+            guard isCurrent(), let remaining else { return }
+            accountPasskeys = remaining
+            hasLoadedPasskeys = true
+            passkeyMessage = remaining.isEmpty
+                ? "Passkey removed. You can set it up again anytime."
+                : "A passkey is still registered for this account. Remove it again to finish."
         } catch {
-            guard session?.user.id == accountID else { return }
-            passkeyMessage = "Could not remove this passkey. Try again."
+            guard isCurrent() else { return }
+            // Keep the last confirmed configured state, including after partial
+            // deletion or a lost response. Never imply all credentials are gone.
+            passkeyMessage = "We couldn't confirm passkey removal. Please try again."
         }
     }
 
@@ -751,8 +783,14 @@ final class AuthenticationService: ObservableObject {
                     guard revision == authRevision else { throw CancellationError() }
                     // Repair a missing trigger row only with the verified user's session.
                     // Ignore conflicts so a concurrent trigger/client insert is preserved.
+                    let initialNames = NormalizedProfileInput(
+                        firstName: user.userMetadata["first_name"]?.stringValue ?? "",
+                        lastName: user.userMetadata["last_name"]?.stringValue ?? "",
+                        displayName: user.userMetadata["display_name"]?.stringValue ?? ""
+                    )
                     try await client.from("profiles").upsert(
-                        UpdateProfilePayload(id: user.id, firstName: nil, lastName: nil, displayName: nil),
+                        UpdateProfilePayload(id: user.id, firstName: initialNames.firstName,
+                            lastName: initialNames.lastName, displayName: initialNames.displayName),
                         onConflict: "id", ignoreDuplicates: true
                     ).execute()
                     profile = try await fetchProfile(userID: user.id, email: user.email ?? "")
@@ -921,23 +959,6 @@ final class AuthenticationService: ObservableObject {
 
 }
 
-private struct NormalizedProfileInput {
-    let firstName: String?
-    let lastName: String?
-    let displayName: String?
-
-    init(firstName: String, lastName: String, displayName: String) {
-        self.firstName = Self.normalized(firstName)
-        self.lastName = Self.normalized(lastName)
-        self.displayName = Self.normalized(displayName)
-    }
-
-    private static func normalized(_ value: String) -> String? {
-        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : trimmed
-    }
-}
-
 private struct ProfileResponse: Decodable {
     let id: UUID
     let firstName: String?
@@ -984,12 +1005,6 @@ private struct UpdateAvatarURLPayload: Encodable {
             try container.encodeNil(forKey: .avatarURL)
         }
     }
-}
-
-struct AccountPasskey: Identifiable {
-    let id: String
-    let name: String
-    let createdAt: Date
 }
 
 private enum ProfileInitializationFailure: Error { case missingProfile }

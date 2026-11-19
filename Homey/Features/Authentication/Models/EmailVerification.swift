@@ -38,7 +38,7 @@ enum EmailVerification {
     static func signupError(firstName: String, lastName: String, displayName: String,
                             email: String, password: String, confirmation: String) -> String? {
         for (value, message) in [(firstName, "Enter your first name."), (lastName, "Enter your last name."),
-                                  (displayName, "Enter a display name.")] {
+                                  (displayName, ProfileNameFormatter.requiredDisplayNameMessage)] {
             if value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return message }
         }
         guard PasswordRecovery.validEmail(normalize(email)) else { return "Enter a valid email address." }
@@ -85,7 +85,9 @@ struct MissingProfileName {
     let value: String
 
     static func repairs(existing: [String: String], metadata: [String: String]) -> [MissingProfileName] {
-        ["first_name", "last_name", "display_name"].compactMap { column in
+        // Display Name is independent profile data. Never restore it from stale
+        // signup metadata during login, refresh or session restoration.
+        ["first_name", "last_name"].compactMap { column in
             guard existing[column]?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false,
                   let value = metadata[column]?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !value.isEmpty else { return nil }

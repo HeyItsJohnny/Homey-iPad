@@ -76,7 +76,7 @@ struct EmailVerificationChecks {
         check(!permits(id, id, true, false, false, nil), "missing email blocked")
         let repairs = MissingProfileName.repairs(existing: ["first_name": "Preserved", "last_name": " "],
             metadata: ["first_name": "Replacement", "last_name": " Last ", "display_name": "Member", "avatar_url": "unrelated"])
-        check(repairs.count == 2, "fill only missing names")
+        check(repairs.count == 1, "fill only missing first/last names; never restore display name")
         check(!repairs.contains { $0.column == "first_name" }, "preserve valid names")
         check(repairs.first?.previousValue == " ", "conditional repair preserves concurrent writes")
         check(MissingProfileName.repairs(existing: ["first_name": "First", "last_name": "Last", "display_name": "Member"], metadata: names.metadata).isEmpty, "profile initialization idempotent")

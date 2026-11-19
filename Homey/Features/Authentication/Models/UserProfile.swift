@@ -94,12 +94,3 @@ struct UserProfile: Codable, Identifiable, Equatable {
         case avatarURL = "avatar_url"
     }
 }
-
-enum ProfileNameFormatter {
-    static func generatedDisplayName(firstName: String, lastName: String) -> String {
-        [firstName, lastName]
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
-    }
-}

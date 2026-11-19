@@ -10,8 +10,6 @@ struct SignUpView: View {
     @State private var firstName = ""
     @State private var lastName = ""
     @State private var displayName = ""
-    @State private var isDisplayNameCustomized = false
-    @State private var isUpdatingDisplayNameProgrammatically = false
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
@@ -38,15 +36,6 @@ struct SignUpView: View {
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             authenticationService.clearError()
-        }
-        .onChange(of: firstName) { _, _ in
-            updateGeneratedDisplayNameIfNeeded()
-        }
-        .onChange(of: lastName) { _, _ in
-            updateGeneratedDisplayNameIfNeeded()
-        }
-        .onChange(of: displayName) { _, newValue in
-            handleDisplayNameChange(newValue)
         }
     }
 
@@ -105,7 +94,7 @@ struct SignUpView: View {
                 AuthenticationTextField(
                     title: "First Name",
                     systemImage: "person",
-                    text: $firstName,
+                    text: firstNameInput,
                     focusedField: $focusedField,
                     field: .firstName,
                     textContentType: .givenName,
@@ -117,7 +106,7 @@ struct SignUpView: View {
                 AuthenticationTextField(
                     title: "Last Name",
                     systemImage: "person",
-                    text: $lastName,
+                    text: lastNameInput,
                     focusedField: $focusedField,
                     field: .lastName,
                     textContentType: .familyName,
@@ -231,36 +220,30 @@ struct SignUpView: View {
         }
     }
 
-    private func updateGeneratedDisplayNameIfNeeded() {
-        guard !isDisplayNameCustomized else {
-            return
-        }
+    // Field setters distinguish user edits from profile population. Assigning
+    // loaded values directly never invokes autofill.
+    private var firstNameInput: Binding<String> {
+        Binding(get: { firstName }, set: { value in
+            guard value != firstName else { return }
+            firstName = value
+            fillBlankDisplayNameAfterNameChange()
+        })
+    }
 
-        setDisplayNameProgrammatically(
-            ProfileNameFormatter.generatedDisplayName(firstName: firstName, lastName: lastName)
+    private var lastNameInput: Binding<String> {
+        Binding(get: { lastName }, set: { value in
+            guard value != lastName else { return }
+            lastName = value
+            fillBlankDisplayNameAfterNameChange()
+        })
+    }
+
+    private func fillBlankDisplayNameAfterNameChange() {
+        displayName = ProfileNameFormatter.displayNameAfterNameChange(
+            displayName: displayName, firstName: firstName, lastName: lastName
         )
     }
 
-    private func handleDisplayNameChange(_ newValue: String) {
-        guard !isUpdatingDisplayNameProgrammatically else {
-            return
-        }
-
-        if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            isDisplayNameCustomized = false
-            updateGeneratedDisplayNameIfNeeded()
-            return
-        }
-
-        let generatedValue = ProfileNameFormatter.generatedDisplayName(firstName: firstName, lastName: lastName)
-        isDisplayNameCustomized = newValue.trimmingCharacters(in: .whitespacesAndNewlines) != generatedValue
-    }
-
-    private func setDisplayNameProgrammatically(_ value: String) {
-        isUpdatingDisplayNameProgrammatically = true
-        displayName = value
-        isUpdatingDisplayNameProgrammatically = false
-    }
 }
 
 private enum SignUpField: Hashable {
